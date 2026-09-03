@@ -1,8 +1,8 @@
 {
  "zone": "SE1",
  "zone_name": "Luleå",
- "generated_at": "2026-09-04T00:57:01+02:00",
- "run_id": "20260903T2257Z",
+ "generated_at": "2026-09-04T01:18:40+02:00",
+ "run_id": "20260903T2318Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": true,
@@ -3853,6 +3853,28 @@
      "p90": 28.763
     }
    }
+  },
+  {
+   "ts": "2026-09-11T00:00:00+02:00",
+   "actual": null,
+   "source": "forecast",
+   "models": {
+    "seasonal_naive": {
+     "p10": 22.384,
+     "p50": 24.53,
+     "p90": 26.676
+    },
+    "weather_scaled": {
+     "p10": 7.332,
+     "p50": 12.662,
+     "p90": 20.125
+    },
+    "ensemble": {
+     "p10": 7.185,
+     "p50": 16.816,
+     "p90": 27.21
+    }
+   }
   }
  ],
  "drivers": {
@@ -3860,20 +3882,20 @@
   "regime_label_sv": "Normalläge",
   "headline_sv": "Inget som sticker ut — SE1 följer ett normalt veckomönster.",
   "bullets_sv": [
-   "Vindprognosen i SE1 ligger 1,48 gånger det normala kommande två dygn.",
-   "Temperaturen ligger 4,4 grader under normalt, vilket drar upp förbrukningen.",
-   "Prognosen ger i snitt +20,8 EUR/MWh skillnad mellan SE4 och SE2 kommande två dygn.",
+   "Vindprognosen i SE1 ligger 1,50 gånger det normala kommande två dygn.",
+   "Temperaturen ligger 4,5 grader under normalt, vilket drar upp förbrukningen.",
+   "Prognosen ger i snitt +20,4 EUR/MWh skillnad mellan SE4 och SE2 kommande två dygn.",
    "Helgen ingår i fönstret, med lägre industriförbrukning än vardagar.",
    "Svenska kraftnät skriver: ”På västkusten pågår avbrott i samband med ledningsförnyelse, avslutas 8 november.”"
   ],
   "features": {
-   "wind_index_local": 1.483,
-   "wind_index_north": 1.144,
-   "wind_index_south": 1.121,
-   "temp_anomaly_se1_c": -4.422,
-   "temp_local_c": 11.24,
+   "wind_index_local": 1.497,
+   "wind_index_north": 1.154,
+   "wind_index_south": 1.137,
+   "temp_anomaly_se1_c": -4.522,
+   "temp_local_c": 11.14,
    "solar_index_daytime": 0.132,
-   "spread_proxy_se4_se2": 20.789
+   "spread_proxy_se4_se2": 20.4
   }
  }
 }

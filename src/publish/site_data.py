@@ -13,6 +13,7 @@ from typing import Any
 
 from ..config import (
     CURRENCY,
+    HORIZON_HOURS,
     REPO_URL,
     RESOLUTION,
     SITE_DATA_DIR,
@@ -30,7 +31,6 @@ from .api import current_point
 log = logging.getLogger(__name__)
 
 SPARK_HOURS = 24
-NEXT_HOURS = 48
 
 
 def _write(name: str, payload: Any) -> None:
@@ -57,12 +57,13 @@ def _spark(forecast: dict, now: datetime) -> list[float | None]:
 
 
 def _next_hours(forecast: dict, now: datetime) -> list[dict]:
-    """The next 48 hours as a flat table: value, band, and whether it is fact."""
-    end = now + timedelta(hours=NEXT_HOURS)
+    """Every remaining hour of the forecast window: value, band, and fact-or-not."""
+    start = now.replace(minute=0, second=0, microsecond=0)
+    end = now + timedelta(hours=HORIZON_HOURS)
     rows: list[dict] = []
     for entry in forecast["series"]:
         ts = parse_iso(entry["ts"])
-        if not now.replace(minute=0, second=0, microsecond=0) <= ts < end:
+        if not start <= ts <= end:
             continue
         model = entry["models"].get(DEFAULT_MODEL_ID) or {}
         value = entry["actual"] if entry["actual"] is not None else model.get("p50")
@@ -142,7 +143,8 @@ def write_zone(
         "series": forecast["series"],
         "next_hours": _next_hours(forecast, now),
         "history": history["points"],
-        "history_lead_time_h": history["lead_time_h"],
+        "history_lead_times_h": history["lead_times_h"],
+        "history_default_lead_h": history["default_lead_time_h"],
         "accuracy": accuracy_slice,
     }
     _write(f"{zone.lower()}.json", payload)

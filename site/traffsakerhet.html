@@ -97,9 +97,13 @@
 
     <section class="card">
       <div class="section-title">
-        <h2>Vad vi sa i går mot vad som hände <span id="history-zone-name" class="meta"></span></h2>
-        <span class="meta">Senaste 30 dygnen, prognos utfärdad ~24 h före leverans</span>
+        <h2>Vad vi sa då mot vad som hände <span id="history-zone-name" class="meta"></span></h2>
+        <div class="controls">
+          <select class="field" id="hist-lead" aria-label="Ledtid"></select>
+        </div>
       </div>
+      <p class="sub">Senaste 30 dygnen, timme för timme. Välj hur långt före leverans
+        prognosen ställdes ut — ju längre ledtid, desto mer skiljer sig linjerna.</p>
       <div class="chart small" id="history-chart"></div>
     </section>
 

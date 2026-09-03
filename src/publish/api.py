@@ -29,8 +29,11 @@ log = logging.getLogger(__name__)
 # UTC hours the workflow's cron entries fire at.
 SCHEDULE_UTC = [(4, 30), (11, 20), (16, 0)]
 
-HISTORY_TARGET_HORIZON = 24
-HISTORY_HORIZON_WINDOW = (12, 36)
+# History is published at one lead time per forecast day, so the site can ask
+# "what did we say N days ahead?" instead of only the day-ahead case.
+HISTORY_LEAD_TIMES = [24, 48, 72, 96, 120, 144, 168]
+HISTORY_DEFAULT_LEAD = 24
+HISTORY_LEAD_TOLERANCE = 12  # hours either side of the nominal lead time
 
 
 def write_json(relative: str, payload: Any) -> None:
@@ -115,7 +118,11 @@ def build_history(
     now: datetime,
     model_id: str = DEFAULT_MODEL_ID,
 ) -> dict:
-    """Last 30 days of outcomes beside the day-ahead forecast we issued for them."""
+    """Last 30 days of outcomes beside the forecasts we issued for them.
+
+    One column per lead time, so "what did we say five days ahead?" is answerable
+    from the file without the browser touching the forecast log.
+    """
     cutoff = start_of_day(now) - timedelta(days=HISTORY_API_DAYS)
 
     outcomes: dict[datetime, float] = {}
@@ -126,30 +133,38 @@ def build_history(
         if ts >= cutoff:
             outcomes[ts] = float(row["price_eur_mwh"])
 
-    # Keep, per delivery hour, the issued forecast closest to a 24 h lead time.
-    best: dict[datetime, tuple[int, float]] = {}
-    low, high = HISTORY_HORIZON_WINDOW
+    # Per delivery hour and lead time, keep the forecast issued closest to it.
+    best: dict[tuple[datetime, int], tuple[int, float]] = {}
     for row in forecasts:
         if row["zone"] != zone or row["model_id"] != model_id:
             continue
+        if row.get("p50") is None:
+            continue
         horizon = int(row.get("horizon_h", -1))
-        if not low <= horizon <= high:
-            continue
         ts = parse_iso(row["ts"])
-        if ts < cutoff or row.get("p50") is None:
+        if ts < cutoff:
             continue
-        distance = abs(horizon - HISTORY_TARGET_HORIZON)
-        current = best.get(ts)
-        if current is None or distance < current[0]:
-            best[ts] = (distance, float(row["p50"]))
+        for lead in HISTORY_LEAD_TIMES:
+            distance = abs(horizon - lead)
+            if distance > HISTORY_LEAD_TOLERANCE:
+                continue
+            current = best.get((ts, lead))
+            if current is None or distance < current[0]:
+                best[(ts, lead)] = (distance, float(row["p50"]))
 
+    hours = sorted(set(outcomes) | {ts for ts, _ in best})
     points = []
-    for ts in sorted(set(outcomes) | set(best)):
+    for ts in hours:
+        forecast = {
+            str(lead): r3(best[(ts, lead)][1])
+            for lead in HISTORY_LEAD_TIMES
+            if (ts, lead) in best
+        }
         points.append(
             {
                 "ts": iso(ts),
                 "actual": r3(outcomes.get(ts)),
-                "forecast_p50": r3(best[ts][1]) if ts in best else None,
+                "forecast": forecast,
             }
         )
 
@@ -161,7 +176,8 @@ def build_history(
         "resolution": RESOLUTION,
         "days": HISTORY_API_DAYS,
         "model_id": model_id,
-        "lead_time_h": HISTORY_TARGET_HORIZON,
+        "lead_times_h": HISTORY_LEAD_TIMES,
+        "default_lead_time_h": HISTORY_DEFAULT_LEAD,
         "points": points,
     }
     write_json(f"zones/{zone}/history.json", payload)

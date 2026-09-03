@@ -1,8 +1,8 @@
 {
  "zone": "SE4",
  "zone_name": "Malmö",
- "generated_at": "2026-09-04T00:57:01+02:00",
- "run_id": "20260903T2257Z",
+ "generated_at": "2026-09-04T01:18:40+02:00",
+ "run_id": "20260903T2318Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": true,
@@ -3853,6 +3853,28 @@
      "p90": 72.771
     }
    }
+  },
+  {
+   "ts": "2026-09-11T00:00:00+02:00",
+   "actual": null,
+   "source": "forecast",
+   "models": {
+    "seasonal_naive": {
+     "p10": 53.741,
+     "p50": 61.956,
+     "p90": 70.171
+    },
+    "weather_scaled": {
+     "p10": 28.664,
+     "p50": 45.298,
+     "p90": 68.586
+    },
+    "ensemble": {
+     "p10": 28.091,
+     "p50": 51.129,
+     "p90": 71.574
+    }
+   }
   }
  ],
  "drivers": {
@@ -3860,20 +3882,20 @@
   "regime_label_sv": "Blåsigt och billigt",
   "headline_sv": "Blåsigt kommande dygn — vinden pressar ner priset i SE4.",
   "bullets_sv": [
-   "Vindprognosen i SE4 ligger 1,43 gånger det normala kommande två dygn.",
+   "Vindprognosen i SE4 ligger 1,45 gånger det normala kommande två dygn.",
    "Temperaturen är nära det normala för årstiden.",
    "Solindex mitt på dagen är 0,49. SE4 brukar följa Danmark och Tyskland mer än SE1.",
-   "Prognosen ger i snitt +20,8 EUR/MWh skillnad mellan SE4 och SE2 kommande två dygn.",
+   "Prognosen ger i snitt +20,4 EUR/MWh skillnad mellan SE4 och SE2 kommande två dygn.",
    "Helgen ingår i fönstret, med lägre industriförbrukning än vardagar."
   ],
   "features": {
-   "wind_index_local": 1.427,
-   "wind_index_north": 1.144,
-   "wind_index_south": 1.121,
-   "temp_anomaly_se4_c": -1.832,
-   "temp_local_c": 15.979,
+   "wind_index_local": 1.446,
+   "wind_index_north": 1.154,
+   "wind_index_south": 1.137,
+   "temp_anomaly_se4_c": -1.867,
+   "temp_local_c": 15.944,
    "solar_index_daytime": 0.494,
-   "spread_proxy_se4_se2": 20.789
+   "spread_proxy_se4_se2": 20.4
   }
  }
 }

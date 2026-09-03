@@ -420,9 +420,10 @@
 
   /* ---------------------------------------------------------- history */
 
-  function renderHistory(node, zoneData, unit) {
+  function renderHistory(node, zoneData, unit, leadTime) {
     const chart = chartFor(node);
     if (!chart) return;
+    const lead = String(leadTime || zoneData.history_default_lead_h || 24);
     const points = zoneData.history || [];
     if (!points.length) {
       chart.clear();
@@ -448,7 +449,7 @@
           valueFormatter: (value) => (value === null ? "–" : `${num(value)} ${unitLabel(unit)}`),
         }),
         legend: {
-          data: ["Utfall", `Prognos ${zoneData.history_lead_time_h} h innan`],
+          data: ["Utfall", `Prognos ${lead} h innan`],
           top: 0,
           textStyle: { color: COLORS.muted, fontSize: 11 },
           itemWidth: 14,
@@ -480,10 +481,11 @@
             itemStyle: { color: COLORS.official },
           },
           {
-            name: `Prognos ${zoneData.history_lead_time_h} h innan`,
+            name: `Prognos ${lead} h innan`,
             type: "line",
-            data: points.map((point) => scale(point.forecast_p50, unit)),
+            data: points.map((point) => scale((point.forecast || {})[lead], unit)),
             symbol: "none",
+            connectNulls: false,
             lineStyle: { color: COLORS.accent, width: 1.6, opacity: 0.9 },
             itemStyle: { color: COLORS.accent },
           },

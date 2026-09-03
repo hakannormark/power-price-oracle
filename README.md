@@ -187,7 +187,7 @@ Bas: `https://<USER>.github.io/<REPO>/api/v1/`
 | `zones.json` | Alla fyra elområden med aktuellt pris |
 | `accuracy.json` | Träffsäkerhet per elområde, modell och horisont |
 | `zones/{SE1..SE4}/forecast.json` | Timserie från i går 00:00 till +7 dygn, alla modeller, drivkrafter |
-| `zones/{SE1..SE4}/history.json` | 30 dygn utfall + prognosen som gavs ~24 h innan |
+| `zones/{SE1..SE4}/history.json` | 30 dygn utfall + prognosen vi gav 24, 48 … 168 h innan |
 | `zones/{SE1..SE4}/accuracy.json` | Träffsäkerhet för ett elområde |
 
 Priser i **EUR/MWh**. Öre/kWh = EUR/MWh ÷ 10. Tidsstämplar är ISO-8601 med offset i

@@ -263,43 +263,93 @@ function renderDrivers(zoneData) {
 
 /* ------------------------------------------------------------ next hours */
 
+function dayKey(iso) {
+  return iso.slice(0, 10);
+}
+
+function dayHeading(key) {
+  const label = new Date(key).toLocaleDateString("sv-SE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const today = new Date();
+  const diff = Math.round((new Date(key) - new Date(dayKey(today.toISOString()))) / 86400000);
+  if (diff === 0) return `I dag · ${label}`;
+  if (diff === 1) return `I morgon · ${label}`;
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function sourceChip(source) {
+  if (source === "official") return '<span class="chip official">Officiellt</span>';
+  if (source === "demo") return '<span class="chip demo">Demo</span>';
+  return '<span class="chip forecast">Prognos</span>';
+}
+
 function renderNextHours(zoneData) {
   const host = el("next-hours");
   if (!host) return;
-  const rows = (zoneData.next_hours || []).slice(0, 48);
+  const rows = zoneData.next_hours || [];
   if (!rows.length) {
     host.innerHTML = '<p class="loading">Ingen prognos tillgänglig.</p>';
     return;
   }
 
-  const body = rows
-    .map((row) => {
-      const chip =
-        row.source === "official"
-          ? '<span class="chip official">Officiellt</span>'
-          : row.source === "demo"
-            ? '<span class="chip demo">Demo</span>'
+  // One disclosure per delivery day. The first two open, so the page reads at
+  // rest without burying today's prices under seven days of rows.
+  const days = [];
+  rows.forEach((row) => {
+    const key = dayKey(row.ts);
+    const last = days[days.length - 1];
+    if (last && last.key === key) last.rows.push(row);
+    else days.push({ key, rows: [row] });
+  });
+
+  host.innerHTML = days
+    .map((day, index) => {
+      const values = day.rows.map((r) => r.eur_mwh).filter((v) => v !== null);
+      const low = values.length ? Math.min(...values) : null;
+      const high = values.length ? Math.max(...values) : null;
+      const settled = day.rows.filter((r) => r.source !== "forecast").length;
+      const dayChip =
+        settled === day.rows.length
+          ? sourceChip(day.rows[0].source)
+          : settled > 0
+            ? '<span class="chip">Delvis officiellt</span>'
             : '<span class="chip forecast">Prognos</span>';
-      const band =
-        row.p10 === null || row.p10 === undefined || row.source === "official"
-          ? '<span class="muted">–</span>'
-          : `${fmtPrice(row.p10)} – ${fmtPrice(row.p90)}`;
-      return `<tr>
-        <td>${fmtDayTime(row.ts)}</td>
-        <td class="num">${fmtPrice(row.eur_mwh)}</td>
-        <td class="num">${band}</td>
-        <td>${chip}</td>
-      </tr>`;
+
+      const body = day.rows
+        .map(
+          (row) => `<tr>
+            <td>${fmtTime(row.ts)}</td>
+            <td class="num">${fmtPrice(row.eur_mwh)}</td>
+            <td class="num">${
+              row.p10 === null || row.p10 === undefined
+                ? '<span class="muted">–</span>'
+                : `${fmtPrice(row.p10)} – ${fmtPrice(row.p90)}`
+            }</td>
+            <td>${sourceChip(row.source)}</td>
+          </tr>`
+        )
+        .join("");
+
+      return `<details class="day"${index < 2 ? " open" : ""}>
+        <summary>
+          <span class="day-name">${dayHeading(day.key)}</span>
+          <span class="day-range">${fmtPrice(low)} – ${fmtPrice(high)}
+            <span data-unit-label>${unitLabel()}</span></span>
+          ${dayChip}
+        </summary>
+        <div class="table-scroll"><table>
+          <thead><tr>
+            <th>Tid</th><th><span data-unit-label>${unitLabel()}</span></th>
+            <th>Band p10–p90</th><th>Källa</th>
+          </tr></thead>
+          <tbody>${body}</tbody>
+        </table></div>
+      </details>`;
     })
     .join("");
-
-  host.innerHTML = `<div class="table-scroll"><table>
-    <thead><tr>
-      <th>Tid</th><th><span data-unit-label>${unitLabel()}</span></th>
-      <th>Band p10–p90</th><th>Källa</th>
-    </tr></thead>
-    <tbody>${body}</tbody>
-  </table></div>`;
 }
 
 /* ------------------------------------------------------------ accuracy */
@@ -471,9 +521,21 @@ async function drawHistory() {
   const zoneSelect = el("acc-zone");
   const zone = zoneSelect && ZONES.includes(zoneSelect.value) ? zoneSelect.value : "SE3";
   const zoneData = await ensureZoneData(zone);
+
+  const leadSelect = el("hist-lead");
+  if (leadSelect && !leadSelect.options.length) {
+    const leads = zoneData.history_lead_times_h || [24];
+    leadSelect.innerHTML = leads
+      .map((h) => `<option value="${h}">${h} h innan (dygn ${h / 24})</option>`)
+      .join("");
+    leadSelect.value = String(zoneData.history_default_lead_h || leads[0]);
+    leadSelect.addEventListener("change", drawHistory);
+  }
+  const lead = leadSelect ? Number(leadSelect.value) : 24;
+
   const label = el("history-zone-name");
   if (label) label.textContent = `${zoneData.zone} · ${zoneData.zone_name}`;
-  window.PPOCharts.renderHistory(host, zoneData, state.unit);
+  window.PPOCharts.renderHistory(host, zoneData, state.unit, lead);
 }
 
 /* ------------------------------------------------------------ models page */

@@ -1,8 +1,8 @@
 {
  "zone": "SE3",
  "zone_name": "Stockholm",
- "generated_at": "2026-09-04T00:57:01+02:00",
- "run_id": "20260903T2257Z",
+ "generated_at": "2026-09-04T01:18:40+02:00",
+ "run_id": "20260903T2318Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": true,
@@ -3853,6 +3853,28 @@
      "p90": 54.641
     }
    }
+  },
+  {
+   "ts": "2026-09-11T00:00:00+02:00",
+   "actual": null,
+   "source": "forecast",
+   "models": {
+    "seasonal_naive": {
+     "p10": 43.795,
+     "p50": 48.966,
+     "p90": 54.137
+    },
+    "weather_scaled": {
+     "p10": 17.626,
+     "p50": 29.377,
+     "p90": 45.829
+    },
+    "ensemble": {
+     "p10": 17.274,
+     "p50": 36.233,
+     "p90": 55.22
+    }
+   }
   }
  ],
  "drivers": {
@@ -3862,18 +3884,18 @@
   "bullets_sv": [
    "Det blåser lite i SE3 — vindindex 0,72 mot normalt 1,00.",
    "Temperaturen ligger 3,6 grader under normalt, vilket drar upp förbrukningen.",
-   "Prognosen ger i snitt +20,8 EUR/MWh skillnad mellan SE4 och SE2 kommande två dygn.",
+   "Prognosen ger i snitt +20,4 EUR/MWh skillnad mellan SE4 och SE2 kommande två dygn.",
    "Helgen ingår i fönstret, med lägre industriförbrukning än vardagar.",
    "Svenska kraftnät skriver: ”På västkusten pågår avbrott i samband med ledningsförnyelse, avslutas 8 november.”"
   ],
   "features": {
-   "wind_index_local": 0.716,
-   "wind_index_north": 1.144,
-   "wind_index_south": 1.121,
-   "temp_anomaly_se3_c": -3.604,
-   "temp_local_c": 13.835,
+   "wind_index_local": 0.725,
+   "wind_index_north": 1.154,
+   "wind_index_south": 1.137,
+   "temp_anomaly_se3_c": -3.617,
+   "temp_local_c": 13.823,
    "solar_index_daytime": 0.708,
-   "spread_proxy_se4_se2": 20.789
+   "spread_proxy_se4_se2": 20.4
   }
  }
 }
