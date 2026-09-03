@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API — Spotprognos</title>
+<meta name="description" content="Statiskt JSON-API för elprisprognos i SE1–SE4, med exempel för curl och Home Assistant.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="static">
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="dot"></span>Spotprognos <small>Nord Pool SE1–SE4</small></a>
+    <nav class="site-nav">
+      <a href="index.html">Prognos</a>
+      <a href="traffsakerhet.html">Träffsäkerhet</a>
+      <a href="modeller.html">Modeller</a>
+      <a href="metod.html">Metod</a>
+      <a href="api.html" aria-current="page">API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack">
+
+    <div class="page-head">
+      <h1>API</h1>
+      <p class="lede">Allt är statiska JSON-filer som genereras vid varje körning. Ingen
+        nyckel, ingen rate limit, inga anrop mot en server som kan gå ner. Hämta dem med
+        vad du vill — CORS är påslaget av GitHub Pages, och Home Assistant behöver det inte.</p>
+    </div>
+
+    <div class="banner" id="degraded-banner" hidden></div>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Status för senaste körningen</h2>
+        <span class="meta">Uppdaterad <b data-updated>–</b></span>
+      </div>
+      <div id="status-block"><p class="loading">Läser in status…</p></div>
+    </section>
+
+    <section class="card prose" style="max-width:none">
+      <h2>Endpoints</h2>
+      <p>Bas-URL är <code>&lt;sajtens adress&gt;/api/v1/</code>.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Sökväg</th><th>Innehåll</th></tr></thead>
+          <tbody>
+            <tr><td><code>status.json</code></td><td>Körstatus per datakälla, <code>degraded</code>, nästa planerade körning</td></tr>
+            <tr><td><code>models.json</code></td><td>Installerade modeller: id, namn, beskrivning, om de ger kvantiler</td></tr>
+            <tr><td><code>zones.json</code></td><td>Alla fyra elområden med aktuellt pris och länkar</td></tr>
+            <tr><td><code>accuracy.json</code></td><td>Träffsäkerhet per elområde, modell och horisont</td></tr>
+            <tr><td><code>zones/{SE1..SE4}/forecast.json</code></td><td>Timserie från i går 00:00 till +7 dygn, alla modeller, drivkrafter</td></tr>
+            <tr><td><code>zones/{SE1..SE4}/history.json</code></td><td>30 dygn utfall plus prognosen som gavs ~24 h innan</td></tr>
+            <tr><td><code>zones/{SE1..SE4}/accuracy.json</code></td><td>Träffsäkerhet för ett elområde</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Enheter och konventioner</h3>
+      <ul>
+        <li>Alla priser är i <b>EUR/MWh</b>, avrundade till tre decimaler. Dela med 10 för öre/kWh.</li>
+        <li>Tidsstämplar är ISO-8601 med offset i <code>Europe/Stockholm</code>, och avser
+          <b>leveranstimmens början</b>.</li>
+        <li><code>source: "official"</code> betyder publicerat day-ahead-pris.
+          <code>"forecast"</code> är vår modell. <code>"demo"</code> betyder att instansen
+          kör utan ENTSO-E-nyckel och visar syntetiska siffror — använd dem inte till något.</li>
+        <li><code>resolution</code> är <code>PT60M</code> i v1. Fältet finns för att
+          kvartsvärden ska kunna läggas till senare utan att bryta klienter.</li>
+        <li>Fälten är stabila. Nya fält kan tillkomma; befintliga tas inte bort inom v1.</li>
+      </ul>
+
+      <h3>Exempel</h3>
+      <pre><code>curl -s https://&lt;USER&gt;.github.io/&lt;REPO&gt;/api/v1/zones/SE3/forecast.json | jq '.series[0]'
+
+{
+  "ts": "2026-09-04T00:00:00+02:00",
+  "actual": 54.1,
+  "source": "official",
+  "models": {
+    "seasonal_naive": { "p10": 40.0, "p50": 52.0, "p90": 80.0 },
+    "weather_scaled": { "p10": 41.0, "p50": 55.0, "p90": 78.0 },
+    "ensemble":       { "p10": 40.5, "p50": 53.5, "p90": 79.0 }
+  }
+}</code></pre>
+
+      <pre><code># Aktuellt pris i alla fyra elområden, i öre/kWh
+curl -s https://&lt;USER&gt;.github.io/&lt;REPO&gt;/api/v1/zones.json \
+  | jq -r '.zones[] | "\(.zone) \(.current.ore_kwh) öre/kWh (\(.current.source))"'</code></pre>
+
+      <h2>Home Assistant</h2>
+      <p>Hämta hela serien som attribut på en sensor:</p>
+      <pre><code>rest:
+  - resource: https://&lt;USER&gt;.github.io/&lt;REPO&gt;/api/v1/zones/SE3/forecast.json
+    scan_interval: 1800
+    sensor:
+      - name: Spotprognos SE3
+        unique_id: spotprognos_se3
+        value_template: "{{ value_json.generated_at }}"
+        device_class: timestamp
+        json_attributes:
+          - series
+          - drivers
+          - default_model
+          - unit</code></pre>
+
+      <p>Och plocka ut den aktuella timmens pris ur serien med en template-sensor.
+        Den tar det officiella priset när auktionen är klar och faller annars tillbaka
+        på ensemblens p50:</p>
+      <pre><code>template:
+  - sensor:
+      - name: Spotpris SE3 nu
+        unique_id: spotpris_se3_nu
+        unit_of_measurement: "öre/kWh"
+        state_class: measurement
+        state: >
+          {% set hour = now().replace(minute=0, second=0, microsecond=0).isoformat() %}
+          {% set series = state_attr('sensor.spotprognos_se3', 'series') or [] %}
+          {% set match = series | selectattr('ts', 'match', hour[:13]) | list | first %}
+          {% if match is none %}
+            unknown
+          {% elif match.actual is not none %}
+            {{ (match.actual / 10) | round(1) }}
+          {% else %}
+            {{ (match.models.ensemble.p50 / 10) | round(1) }}
+          {% endif %}
+        attributes:
+          källa: >
+            {% set hour = now().replace(minute=0, second=0, microsecond=0).isoformat() %}
+            {% set series = state_attr('sensor.spotprognos_se3', 'series') or [] %}
+            {% set match = series | selectattr('ts', 'match', hour[:13]) | list | first %}
+            {{ match.source if match is not none else 'unknown' }}</code></pre>
+
+      <p class="muted">Byt <code>SE3</code> mot ditt elområde. Vill du styra automationer på
+        prognosen: läs <code>source</code> först. Är den <code>official</code> är priset
+        satt av börsen, är den <code>forecast</code> är det vår gissning och bör hanteras
+        med bandet <code>p10</code>–<code>p90</code> i åtanke.</p>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>Om sajten</h4>
+        <p>Spotprognos räknar ut en veckoprognos för Nord Pools day-ahead-priser i SE1–SE4,
+           sparar varje utfärdad prognos och mäter i efterhand hur väl den träffade.</p>
+      </div>
+      <div>
+        <h4>Datakällor</h4>
+        <ul>
+          <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
+          <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
+          <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Öppet</h4>
+        <ul>
+          <li><a href="metod.html">Metod</a></li>
+          <li><a href="modeller.html">Modeller</a></li>
+          <li><a href="#" data-repo-url>Källkod</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="disclaimer">
+      <span>Prognosen är en modell, inte ett elavtal. Påslag, moms och nät saknas.</span>
+      <span>Uppdaterad <b data-updated>–</b> · nästa körning <b data-next-update>–</b></span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/app.js" defer></script>
+</body>
+</html>

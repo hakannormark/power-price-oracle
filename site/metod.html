@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metod — Spotprognos</title>
+<meta name="description" content="Hur day-ahead-marknaden fungerar, vad som driver priset och exakt vad den här prognosen gör och inte gör.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="static">
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="dot"></span>Spotprognos <small>Nord Pool SE1–SE4</small></a>
+    <nav class="site-nav">
+      <a href="index.html">Prognos</a>
+      <a href="traffsakerhet.html">Träffsäkerhet</a>
+      <a href="modeller.html">Modeller</a>
+      <a href="metod.html" aria-current="page">Metod</a>
+      <a href="api.html">API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack">
+
+    <div class="page-head">
+      <h1>Metod</h1>
+      <p class="lede">Skriven för dig som vill veta vad siffrorna faktiskt bygger på —
+        inklusive vad de inte klarar.</p>
+    </div>
+
+    <div class="banner" id="degraded-banner" hidden></div>
+
+    <section class="card prose">
+
+      <h2>Så sätts priset</h2>
+      <p>Elpriset du ser här är <b>spotpriset på day-ahead-marknaden</b>. Varje dag lämnar
+        producenter och elhandlare in bud för nästa dygns 24 timmar. Budgivningen stänger
+        klockan 12:00, och runt <b>12:45</b> publiceras resultatet: ett pris per timme och
+        elområde. Efter den tidpunkten är morgondagens priser inte längre en prognos utan
+        ett faktum.</p>
+      <p>Sverige är indelat i fyra <b>elområden</b>: SE1 Luleå, SE2 Sundsvall, SE3 Stockholm
+        och SE4 Malmö. De har olika pris därför att överföringskapaciteten mellan dem är
+        begränsad. Produktionen sitter till stor del i norr, förbrukningen i söder, och när
+        ledningarna söderut går fulla — det som kallas att ett snitt är trångt — kan
+        norra Sverige ha nästan gratis el samtidigt som SE4 följer priset i Danmark
+        och Tyskland.</p>
+      <p>Sedan 2025 handlas den europeiska day-ahead-marknaden i <b>15-minutersupplösning</b>.
+        Den här sajten visar timvärden i v1: kortare intervall medelvärdesbildas till hela
+        timmar. Dataformatet har redan ett <code>resolution</code>-fält
+        (<code>PT60M</code> i dag) så att kvartsvärden kan läggas till utan att bryta API:t.</p>
+
+      <h2>Vad som driver priset</h2>
+      <dl>
+        <dt>Residuallast</dt>
+        <dd>Förbrukning minus vind och sol. Det är den mängd som måste täckas av något
+          med rörlig kostnad, och det är den som sätter priset. Kall och vindstilla =
+          hög residuallast = dyrt.</dd>
+        <dt>Vind i norr mot vind i söder</dt>
+        <dd>Blåser det i Norrland men snittet söderut är trångt sjunker SE1 och SE2
+          medan SE3 och SE4 kan stanna kvar på en högre nivå. Därför följer modellen
+          vindindex i norr och söder var för sig.</dd>
+        <dt>Temperatur</dt>
+        <dd>Uppvärmning är den stora säsongsvariabeln. Modellen använder avvikelsen från
+          det normala för timmen, inte den absoluta temperaturen.</dd>
+        <dt>Sol</dt>
+        <dd>Mest märkbart i SE4 och på kontinenten, där mycket sol mitt på dagen skapar
+          en tydlig svacka som ibland går ner till noll eller under.</dd>
+        <dt>Koppling till DK och DE</dt>
+        <dd>SE4 brukar följa Danmark och Tyskland mer än SE1. Därför hämtas väder även
+          för Köpenhamn och Hamburg som drivare, trots att de inte är egna elområden här.</dd>
+        <dt>Vattenvärde (ännu inte modellerat)</dt>
+        <dd>Vattenkraftens magasinnivåer bestämmer hur billigt vattnet får användas i dag
+          i stället för i vinter. Det är den enskilt viktigaste faktorn som v1 saknar.</dd>
+        <dt>Kärnkraftsrevisioner (ännu inte modellerat)</dt>
+        <dd>Ett oplanerat stopp i ett stort block flyttar SE3 direkt. Sidan läser
+          Svenska kraftnäts driftinformation och kan citera den i drivkraftstexten, men
+          modellen räknar inte på den.</dd>
+      </dl>
+
+      <h2>Vad v1 faktiskt gör</h2>
+      <ol>
+        <li>Hämtar officiella day-ahead-priser från ENTSO-E och sparar dem som fakta.</li>
+        <li>Hämtar väderprognos tio dygn framåt för nio punkter i Norden och norra Tyskland.</li>
+        <li>Räknar fram vindindex, temperaturavvikelse och solindex per timme och elområde.
+          Normalvärdena byggs upp löpande körning för körning, eftersom väder-API:t bara
+          lämnar sju dygn bakåt per anrop.</li>
+        <li>Sätter en grundnivå: priset samma veckodag och timme förra veckan.</li>
+        <li>Skalar den nivån med vädret enligt en formel med fasta vikter per elområde.</li>
+        <li>Väger ihop modellerna till en ensemble och sparar varje prognos med tidsstämpel.</li>
+        <li>Jämför senare mot utfallet, sorterat efter hur långt i förväg prognosen gjordes.</li>
+      </ol>
+      <p>Skalfaktorn i <code>weather_scaled</code> är avsiktligt enkel och läsbar:
+        vindindex över det normala drar ner priset, kyla drar upp det, sol mitt på dagen
+        drar ner det. Vikterna skiljer sig mellan elområdena — SE1 och SE2 styrs mest av
+        sin egen vind, SE4 följer även vinden i söder och solen. Osäkerhetsbandet vidgas
+        när skalfaktorn avviker mycket från 1, alltså när vädret säger något ovanligt.
+        Finns ENTSO-E:s publicerade prognoser för last och vindkraft används residuallasten
+        i stället för rå vindhastighet.</p>
+
+      <h2>Vad v1 inte gör</h2>
+      <ul>
+        <li>Ingen marknadskoppling. Ingen Euphemia, inga budkurvor, ingen simulering av
+          överföringsbegränsningar mellan elområdena.</li>
+        <li>Ingen tränad gradient boosting ännu. Kroken finns i koden och är utmärkt med
+          <code>FUTURE:</code>, men v1 kör helt utan tränade artefakter så att en färsk
+          klon fungerar direkt.</li>
+        <li>Inga vattenmagasin, ingen bränsle- eller utsläppsrättsprisdata.</li>
+        <li>Ingen AI-overlay. v1 är statistisk och väderjusterad, ingenting annat.</li>
+      </ul>
+
+      <h2>Hur uppföljningen fungerar</h2>
+      <p>Varje körning skriver en rad per modell, elområde och leveranstimme med
+        <code>issued_at</code>, <code>horizon_h</code> och kvantilerna. Raderna skrivs
+        aldrig om i efterhand. När Nord Pool publicerat utfallet kopplas det ihop på
+        <code>(zone, ts)</code>.</p>
+      <p>Den avgörande filtreringen: en prognospunkt räknas bara om priset ännu
+        <em>inte</em> var publicerat när prognosen utfärdades. Efter klockan 12:45 är
+        morgondagen fakta, och att kopiera börsen är inte träffsäkerhet. Resten sorteras
+        i dygnsspann — 0–24 h, 24–48 h och så vidare upp till 144–168 h — och redovisas
+        per elområde och modell på <a href="traffsakerhet.html">träffsäkerhetssidan</a>.
+        En horisont med färre än 24 utfall visas som <em>för lite data</em> i stället för
+        ett osäkert medelvärde.</p>
+
+      <h2>Datakällor</h2>
+      <ul>
+        <li><b><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency Platform</a></b> —
+          officiella day-ahead-priser (dokumenttyp A44) samt, när det går, prognoser för
+          last och vind- och solproduktion. Kräver en egen kostnadsfri API-nyckel.</li>
+        <li><b><a href="https://open-meteo.com/">Open-Meteo</a></b> — väderprognos och
+          närhistorik. Ingen nyckel behövs. Underlaget kommer från nationella
+          vädertjänsters modeller, för Norden i praktiken samma data som SMHI bygger på.</li>
+        <li><b><a href="https://www.svk.se/">Svenska kraftnät</a></b> — driftinformation som
+          fritext. Används enbart för att citera en faktamening i drivkraftstexten, aldrig
+          som modellindata.</li>
+      </ul>
+
+      <h2>Begränsningar</h2>
+      <ul>
+        <li>Priserna är <b>spotpris exklusive allt annat</b>. Ditt elhandelsbolags påslag,
+          elcertifikat, energiskatt, nätavgift och moms tillkommer. Räkna med att den
+          faktiska kostnaden per kWh är väsentligt högre än talen här.</li>
+        <li>Prognosen bygger på en väderprognos. Osäkerheten i vädret dag 5–7 är större än
+          osäkerheten i elmodellen, och bandet p10–p90 är brett av en anledning.</li>
+        <li>Nivåskiften som inte syns i vädret — ett kärnkraftsstopp, ett kabelfel, en
+          kraftig rörelse i gaspriset — fångas inte alls förrän de hunnit sätta sig i
+          förra veckans priser.</li>
+        <li>Normalvärdena för vind och temperatur byggs upp över tid. De första veckorna
+          efter en nystart är vindindex och temperaturavvikelse mindre pålitliga.</li>
+        <li>Sajten är ett öppet hobbyprojekt utan drift- eller tillgänglighetsgaranti.
+          Fatta inga ekonomiska beslut på den utan att kontrollera mot din elhandlare.</li>
+      </ul>
+
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>Om sajten</h4>
+        <p>Spotprognos räknar ut en veckoprognos för Nord Pools day-ahead-priser i SE1–SE4,
+           sparar varje utfärdad prognos och mäter i efterhand hur väl den träffade.</p>
+      </div>
+      <div>
+        <h4>Datakällor</h4>
+        <ul>
+          <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
+          <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
+          <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Öppet</h4>
+        <ul>
+          <li><a href="api.html">JSON-API</a></li>
+          <li><a href="modeller.html">Modeller</a></li>
+          <li><a href="#" data-repo-url>Källkod</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="disclaimer">
+      <span>Prognosen är en modell, inte ett elavtal. Påslag, moms och nät saknas.</span>
+      <span>Uppdaterad <b data-updated>–</b> · nästa körning <b data-next-update>–</b></span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/app.js" defer></script>
+</body>
+</html>

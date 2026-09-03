@@ -1,0 +1,62 @@
+{
+ "zone": "SE2",
+ "zone_name": "Sundsvall",
+ "generated_at": "2026-09-04T00:57:01+02:00",
+ "window_days": 90,
+ "unit": "EUR/MWh",
+ "min_samples": 24,
+ "buckets": [
+  "0-24h",
+  "24-48h",
+  "48-72h",
+  "72-96h",
+  "96-120h",
+  "120-144h",
+  "144-168h"
+ ],
+ "models": [
+  "seasonal_naive",
+  "weather_scaled",
+  "ensemble"
+ ],
+ "reference_model": "seasonal_naive",
+ "default_model": "ensemble",
+ "metrics": {},
+ "table": {
+  "0-24h": {
+   "seasonal_naive": null,
+   "weather_scaled": null,
+   "ensemble": null
+  },
+  "24-48h": {
+   "seasonal_naive": null,
+   "weather_scaled": null,
+   "ensemble": null
+  },
+  "48-72h": {
+   "seasonal_naive": null,
+   "weather_scaled": null,
+   "ensemble": null
+  },
+  "72-96h": {
+   "seasonal_naive": null,
+   "weather_scaled": null,
+   "ensemble": null
+  },
+  "96-120h": {
+   "seasonal_naive": null,
+   "weather_scaled": null,
+   "ensemble": null
+  },
+  "120-144h": {
+   "seasonal_naive": null,
+   "weather_scaled": null,
+   "ensemble": null
+  },
+  "144-168h": {
+   "seasonal_naive": null,
+   "weather_scaled": null,
+   "ensemble": null
+  }
+ }
+}

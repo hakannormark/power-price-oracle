@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modeller — Spotprognos</title>
+<meta name="description" content="Modellerna som tävlar om att förutsäga spotpriset, och hur du lägger till en till.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="models">
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="dot"></span>Spotprognos <small>Nord Pool SE1–SE4</small></a>
+    <nav class="site-nav">
+      <a href="index.html">Prognos</a>
+      <a href="traffsakerhet.html">Träffsäkerhet</a>
+      <a href="modeller.html" aria-current="page">Modeller</a>
+      <a href="metod.html">Metod</a>
+      <a href="api.html">API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack">
+
+    <div class="page-head">
+      <h1>Modeller</h1>
+      <p class="lede">Flera modeller kör samtidigt på samma indata och mäts mot samma utfall.
+        Sajten visar en av dem som standard, men alla sparas och poängsätts — det är så man
+        ser om en ny idé faktiskt är bättre eller bara känns bättre.</p>
+    </div>
+
+    <div class="banner" id="degraded-banner" hidden></div>
+
+    <section class="model-grid" id="model-cards">
+      <p class="loading">Läser in modeller…</p>
+    </section>
+
+    <section class="card prose" style="max-width:none">
+      <h2>Vilken används på sajten?</h2>
+      <p><b>Ensemble</b> är standardmodellen. Den är det viktade snittet av de övriga och
+        används i graferna, i tabellen över de närmaste 48 timmarna och i fältet
+        <code>default_model</code> i API:t. Vill du jämföra med de andra finns kryssrutan
+        <em>Visa övriga modeller</em> på förstasidan.</p>
+      <p><b>Säsongsnaiv</b> är referensen. Alla skill-tal på
+        <a href="traffsakerhet.html">träffsäkerhetssidan</a> mäts mot den. En modell som inte
+        slår den tillför ingenting, hur avancerad den än är.</p>
+
+      <h2>Lägga till en modell</h2>
+      <p>En ny modell är en fil och en rad. Pipelinen tar hand om resten: den körs,
+        skrivs till <code>data/forecasts.jsonl</code>, poängsätts per horisont och dyker
+        upp i API:t och i jämförelsegraferna automatiskt.</p>
+      <pre><code># src/models/lightgbm_v1.py
+class LightGbmV1:
+    id = "lightgbm_v1"
+    name_sv = "Gradient boosting"
+    description_sv = "Kvantilregression tränad på features.build."
+    quantiles = True
+    derived = False
+
+    def predict(self, features, issued_at) -> list[ForecastPoint]:
+        ...
+
+# src/models/registry.py
+BASE_MODELS = [
+    SeasonalNaive(),
+    WeatherScaled(),
+    LightGbmV1(),      # <- enda ändringen
+]</code></pre>
+      <p>Kraven på <code>predict</code>: returnera punkter för alla fyra elområden från
+        början av innevarande dygn till och med +168 timmar, med <code>p10 ≤ p50 ≤ p90</code>.
+        Hjälpfunktionerna <code>target_window()</code> och <code>order_quantiles()</code> i
+        <code>models/base.py</code> gör båda delarna åt dig. Negativa priser är tillåtna.</p>
+      <p>En modell som byggs från andra modellers utdata sätter <code>derived = True</code>,
+        läggs i <code>DERIVED_MODELS</code> och implementerar <code>combine()</code> i
+        stället — så som ensemblen gör.</p>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>Om sajten</h4>
+        <p>Spotprognos räknar ut en veckoprognos för Nord Pools day-ahead-priser i SE1–SE4,
+           sparar varje utfärdad prognos och mäter i efterhand hur väl den träffade.</p>
+      </div>
+      <div>
+        <h4>Datakällor</h4>
+        <ul>
+          <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
+          <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
+          <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Öppet</h4>
+        <ul>
+          <li><a href="api.html">JSON-API</a></li>
+          <li><a href="metod.html">Metod</a></li>
+          <li><a href="#" data-repo-url>Källkod</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="disclaimer">
+      <span>Prognosen är en modell, inte ett elavtal. Påslag, moms och nät saknas.</span>
+      <span>Uppdaterad <b data-updated>–</b> · nästa körning <b data-next-update>–</b></span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/app.js" defer></script>
+</body>
+</html>

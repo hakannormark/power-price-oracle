@@ -1,0 +1,33 @@
+{
+ "generated_at": "2026-09-04T00:57:02+02:00",
+ "default_model": "ensemble",
+ "models": [
+  {
+   "id": "seasonal_naive",
+   "name_sv": "Säsongsnaiv",
+   "description_sv": "Priset samma veckodag och timme sju dygn tidigare. Ingen väderinformation alls — modellen finns som referens som de andra ska slå.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": true
+  },
+  {
+   "id": "weather_scaled",
+   "name_sv": "Väderskalad",
+   "description_sv": "Utgår från den säsongsnaiva nivån och skalar den med vindindex, temperaturavvikelse och solinstrålning per elområde. Finns ENTSO-E:s prognoser för last och vindkraft används residuallasten i stället för vindhastighet.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "ensemble",
+   "name_sv": "Ensemble",
+   "description_sv": "Viktat snitt av de andra modellerna: 35 % säsongsnaiv och 65 % väderskalad. Bandet spänner över båda modellernas intervall. Detta är sajtens standardmodell.",
+   "quantiles": true,
+   "derived": true,
+   "is_default": true,
+   "is_reference": false
+  }
+ ]
+}

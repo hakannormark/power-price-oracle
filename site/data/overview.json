@@ -1,0 +1,373 @@
+{
+ "generated_at": "2026-09-04T00:57:01+02:00",
+ "run_id": "20260903T2257Z",
+ "degraded": true,
+ "demo": true,
+ "unit": "EUR/MWh",
+ "resolution": "PT60M",
+ "default_model": "ensemble",
+ "reference_model": "seasonal_naive",
+ "title_sv": "Spotprognos",
+ "subtitle_sv": "Veckoprognos för Nord Pool SE1–SE4",
+ "blurb_sv": "Körningen är degraderad — en datakälla svarade inte. Siffrorna nedan kan vara från en tidigare körning.",
+ "repo_url": "https://github.com/USERNAME/REPO",
+ "zones": [
+  {
+   "zone": "SE1",
+   "name": "Luleå",
+   "current": {
+    "ts": "2026-09-04T00:00:00+02:00",
+    "eur_mwh": 24.53,
+    "ore_kwh": 2.453,
+    "source": "demo"
+   },
+   "spark": [
+    23.036,
+    22.768,
+    23.155,
+    24.528,
+    24.885,
+    31.47,
+    29.822,
+    36.61,
+    32.446,
+    33.008,
+    30.709,
+    27.451,
+    27.316,
+    29.251,
+    29.651,
+    36.246,
+    34.221,
+    38.174,
+    35.222,
+    32.906,
+    28.67,
+    30.643,
+    24.747,
+    18.317
+   ],
+   "regime": "normal",
+   "regime_label_sv": "Normalläge",
+   "headline_sv": "Inget som sticker ut — SE1 följer ett normalt veckomönster."
+  },
+  {
+   "zone": "SE2",
+   "name": "Sundsvall",
+   "current": {
+    "ts": "2026-09-04T00:00:00+02:00",
+    "eur_mwh": 26.901,
+    "ore_kwh": 2.69,
+    "source": "demo"
+   },
+   "spark": [
+    24.99,
+    23.907,
+    24.017,
+    25.479,
+    28.939,
+    31.553,
+    34.555,
+    36.165,
+    37.653,
+    33.219,
+    31.555,
+    29.974,
+    28.355,
+    32.285,
+    33.132,
+    31.143,
+    39.48,
+    37.645,
+    37.065,
+    33.509,
+    31.321,
+    26.023,
+    26.4,
+    24.156
+   ],
+   "regime": "normal",
+   "regime_label_sv": "Normalläge",
+   "headline_sv": "Inget som sticker ut — SE2 följer ett normalt veckomönster."
+  },
+  {
+   "zone": "SE3",
+   "name": "Stockholm",
+   "current": {
+    "ts": "2026-09-04T00:00:00+02:00",
+    "eur_mwh": 48.966,
+    "ore_kwh": 4.897,
+    "source": "demo"
+   },
+   "spark": [
+    41.867,
+    32.986,
+    34.752,
+    36.464,
+    39.294,
+    53.027,
+    48.562,
+    54.491,
+    58.864,
+    52.167,
+    54.46,
+    56.654,
+    51.663,
+    46.5,
+    56.231,
+    58.881,
+    59.661,
+    59.952,
+    65.175,
+    62.302,
+    54.75,
+    59.385,
+    51.306,
+    37.476
+   ],
+   "regime": "normal",
+   "regime_label_sv": "Normalläge",
+   "headline_sv": "Inget som sticker ut — SE3 följer ett normalt veckomönster."
+  },
+  {
+   "zone": "SE4",
+   "name": "Malmö",
+   "current": {
+    "ts": "2026-09-04T00:00:00+02:00",
+    "eur_mwh": 61.956,
+    "ore_kwh": 6.196,
+    "source": "demo"
+   },
+   "spark": [
+    53.024,
+    44.32,
+    48.56,
+    44.128,
+    52.092,
+    65.484,
+    69.393,
+    87.526,
+    72.376,
+    72.13,
+    62.474,
+    58.759,
+    66.648,
+    71.207,
+    72.642,
+    84.514,
+    83.055,
+    81.909,
+    74.149,
+    83.118,
+    66.959,
+    69.858,
+    67.001,
+    39.853
+   ],
+   "regime": "windy_cheap",
+   "regime_label_sv": "Blåsigt och billigt",
+   "headline_sv": "Blåsigt kommande dygn — vinden pressar ner priset i SE4."
+  }
+ ],
+ "accuracy_snapshot": {
+  "SE1": {
+   "0-24h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "24-48h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "48-72h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "72-96h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "96-120h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "120-144h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "144-168h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   }
+  },
+  "SE2": {
+   "0-24h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "24-48h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "48-72h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "72-96h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "96-120h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "120-144h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "144-168h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   }
+  },
+  "SE3": {
+   "0-24h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "24-48h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "48-72h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "72-96h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "96-120h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "120-144h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "144-168h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   }
+  },
+  "SE4": {
+   "0-24h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "24-48h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "48-72h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "72-96h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "96-120h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "120-144h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   },
+   "144-168h": {
+    "seasonal_naive": null,
+    "weather_scaled": null,
+    "ensemble": null
+   }
+  }
+ },
+ "accuracy_window_days": 90,
+ "sources": {
+  "entsoe_prices": {
+   "ok": false,
+   "rows": 0,
+   "error": "ENTSOE_TOKEN is not set"
+  },
+  "open_meteo": {
+   "ok": true,
+   "points": 9,
+   "rows": 3672
+  },
+  "entsoe_fundamentals": {
+   "ok": false,
+   "error": "ENTSOE_TOKEN is not set"
+  },
+  "svk_text": {
+   "ok": true,
+   "chars": 2905
+  }
+ },
+ "next_expected_update_utc": "2026-09-04T04:30:00Z",
+ "models": [
+  {
+   "id": "seasonal_naive",
+   "name_sv": "Säsongsnaiv",
+   "description_sv": "Priset samma veckodag och timme sju dygn tidigare. Ingen väderinformation alls — modellen finns som referens som de andra ska slå.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": true
+  },
+  {
+   "id": "weather_scaled",
+   "name_sv": "Väderskalad",
+   "description_sv": "Utgår från den säsongsnaiva nivån och skalar den med vindindex, temperaturavvikelse och solinstrålning per elområde. Finns ENTSO-E:s prognoser för last och vindkraft används residuallasten i stället för vindhastighet.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "ensemble",
+   "name_sv": "Ensemble",
+   "description_sv": "Viktat snitt av de andra modellerna: 35 % säsongsnaiv och 65 % väderskalad. Bandet spänner över båda modellernas intervall. Detta är sajtens standardmodell.",
+   "quantiles": true,
+   "derived": true,
+   "is_default": true,
+   "is_reference": false
+  }
+ ]
+}

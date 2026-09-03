@@ -1,0 +1,91 @@
+name: Update forecast
+
+on:
+  schedule:
+    - cron: "30 4 * * *"    # 06:30 CEST / 05:30 CET — morning refresh
+    - cron: "20 11 * * *"   # ~13:20 CEST — catch the day-ahead auction result
+    - cron: "0 16 * * *"    # evening weather refresh
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "site/**"
+      - "requirements.txt"
+      - ".github/workflows/update.yml"
+
+concurrency:
+  group: update-forecast
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.pipeline.outputs.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Backfill history if thin
+        env:
+          ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
+        run: python -m src.backfill --if-needed
+
+      - name: Ensure demo fixtures exist
+        # Only used when ENTSOE_TOKEN is unset, so the site still renders.
+        run: |
+          if [ ! -f data/fixtures/actuals_demo.jsonl ]; then
+            python -m src.fixtures --days 14
+          fi
+
+      - name: Run pipeline
+        id: pipeline
+        env:
+          ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
+        run: |
+          python -m src.pipeline | tee run.log
+          echo "run_id=$(grep -m1 '^run_id=' run.log | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+          rm -f run.log
+
+      - name: Commit updated state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data api site/data site/api
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+          else
+            git commit -m "chore: update forecast ${{ steps.pipeline.outputs.run_id }}"
+            # The schedule can overlap a manual push; rebase rather than fail.
+            git pull --rebase --autostash origin ${{ github.ref_name }}
+            git push origin HEAD:${{ github.ref_name }}
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

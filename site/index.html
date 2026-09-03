@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spotprognos — elpriset de kommande sju dygnen</title>
+<meta name="description" content="Veckoprognos för Nord Pool SE1–SE4 med officiella utfall och uppmätt träffsäkerhet per prognoshorisont.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="index">
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="dot"></span>Spotprognos <small>Nord Pool SE1–SE4</small></a>
+    <nav class="site-nav">
+      <a href="index.html" aria-current="page">Prognos</a>
+      <a href="traffsakerhet.html">Träffsäkerhet</a>
+      <a href="modeller.html">Modeller</a>
+      <a href="metod.html">Metod</a>
+      <a href="api.html">API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack">
+
+    <div class="page-head">
+      <h1>Elpriset de kommande sju dygnen, med facit i efterhand.</h1>
+      <p class="lede" id="blurb">Läser in…</p>
+    </div>
+
+    <div class="banner" id="degraded-banner" hidden></div>
+
+    <!-- Block 1: zone tiles -->
+    <section class="tiles-sticky">
+      <div class="section-title">
+        <h2>Elområden</h2>
+        <div class="controls">
+          <div class="segmented" data-unit-toggle>
+            <button type="button" data-unit="ore" aria-pressed="true">öre/kWh</button>
+            <button type="button" data-unit="eur" aria-pressed="false">EUR/MWh</button>
+          </div>
+        </div>
+      </div>
+      <div class="tiles" id="zone-tiles">
+        <p class="loading">Läser in elområden…</p>
+      </div>
+    </section>
+
+    <!-- Block 2: main chart -->
+    <section class="card">
+      <div class="section-title">
+        <h2>Prognos <span id="chart-zone-name" class="meta"></span></h2>
+        <div class="controls">
+          <label class="toggle">
+            <input type="checkbox" id="overlay-models">
+            Visa övriga modeller
+          </label>
+        </div>
+      </div>
+      <div class="chart" id="main-chart"></div>
+      <div class="legend">
+        <span><i style="background:#f8fafc"></i> Officiellt pris</span>
+        <span><i style="background:#5eead4"></i> Prognos, ensemble p50</span>
+        <span><i class="band"></i> Osäkerhetsband p10–p90</span>
+        <span class="muted">Siffrorna efter klockan 13 för morgondagen är Nord Pools auktion, inte vår gissning.</span>
+      </div>
+    </section>
+
+    <!-- Block 3: drivers -->
+    <section class="card" id="drivers">
+      <p class="loading">Läser in drivkrafter…</p>
+    </section>
+
+    <!-- Block 4: next 48 hours -->
+    <section class="card">
+      <div class="section-title">
+        <h2>Närmaste 48 timmarna</h2>
+        <span class="meta">Officiellt pris där auktionen är klar, annars ensemble p50</span>
+      </div>
+      <div id="next-hours"><p class="loading">Läser in timpriser…</p></div>
+    </section>
+
+    <!-- Block 5: accuracy snapshot -->
+    <section class="card" id="accuracy-snapshot">
+      <p class="loading">Läser in träffsäkerhet…</p>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>Om sajten</h4>
+        <p>Spotprognos räknar ut en veckoprognos för Nord Pools day-ahead-priser i SE1–SE4,
+           sparar varje utfärdad prognos och mäter i efterhand hur väl den träffade.
+           Modellerna är statistiska och väderjusterade — ingen AI-overlay.</p>
+      </div>
+      <div>
+        <h4>Datakällor</h4>
+        <ul>
+          <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
+          <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
+          <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Öppet</h4>
+        <ul>
+          <li><a href="api.html">JSON-API</a></li>
+          <li><a href="metod.html">Metod</a></li>
+          <li><a href="#" data-repo-url>Källkod</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="disclaimer">
+      <span>Prognosen är en modell, inte ett elavtal. Påslag, moms och nät saknas.</span>
+      <span>Uppdaterad <b data-updated>–</b> · nästa körning <b data-next-update>–</b></span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.1/echarts.min.js" defer></script>
+<script src="assets/charts.js" defer></script>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

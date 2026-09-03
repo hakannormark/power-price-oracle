@@ -1,0 +1,74 @@
+{
+ "generated_at": "2026-09-04T00:57:01+02:00",
+ "run_id": "20260903T2257Z",
+ "unit": "EUR/MWh",
+ "resolution": "PT60M",
+ "degraded": true,
+ "default_model": "ensemble",
+ "zones": [
+  {
+   "zone": "SE1",
+   "name": "Luleå",
+   "lat": 65.5848,
+   "lon": 22.1567,
+   "eic": "10Y1001A1001A44P",
+   "current": {
+    "ts": "2026-09-04T00:00:00+02:00",
+    "eur_mwh": 24.53,
+    "ore_kwh": 2.453,
+    "source": "demo"
+   },
+   "forecast_url": "zones/SE1/forecast.json",
+   "history_url": "zones/SE1/history.json",
+   "accuracy_url": "zones/SE1/accuracy.json"
+  },
+  {
+   "zone": "SE2",
+   "name": "Sundsvall",
+   "lat": 62.3908,
+   "lon": 17.3069,
+   "eic": "10Y1001A1001A45N",
+   "current": {
+    "ts": "2026-09-04T00:00:00+02:00",
+    "eur_mwh": 26.901,
+    "ore_kwh": 2.69,
+    "source": "demo"
+   },
+   "forecast_url": "zones/SE2/forecast.json",
+   "history_url": "zones/SE2/history.json",
+   "accuracy_url": "zones/SE2/accuracy.json"
+  },
+  {
+   "zone": "SE3",
+   "name": "Stockholm",
+   "lat": 59.3293,
+   "lon": 18.0686,
+   "eic": "10Y1001A1001A46L",
+   "current": {
+    "ts": "2026-09-04T00:00:00+02:00",
+    "eur_mwh": 48.966,
+    "ore_kwh": 4.897,
+    "source": "demo"
+   },
+   "forecast_url": "zones/SE3/forecast.json",
+   "history_url": "zones/SE3/history.json",
+   "accuracy_url": "zones/SE3/accuracy.json"
+  },
+  {
+   "zone": "SE4",
+   "name": "Malmö",
+   "lat": 55.605,
+   "lon": 13.0038,
+   "eic": "10Y1001A1001A47J",
+   "current": {
+    "ts": "2026-09-04T00:00:00+02:00",
+    "eur_mwh": 61.956,
+    "ore_kwh": 6.196,
+    "source": "demo"
+   },
+   "forecast_url": "zones/SE4/forecast.json",
+   "history_url": "zones/SE4/history.json",
+   "accuracy_url": "zones/SE4/accuracy.json"
+  }
+ ]
+}

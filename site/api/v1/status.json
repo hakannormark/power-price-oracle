@@ -1,0 +1,28 @@
+{
+ "ok": false,
+ "generated_at": "2026-09-04T00:57:01+02:00",
+ "run_id": "20260903T2257Z",
+ "degraded": true,
+ "demo": true,
+ "sources": {
+  "entsoe_prices": {
+   "ok": false,
+   "rows": 0,
+   "error": "ENTSOE_TOKEN is not set"
+  },
+  "open_meteo": {
+   "ok": true,
+   "points": 9,
+   "rows": 3672
+  },
+  "entsoe_fundamentals": {
+   "ok": false,
+   "error": "ENTSOE_TOKEN is not set"
+  },
+  "svk_text": {
+   "ok": true,
+   "chars": 2905
+  }
+ },
+ "next_expected_update_utc": "2026-09-04T04:30:00Z"
+}

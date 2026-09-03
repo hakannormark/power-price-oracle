@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Träffsäkerhet — Spotprognos</title>
+<meta name="description" content="Hur väl prognoserna träffade, mätt per prognoshorisont, elområde och modell.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="accuracy">
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="dot"></span>Spotprognos <small>Nord Pool SE1–SE4</small></a>
+    <nav class="site-nav">
+      <a href="index.html">Prognos</a>
+      <a href="traffsakerhet.html" aria-current="page">Träffsäkerhet</a>
+      <a href="modeller.html">Modeller</a>
+      <a href="metod.html">Metod</a>
+      <a href="api.html">API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack">
+
+    <div class="page-head">
+      <h1>Träffsäkerhet</h1>
+      <p class="lede">Varje prognos sparas med tidpunkten den utfärdades. När Nord Pool
+        publicerat utfallet jämförs de två — sorterat efter hur långt i förväg prognosen
+        gjordes. Det är den enda jämförelsen som säger något: dag 1 är lätt, dag 5–7 är
+        nivå och dygnsform, inte öre.</p>
+    </div>
+
+    <div class="banner" id="degraded-banner" hidden></div>
+
+    <section class="card prose" style="max-width:none">
+      <h2>Så räknas det</h2>
+      <div class="grid-2">
+        <div>
+          <p><b>Bara riktiga prognoser räknas.</b> Day-ahead-auktionen för morgondagen
+            publiceras runt klockan 12:45. En prognos som utfärdats efter den tidpunkten
+            för morgondagens timmar är en avskrift av börsen, inte en gissning, och
+            räknas därför bort helt.</p>
+          <p><b>Horisonten avgör svårighetsgraden.</b> Varje jämförelse sorteras efter
+            antalet hela timmar mellan <code>issued_at</code> och leveranstimmen, i
+            spann om ett dygn.</p>
+        </div>
+        <div>
+          <dl>
+            <dt>MAE</dt><dd>Medelvärdet av felet i absoluta tal. Lägre är bättre.</dd>
+            <dt>RMSE</dt><dd>Straffar stora missar hårdare än MAE.</dd>
+            <dt>Bias</dt><dd>Systematiskt fel. Positivt = prognosen låg för högt.</dd>
+            <dt>Täckning p10–p90</dt><dd>Andel utfall som hamnade inuti osäkerhetsbandet. Bör ligga nära 80 %.</dd>
+            <dt>Skill mot naiv</dt><dd>Hur mycket lägre MAE modellen har än den säsongsnaiva referensen. 0 % = ingen nytta alls.</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Mätvärden per horisont</h2>
+        <div class="controls">
+          <select class="field" id="acc-zone" aria-label="Elområde"></select>
+          <select class="field" id="acc-model" aria-label="Modell"></select>
+          <div class="segmented" data-unit-toggle>
+            <button type="button" data-unit="ore" aria-pressed="true">öre/kWh</button>
+            <button type="button" data-unit="eur" aria-pressed="false">EUR/MWh</button>
+          </div>
+        </div>
+      </div>
+      <p class="sub" id="accuracy-window">–</p>
+      <div id="accuracy-table"><p class="loading">Läser in mätvärden…</p></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>MAE per horisont — alla modeller</h2>
+        <span class="meta">Lägre staplar är bättre</span>
+      </div>
+      <div class="chart small" id="mae-chart"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Skill mot den säsongsnaiva referensen</h2>
+        <span class="meta">Över noll = modellen tillför något</span>
+      </div>
+      <div class="chart small" id="skill-chart"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Vad vi sa i går mot vad som hände <span id="history-zone-name" class="meta"></span></h2>
+        <span class="meta">Senaste 30 dygnen, prognos utfärdad ~24 h före leverans</span>
+      </div>
+      <div class="chart small" id="history-chart"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>Om sajten</h4>
+        <p>Spotprognos räknar ut en veckoprognos för Nord Pools day-ahead-priser i SE1–SE4,
+           sparar varje utfärdad prognos och mäter i efterhand hur väl den träffade.</p>
+      </div>
+      <div>
+        <h4>Datakällor</h4>
+        <ul>
+          <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
+          <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
+          <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Öppet</h4>
+        <ul>
+          <li><a href="api.html">JSON-API</a></li>
+          <li><a href="metod.html">Metod</a></li>
+          <li><a href="#" data-repo-url>Källkod</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="disclaimer">
+      <span>Prognosen är en modell, inte ett elavtal. Påslag, moms och nät saknas.</span>
+      <span>Uppdaterad <b data-updated>–</b> · nästa körning <b data-next-update>–</b></span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.1/echarts.min.js" defer></script>
+<script src="assets/charts.js" defer></script>
+<script src="assets/app.js" defer></script>
+</body>
+</html>
