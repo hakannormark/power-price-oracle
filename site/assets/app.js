@@ -542,13 +542,19 @@ const PAGES = {
   static: initStatic,
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-  const page = document.body.dataset.page || "static";
+function boot(page) {
   const init = PAGES[page] || initStatic;
-  init().catch((err) => {
+  return init().catch((err) => {
     console.error(err);
     document.querySelectorAll(".loading").forEach((node) => {
       node.textContent = "Kunde inte läsa data. Kör pipelinen och ladda om sidan.";
     });
   });
+}
+
+// Exposed so a single-file preview build can drive the same code paths.
+window.PPOApp = { boot, state };
+
+document.addEventListener("DOMContentLoaded", () => {
+  boot(document.body.dataset.page || "static");
 });
