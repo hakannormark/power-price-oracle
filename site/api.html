@@ -78,7 +78,7 @@
       </ul>
 
       <h3>Exempel</h3>
-      <pre><code>curl -s https://&lt;USER&gt;.github.io/&lt;REPO&gt;/api/v1/zones/SE3/forecast.json | jq '.series[0]'
+      <pre><code>curl -s https://hakannormark.github.io/power-price-oracle/api/v1/zones/SE3/forecast.json | jq '.series[0]'
 
 {
   "ts": "2026-09-04T00:00:00+02:00",
@@ -92,13 +92,13 @@
 }</code></pre>
 
       <pre><code># Aktuellt pris i alla fyra elområden, i öre/kWh
-curl -s https://&lt;USER&gt;.github.io/&lt;REPO&gt;/api/v1/zones.json \
+curl -s https://hakannormark.github.io/power-price-oracle/api/v1/zones.json \
   | jq -r '.zones[] | "\(.zone) \(.current.ore_kwh) öre/kWh (\(.current.source))"'</code></pre>
 
       <h2>Home Assistant</h2>
       <p>Hämta hela serien som attribut på en sensor:</p>
       <pre><code>rest:
-  - resource: https://&lt;USER&gt;.github.io/&lt;REPO&gt;/api/v1/zones/SE3/forecast.json
+  - resource: https://hakannormark.github.io/power-price-oracle/api/v1/zones/SE3/forecast.json
     scan_interval: 1800
     sensor:
       - name: Spotprognos SE3

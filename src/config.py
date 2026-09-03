@@ -128,7 +128,7 @@ SITE_API_DIR = SITE_DIR / "api" / "v1"
 ROUND_DECIMALS = 3
 
 # Repository / deployment metadata surfaced in the UI footer.
-REPO_URL = "https://github.com/USERNAME/REPO"
+REPO_URL = "https://github.com/hakannormark/power-price-oracle"
 
 
 def ore_per_kwh(eur_per_mwh: float) -> float:

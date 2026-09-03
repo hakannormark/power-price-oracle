@@ -9,7 +9,7 @@ det publiceras och redovisar i efterhand hur väl varje modell träffade — sor
 hur långt i förväg prognosen gjordes. Det sista är hela poängen: en prognos som ställs ut
 efter att auktionen stängt är en avskrift av börsen, inte en gissning, och räknas bort.
 
-**Live:** `https://<USER>.github.io/<REPO>/` · **API:** `https://<USER>.github.io/<REPO>/api/v1/`
+**Live:** <https://hakannormark.github.io/power-price-oracle/> · **API:** <https://hakannormark.github.io/power-price-oracle/api/v1/>
 
 > Prognosen är en modell, inte ett elavtal. Påslag, moms och nät saknas.
 
@@ -64,7 +64,8 @@ python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Byt ut platshållarna `USERNAME/REPO` i `src/config.py` (`REPO_URL`) mot ditt eget repo.
+Forkar du projektet: byt `REPO_URL` i `src/config.py` och adresserna i README och
+`site/api.html` mot ditt eget repo.
 
 ### 2. Skaffa en ENTSO-E-nyckel
 
@@ -178,7 +179,7 @@ En modell som bygger på andra modellers utdata sätter `derived = True`, hamnar
 
 ## API
 
-Bas: `https://<USER>.github.io/<REPO>/api/v1/`
+Bas: `https://hakannormark.github.io/power-price-oracle/api/v1/`
 
 | Sökväg | Innehåll |
 | --- | --- |
@@ -201,7 +202,7 @@ fältet finns för att kvartsvärden ska kunna läggas till utan att bryta klien
 
 ```yaml
 rest:
-  - resource: https://<USER>.github.io/<REPO>/api/v1/zones/SE3/forecast.json
+  - resource: https://hakannormark.github.io/power-price-oracle/api/v1/zones/SE3/forecast.json
     scan_interval: 1800
     sensor:
       - name: Spotprognos SE3

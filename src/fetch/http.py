@@ -12,7 +12,7 @@ from ..config import HTTP_RETRIES, HTTP_TIMEOUT
 
 log = logging.getLogger(__name__)
 
-USER_AGENT = "PowerPriceOracle/1.0 (+https://github.com/USERNAME/REPO)"
+USER_AGENT = "PowerPriceOracle/1.0 (+https://github.com/hakannormark/power-price-oracle)"
 
 
 def get(url: str, params: dict[str, Any] | None = None, retries: int = HTTP_RETRIES) -> requests.Response:
