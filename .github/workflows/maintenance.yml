@@ -15,6 +15,7 @@ on:
           - diagnose
           - deep-backfill
           - fetch-reservoirs
+          - fetch-neighbours
       days:
         description: Days of history for deep-backfill
         required: false
@@ -59,8 +60,14 @@ jobs:
         # fresh checkout, which a rebase of two JSONL files cannot.
         run: python -m src.backfill --days ${{ inputs.days }} --stage "$RUNNER_TEMP/staged.jsonl"
 
+      - name: Backfill neighbouring zone prices
+        if: inputs.task == 'fetch-neighbours'
+        env:
+          ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
+        run: python -m src.fetch_neighbours --days ${{ inputs.days }} --stage "$RUNNER_TEMP/staged.jsonl"
+
       - name: Commit new history
-        if: inputs.task == 'deep-backfill' || inputs.task == 'fetch-reservoirs'
+        if: inputs.task != 'diagnose'
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         run: |
@@ -72,11 +79,11 @@ jobs:
             git fetch origin "${{ github.ref_name }}"
             git reset --hard "origin/${{ github.ref_name }}"
 
-            if [ "${{ inputs.task }}" = "deep-backfill" ]; then
-              python -m src.backfill --merge "$RUNNER_TEMP/staged.jsonl"
-            else
-              python -m src.fetch_reservoirs
-            fi
+            case "${{ inputs.task }}" in
+              deep-backfill)    python -m src.backfill --merge "$RUNNER_TEMP/staged.jsonl" ;;
+              fetch-neighbours) python -m src.fetch_neighbours --merge "$RUNNER_TEMP/staged.jsonl" ;;
+              fetch-reservoirs) python -m src.fetch_reservoirs ;;
+            esac
 
             git add data
             if git diff --cached --quiet; then

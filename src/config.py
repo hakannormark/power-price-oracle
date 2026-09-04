@@ -72,6 +72,26 @@ ZONES = {
 
 ZONE_IDS = list(ZONES)
 
+# Neighbouring bidding zones. Not published as zones on the site; fetched because
+# SE4 tracks DK and DE and SE3 tracks FI and NO, and the level estimator only
+# ever looked at a zone's own history.
+NEIGHBOUR_ZONES = {
+    "DE_LU": {"name": "Tyskland/Luxemburg", "eic": "10Y1001A1001A82H"},
+    "DK1": {"name": "Danmark väst", "eic": "10YDK-1--------W"},
+    "DK2": {"name": "Danmark öst", "eic": "10YDK-2--------M"},
+    "FI": {"name": "Finland", "eic": "10YFI-1--------U"},
+    "NO1": {"name": "Norge sydost", "eic": "10YNO-1--------2"},
+    "NO2": {"name": "Norge sydväst", "eic": "10YNO-2--------T"},
+}
+
+# Which neighbours plausibly inform which Swedish zone, by physical connection.
+ZONE_NEIGHBOURS = {
+    "SE1": ["FI"],
+    "SE2": ["NO1"],
+    "SE3": ["FI", "NO1", "DK1"],
+    "SE4": ["DK2", "DE_LU", "DK1"],
+}
+
 # Extra weather points used as regional drivers (not shown as zones)
 WEATHER_POINTS = {
     "SE3_GOT": (57.7089, 11.9746),
@@ -154,6 +174,7 @@ RAW_DIR = DATA_DIR / "raw"
 ARCHIVE_DIR = DATA_DIR / "archive"
 FIXTURES_DIR = DATA_DIR / "fixtures"
 ACTUALS_DIR = DATA_DIR / "actuals"          # one JSONL per delivery year
+NEIGHBOUR_DIR = DATA_DIR / "actuals_neighbours"
 LEGACY_ACTUALS_PATH = DATA_DIR / "actuals.jsonl"  # migrated on first run
 FORECASTS_PATH = DATA_DIR / "forecasts.jsonl"
 CLIMATOLOGY_PATH = DATA_DIR / "weather_climatology.json"

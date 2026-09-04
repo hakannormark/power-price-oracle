@@ -201,13 +201,19 @@ def _save_raw(zone: str, points: list[RawPoint]) -> None:
             )
 
 
-def fetch_zone(zone: str, start: datetime, end: datetime) -> list[dict]:
-    """Fetch one zone's day-ahead prices for [start, end) and return hourly rows."""
+def fetch_zone(
+    zone: str, start: datetime, end: datetime, eic: str | None = None
+) -> list[dict]:
+    """Fetch one area's day-ahead prices for [start, end) and return hourly rows.
+
+    `eic` allows areas outside the four Swedish zones — neighbours are fetched
+    through the same call with a different domain.
+    """
     token = os.environ.get("ENTSOE_TOKEN", "").strip()
     if not token:
         raise EntsoeError("ENTSOE_TOKEN is not set")
 
-    eic = ZONES[zone]["eic"]
+    eic = eic or ZONES[zone]["eic"]
     params = {
         "documentType": "A44",
         "in_Domain": eic,
