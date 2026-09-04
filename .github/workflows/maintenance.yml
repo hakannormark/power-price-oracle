@@ -1,0 +1,68 @@
+name: Maintenance
+
+# One-off jobs that need the ENTSO-E token but are not part of the scheduled run.
+# Triggered by hand: gh workflow run Maintenance -f task=diagnose
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Which job to run
+        required: true
+        default: diagnose
+        type: choice
+        options:
+          - diagnose
+          - deep-backfill
+      days:
+        description: Days of history for deep-backfill
+        required: false
+        default: "1095"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: maintenance
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Diagnose upstream sources
+        if: inputs.task == 'diagnose'
+        env:
+          ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
+        run: python -m src.diagnose
+
+      - name: Deep backfill of day-ahead prices
+        if: inputs.task == 'deep-backfill'
+        env:
+          ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
+        run: python -m src.backfill --days ${{ inputs.days }}
+
+      - name: Commit new history
+        if: inputs.task == 'deep-backfill'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+          else
+            git commit -m "chore: deep backfill ${{ inputs.days }} days of day-ahead prices"
+            git pull --rebase --autostash origin ${{ github.ref_name }}
+            git push origin HEAD:${{ github.ref_name }}
+          fi
