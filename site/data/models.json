@@ -21,6 +21,15 @@
    "is_reference": false
   },
   {
+   "id": "shrunk_scaled",
+   "name_sv": "Väderskalad, dämpad nivå",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. På 90 dygns historik sänkte det medelfelet med 5 procent i alla fyra elområden.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
    "id": "ensemble",
    "name_sv": "Ensemble",
    "description_sv": "Viktat snitt av de andra modellerna: 35 % säsongsnaiv och 65 % väderskalad. Bandet spänner över båda modellernas intervall. Detta är sajtens standardmodell.",

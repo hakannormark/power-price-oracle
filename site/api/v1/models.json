@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-04T10:28:26+02:00",
+ "generated_at": "2026-09-04T10:42:43+02:00",
  "default_model": "ensemble",
  "models": [
   {
@@ -15,6 +15,15 @@
    "id": "weather_scaled",
    "name_sv": "Väderskalad",
    "description_sv": "Utgår från den säsongsnaiva nivån och skalar den med vindindex, temperaturavvikelse och solinstrålning per elområde. Finns ENTSO-E:s prognoser för last och vindkraft används residuallasten i stället för vindhastighet.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "shrunk_scaled",
+   "name_sv": "Väderskalad, dämpad nivå",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. På 90 dygns historik sänkte det medelfelet med 5 procent i alla fyra elområden.",
    "quantiles": true,
    "derived": false,
    "is_default": false,

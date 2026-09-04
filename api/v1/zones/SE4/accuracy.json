@@ -1,7 +1,7 @@
 {
  "zone": "SE4",
  "zone_name": "Malmö",
- "generated_at": "2026-09-04T10:27:18+02:00",
+ "generated_at": "2026-09-04T10:41:30+02:00",
  "window_days": 90,
  "unit": "EUR/MWh",
  "min_samples": 24,
@@ -17,6 +17,7 @@
  "models": [
   "seasonal_naive",
   "weather_scaled",
+  "shrunk_scaled",
   "ensemble"
  ],
  "reference_model": "seasonal_naive",
@@ -26,36 +27,43 @@
   "0-24h": {
    "seasonal_naive": null,
    "weather_scaled": null,
+   "shrunk_scaled": null,
    "ensemble": null
   },
   "24-48h": {
    "seasonal_naive": null,
    "weather_scaled": null,
+   "shrunk_scaled": null,
    "ensemble": null
   },
   "48-72h": {
    "seasonal_naive": null,
    "weather_scaled": null,
+   "shrunk_scaled": null,
    "ensemble": null
   },
   "72-96h": {
    "seasonal_naive": null,
    "weather_scaled": null,
+   "shrunk_scaled": null,
    "ensemble": null
   },
   "96-120h": {
    "seasonal_naive": null,
    "weather_scaled": null,
+   "shrunk_scaled": null,
    "ensemble": null
   },
   "120-144h": {
    "seasonal_naive": null,
    "weather_scaled": null,
+   "shrunk_scaled": null,
    "ensemble": null
   },
   "144-168h": {
    "seasonal_naive": null,
    "weather_scaled": null,
+   "shrunk_scaled": null,
    "ensemble": null
   }
  }
