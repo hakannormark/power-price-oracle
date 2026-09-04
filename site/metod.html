@@ -78,10 +78,12 @@
         <dt>Vattenvärde (ännu inte modellerat)</dt>
         <dd>Vattenkraftens magasinnivåer bestämmer hur billigt vattnet får användas i dag
           i stället för i vinter. Det är den enskilt viktigaste faktorn som v1 saknar.</dd>
-        <dt>Kärnkraftsrevisioner (ännu inte modellerat)</dt>
-        <dd>Ett oplanerat stopp i ett stort block flyttar SE3 direkt. Sidan läser
-          Svenska kraftnäts driftinformation och kan citera den i drivkraftstexten, men
-          modellen räknar inte på den.</dd>
+        <dt>Kärnkraftsrevisioner (mätt, ingår ändå inte)</dt>
+        <dd>Sidan hämtar dem numera från Nord Pools REMIT-meddelanden och visar
+          dem som fakta. De prövades som modellindata och gav ingen förbättring —
+          en planerad revision är känd i veckor, så förra veckans pris har redan
+          prisat in den. Ett <em>oplanerat</em> haveri är en annan sak, men det
+          har ännu inte testats separat.</dd>
       </dl>
 
       <h2>Vad v1 faktiskt gör</h2>
@@ -204,9 +206,9 @@
           <code>FUTURE:</code>, men v1 kör helt utan tränade artefakter så att en färsk
           klon fungerar direkt.</li>
         <li>Ingen bränsle- eller utsläppsrättsprisdata.</li>
-        <li>Inga vattenmagasin i modellen. Nivåerna hämtas per elområde från
-          ENTSO-E men rör sig i veckotakt, vilket ligger utanför ett
-          sjudygnsfönster där förra veckans pris redan bär samma information.</li>
+        <li>Inga vattenmagasin. Datat finns per elområde hos ENTSO-E — 208
+          veckopunkter tillbaka till 2022 — och hämtaren är byggd, men den har
+          ännu inte körts och nivåerna har därför aldrig prövats mot utfall.</li>
         <li>Inga avbrott i modellen — se ovan. De visas som fakta, inte som indata.</li>
         <li>Ingen AI-overlay. v1 är statistisk och väderjusterad, ingenting annat.</li>
       </ul>
