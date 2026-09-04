@@ -70,13 +70,19 @@
     };
   }
 
+  // Two ticks per day: the day name at midnight and a bare "12" at noon. Six-hour
+  // ticks put a wide day name directly between an 18 and an 06 and they collided.
+  function isLabelledHour(iso) {
+    const hour = new Date(iso).getHours();
+    return hour === 0 || hour === 12;
+  }
+
   function hourLabel(iso) {
     const date = new Date(iso);
-    const hours = String(date.getHours()).padStart(2, "0");
-    if (hours === "00") {
+    if (date.getHours() === 0) {
       return `{b|${date.toLocaleDateString("sv-SE", { weekday: "short", day: "numeric" })}}`;
     }
-    return `${hours}`;
+    return "12";
   }
 
   /* ---------------------------------------------------------- main chart */
@@ -262,7 +268,7 @@
             // Day names are wider than hour labels and used to collide with the
             // neighbouring 18:00 and 06:00 ticks; hideOverlap drops the loser.
             hideOverlap: true,
-            interval: (index) => new Date(categories[index]).getHours() % 6 === 0,
+            interval: (index) => isLabelledHour(categories[index]),
             formatter: hourLabel,
             rich: { b: { color: "#e8eefc", fontWeight: 600, fontSize: 11, padding: [0, 4, 0, 4] } },
           },
