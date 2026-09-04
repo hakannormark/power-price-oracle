@@ -44,16 +44,11 @@ from datetime import datetime
 
 import pandas as pd
 
-from ..timeutil import TZ
+from ..timeutil import TZ, horizon_hours
+from .band import band_for
 from .base import ForecastPoint, order_quantiles, target_window
-from .seasonal_naive import MIN_BAND_BASE, baseline_stats, naive_level
-from .weather_scaled import (
-    BASE_WIDTH,
-    HIGH_WIDTH_FACTOR,
-    WIDTH_PER_SCALE,
-    _residual_load_index,
-    compute_scale,
-)
+from .seasonal_naive import baseline_stats, naive_level
+from .weather_scaled import _residual_load_index, compute_scale
 
 LAG_WEIGHT = 0.70  # weight on the one-week lag; the rest goes to the four-week median
 WEEKLY_LAG_COLUMNS = ["price_lag_168h", "price_lag_336h", "price_lag_504h", "price_lag_672h"]
@@ -111,11 +106,11 @@ class ShrunkScaled:
             )
             p50 = level * scale
 
-            width = BASE_WIDTH + WIDTH_PER_SCALE * abs(scale - 1.0)
-            base = max(abs(p50), MIN_BAND_BASE)
-            p10, p50, p90 = order_quantiles(
-                p50 - width * base, p50, p50 + width * HIGH_WIDTH_FACTOR * base
-            )
+            # Band comes from measured residual quantiles per forecast day, not
+            # from the weather scale: the old width claimed 80 % coverage and
+            # delivered 39.7 %. See models/band.py.
+            low, high = band_for(p50, horizon_hours(issued_at, row.ts.to_pydatetime()))
+            p10, p50, p90 = order_quantiles(low, p50, high)
             points.append(
                 ForecastPoint(
                     ts=row.ts.to_pydatetime().astimezone(TZ),

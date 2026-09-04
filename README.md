@@ -263,6 +263,15 @@ standarden är en enskild modell och inte en sammanvägning.
 efterhand. Den väderdrivna delen av försprånget är därför optimistisk.
 Dämpningen av nivån, värd 7,9 % på egen hand, beror inte på väder.
 
+### Osäkerhetsbandet
+
+Talen ovan mäter mittlinjen. Bandet p10–p90 mättes separat och var trasigt: den
+ursprungliga bredden innehöll **39,7 %** av utfallen medan den utgav sig för att
+innehålla 80, och var lika bred på dag 7 som på dag 1. Det sätts nu av uppmätta
+felfördelningar per prognosdygn (`src/models/band.py`) och träffar 79,7 %. Det är
+kraftigt asymmetriskt uppåt och betydligt bredare än förut — det är den ärliga
+bredden på en sjudygnsprognos.
+
 Ingen tränad modell i v1 — en färsk klon ska ge en prognos direkt. Kroken för
 gradient boosting är utmärkt med `# FUTURE:` i `src/models/weather_scaled.py`.
 Utförlig beskrivning finns på sajtens metodsida.

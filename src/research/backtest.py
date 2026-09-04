@@ -352,6 +352,86 @@ def evaluate(
 
 
 # (label, level column, drivers, fit per zone)
+def evaluate_band(frame: pd.DataFrame, level: str) -> dict:
+    """Does the published p10-p90 band actually contain 80 % of outcomes?
+
+    Two bands are scored. The shipped one widens with the weather scale and
+    ignores the horizon entirely, so a seven-day-ahead hour gets the same band
+    as an hour tonight. The fitted one takes the empirical 10th and 90th
+    percentile of the scale-normalised residual, per forecast day, estimated on
+    earlier quarters only.
+    """
+    from ..models.seasonal_naive import MIN_BAND_BASE
+    from ..models.weather_scaled import BASE_WIDTH, HIGH_WIDTH_FACTOR, WIDTH_PER_SCALE
+
+    quarters = sorted(frame["quarter"].unique())
+    min_train = max(2000, len(frame) // 20)
+    rows: list[pd.DataFrame] = []
+    fitted_q: dict[int, tuple[float, float]] = {}
+
+    for q in quarters:
+        train = frame[frame["quarter"] < q]
+        test = frame[frame["quarter"] == q]
+        if len(train) < min_train or test.empty:
+            continue
+
+        for part, source in (("train", train), ("test", test)):
+            if part == "train":
+                continue
+        # --- shipped band
+        p50 = test[level].to_numpy()
+        scale = test["guessed_scale"].to_numpy()
+        base = np.maximum(np.abs(p50), MIN_BAND_BASE)
+        width = BASE_WIDTH + WIDTH_PER_SCALE * np.abs(scale - 1.0)
+        shipped_lo = p50 - width * base
+        shipped_hi = p50 + width * HIGH_WIDTH_FACTOR * base
+
+        # --- fitted band: residual quantiles per forecast day
+        train_p50 = train[level].to_numpy()
+        train_base = np.maximum(np.abs(train_p50), MIN_BAND_BASE)
+        train_resid = (train["truth"].to_numpy() - train_p50) / train_base
+        fit_lo = np.zeros_like(p50)
+        fit_hi = np.zeros_like(p50)
+        for day in sorted(frame["bucket"].unique()):
+            tr = train["bucket"].to_numpy() == day
+            te = test["bucket"].to_numpy() == day
+            if tr.sum() < 200 or not te.any():
+                continue
+            q10 = float(np.quantile(train_resid[tr], 0.10))
+            q90 = float(np.quantile(train_resid[tr], 0.90))
+            fitted_q[int(day)] = (q10, q90)
+            fit_lo[te] = p50[te] + q10 * base[te]
+            fit_hi[te] = p50[te] + q90 * base[te]
+
+        truth = test["truth"].to_numpy()
+        rows.append(
+            pd.DataFrame(
+                {
+                    "bucket": test["bucket"].to_numpy(),
+                    "shipped_in": (shipped_lo <= truth) & (truth <= shipped_hi),
+                    "fitted_in": (fit_lo <= truth) & (truth <= fit_hi),
+                    "shipped_width": shipped_hi - shipped_lo,
+                    "fitted_width": fit_hi - fit_lo,
+                }
+            )
+        )
+
+    if not rows:
+        return {}
+    everything = pd.concat(rows, ignore_index=True)
+    return {
+        "shipped_coverage": float(everything["shipped_in"].mean()),
+        "fitted_coverage": float(everything["fitted_in"].mean()),
+        "shipped_width": float(everything["shipped_width"].mean()),
+        "fitted_width": float(everything["fitted_width"].mean()),
+        "by_day": {
+            int(d): (float(g["shipped_in"].mean()), float(g["fitted_in"].mean()))
+            for d, g in everything.groupby("bucket")
+        },
+        "quantiles": fitted_q,
+    }
+
+
 CANDIDATES: list[tuple] = [
     ("seasonal_naive", "level_naive", []),
     ("shrunk level", "level_shrunk", []),
@@ -438,6 +518,18 @@ def main(argv: list[str] | None = None) -> int:
         if len(items) > 5:
             coefficients += f" (+{len(items) - 5} till)"
         print(f"{name:<28}{result['mae']:>8.2f}{gain:>9.1f}%   {coefficients}")
+
+    band = evaluate_band(frame, "level_weather_guessed")
+    if band:
+        print(f"\n--- osäkerhetsband kring standardmodellen, mål 80 % ---")
+        print(f"{'dag':<6}{'skeppat':>10}{'anpassat':>10}")
+        for day, (shipped, fit) in sorted(band["by_day"].items()):
+            print(f"d{day + 1:<5}{100 * shipped:>9.1f}%{100 * fit:>9.1f}%")
+        print(f"{'ALLA':<6}{100 * band['shipped_coverage']:>9.1f}%{100 * band['fitted_coverage']:>9.1f}%")
+        print(f"medelbredd EUR/MWh: skeppat {band['shipped_width']:.1f}, anpassat {band['fitted_width']:.1f}")
+        print("anpassade residualkvantiler per dag:")
+        for day, (lo, hi) in sorted(band["quantiles"].items()):
+            print(f"  d{day + 1}: q10={lo:+.3f}  q90={hi:+.3f}")
 
     best = min(results.items(), key=lambda kv: kv[1]["mae"])
     print(f"\nbest: {best[0]}")
