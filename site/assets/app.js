@@ -346,7 +346,7 @@ function renderNextHours(zoneData) {
             <td>${fmtTime(row.ts)}</td>
             <td class="num">${fmtPrice(row.eur_mwh)}</td>
             <td class="num">${
-              row.p10 === null || row.p10 === undefined
+              row.p10 === null || row.p10 === undefined || row.source !== "forecast"
                 ? '<span class="muted">–</span>'
                 : `${fmtPrice(row.p10)} – ${fmtPrice(row.p90)}`
             }</td>

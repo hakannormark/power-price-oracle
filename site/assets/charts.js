@@ -151,6 +151,8 @@
             color: COLORS.muted,
             fontSize: 10,
             position: "insideEndTop",
+            rotate: 0,
+            padding: [0, 0, 4, 0],
           },
           lineStyle: { color: COLORS.faint, type: "dashed", width: 1 },
           data: [{ xAxis: categories[nowIndex] }],
@@ -248,6 +250,7 @@
             return lines.join("");
           },
         }),
+        grid: { left: 8, right: 12, top: 40, bottom: 8, containLabel: true },
         xAxis: Object.assign(axisCommon(), {
           type: "category",
           data: categories,
@@ -256,17 +259,21 @@
           axisLabel: {
             color: COLORS.muted,
             fontSize: 11,
+            // Day names are wider than hour labels and used to collide with the
+            // neighbouring 18:00 and 06:00 ticks; hideOverlap drops the loser.
+            hideOverlap: true,
             interval: (index) => new Date(categories[index]).getHours() % 6 === 0,
             formatter: hourLabel,
-            rich: { b: { color: "#e8eefc", fontWeight: 600, fontSize: 11 } },
+            rich: { b: { color: "#e8eefc", fontWeight: 600, fontSize: 11, padding: [0, 4, 0, 4] } },
           },
         }),
         yAxis: Object.assign(axisCommon(), {
           type: "value",
           scale: true,
           name: unitLabel(unit),
+          nameLocation: "end",
           nameTextStyle: { color: COLORS.faint, fontSize: 11, align: "left" },
-          nameGap: 14,
+          nameGap: 18,
         }),
         series: chartSeries,
       }),
