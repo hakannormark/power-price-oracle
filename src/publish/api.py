@@ -104,6 +104,7 @@ def write_forecast(
         "demo": meta.get("demo", False),
         "default_model": DEFAULT_MODEL_ID,
         "models": meta["models"],
+        "fx": meta.get("fx"),
         "series": series,
         "drivers": drivers,
     }
@@ -187,8 +188,9 @@ def build_history(
 def write_zones_index(payloads: dict[str, dict], meta: dict) -> dict:
     """Cheap summary document: current price per zone, for tiles and integrations."""
     zones = []
+    rate = (meta.get("fx") or {}).get("rate")
     for zone, forecast in payloads.items():
-        current = current_point(forecast, meta["now"])
+        current = current_point(forecast, meta["now"], rate)
         zones.append(
             {
                 "zone": zone,
@@ -210,14 +212,17 @@ def write_zones_index(payloads: dict[str, dict], meta: dict) -> dict:
         "resolution": RESOLUTION,
         "degraded": meta["degraded"],
         "default_model": DEFAULT_MODEL_ID,
+        "fx": meta.get("fx"),
         "zones": zones,
     }
     write_json("zones.json", payload)
     return payload
 
 
-def current_point(forecast: dict, now: datetime) -> dict | None:
+def current_point(forecast: dict, now: datetime, eur_sek: float | None = None) -> dict | None:
     """The price for the hour we are in: official when published, otherwise ensemble."""
+    if eur_sek is None:
+        eur_sek = (forecast.get("fx") or {}).get("rate")
     target = iso(now.replace(minute=0, second=0, microsecond=0))
     for entry in forecast["series"]:
         if entry["ts"] != target:
@@ -233,7 +238,7 @@ def current_point(forecast: dict, now: datetime) -> dict | None:
         return {
             "ts": entry["ts"],
             "eur_mwh": r3(value),
-            "ore_kwh": r3(ore_per_kwh(value)),
+            "ore_kwh": r3(ore_per_kwh(value, eur_sek)) if eur_sek else None,
             "source": source,
         }
     return None
@@ -266,13 +271,21 @@ def next_scheduled_update(now: datetime | None = None) -> str:
     return upcoming[0].strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def write_status(run_id: str, sources: dict, degraded: bool, now: datetime, demo: bool = False) -> dict:
+def write_status(
+    run_id: str,
+    sources: dict,
+    degraded: bool,
+    now: datetime,
+    demo: bool = False,
+    fx: dict | None = None,
+) -> dict:
     payload = {
         "ok": not degraded,
         "generated_at": iso(now),
         "run_id": run_id,
         "degraded": degraded,
         "demo": demo,
+        "fx": fx,
         "sources": sources,
         "next_expected_update_utc": next_scheduled_update(now),
     }

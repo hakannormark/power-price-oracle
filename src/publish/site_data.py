@@ -58,6 +58,7 @@ def _spark(forecast: dict, now: datetime) -> list[float | None]:
 
 def _next_hours(forecast: dict, now: datetime) -> list[dict]:
     """Every remaining hour of the forecast window: value, band, and fact-or-not."""
+    rate = (forecast.get("fx") or {}).get("rate")
     start = now.replace(minute=0, second=0, microsecond=0)
     end = now + timedelta(hours=HORIZON_HOURS)
     rows: list[dict] = []
@@ -72,7 +73,7 @@ def _next_hours(forecast: dict, now: datetime) -> list[dict]:
                 "ts": entry["ts"],
                 "source": entry["source"],
                 "eur_mwh": r3(value),
-                "ore_kwh": r3(ore_per_kwh(value)) if value is not None else None,
+                "ore_kwh": r3(ore_per_kwh(value, rate)) if value is not None and rate else None,
                 "p10": model.get("p10"),
                 "p90": model.get("p90"),
             }
@@ -88,13 +89,14 @@ def write_overview(
     now: datetime,
 ) -> dict:
     tiles = []
+    rate = (status.get("fx") or {}).get("rate")
     for zone, forecast in forecasts.items():
         drivers = forecast.get("drivers", {})
         tiles.append(
             {
                 "zone": zone,
                 "name": ZONES[zone]["name"],
-                "current": current_point(forecast, now),
+                "current": current_point(forecast, now, rate),
                 "spark": _spark(forecast, now),
                 "regime": drivers.get("regime"),
                 "regime_label_sv": drivers.get("regime_label_sv"),
@@ -116,6 +118,7 @@ def write_overview(
         "resolution": RESOLUTION,
         "default_model": DEFAULT_MODEL_ID,
         "reference_model": REFERENCE_MODEL_ID,
+        "fx": status.get("fx"),
         "title_sv": SITE_TITLE_SV,
         "subtitle_sv": SITE_SUBTITLE_SV,
         "blurb_sv": blurb_sv,

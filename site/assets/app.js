@@ -9,6 +9,7 @@ const STORE = { unit: "ppo.unit", zone: "ppo.zone", overlay: "ppo.overlay" };
 
 const state = {
   unit: readStore(STORE.unit, "ore"),
+  fx: null, // EUR/SEK, from the run that produced the data
   zone: readStore(STORE.zone, "SE3"),
   overlay: readStore(STORE.overlay, "0") === "1",
   overview: null,
@@ -41,7 +42,11 @@ async function loadJSON(path) {
 
 function toDisplay(eurMwh) {
   if (eurMwh === null || eurMwh === undefined) return null;
-  return state.unit === "ore" ? eurMwh / 10 : eurMwh;
+  if (state.unit !== "ore") return eurMwh;
+  // The market quotes EUR/MWh, so öre needs the EUR/SEK rate, not just a shift
+  // of decimal point. Without a rate we cannot honestly show öre at all.
+  if (!state.fx) return null;
+  return (eurMwh * state.fx) / 10;
 }
 
 function unitLabel() {
@@ -111,6 +116,21 @@ function renderBanners(overview) {
   } else {
     banner.hidden = true;
   }
+}
+
+function applyFx(payload) {
+  const fx = payload && payload.fx;
+  state.fx = fx && fx.rate ? fx.rate : null;
+  if (!state.fx && state.unit === "ore") state.unit = "eur";
+  document.querySelectorAll("[data-fx]").forEach((node) => {
+    node.textContent = fx
+      ? `1 EUR = ${fmt(fx.rate, 2)} SEK (${fx.source} ${fx.date})`
+      : "växelkurs saknas";
+  });
+  document.querySelectorAll("[data-unit-toggle] button[data-unit='ore']").forEach((button) => {
+    button.disabled = !state.fx;
+    button.title = state.fx ? "" : "Växelkurs saknas — visar EUR/MWh";
+  });
 }
 
 function renderFooterMeta(overview) {
@@ -191,7 +211,9 @@ function renderTiles(overview, onSelect) {
           ? ""
           : state.unit === "ore"
             ? `${fmt(eur, 1)} EUR/MWh`
-            : `${fmt(eur / 10, 1)} öre/kWh`;
+            : state.fx
+              ? `${fmt((eur * state.fx) / 10, 1)} öre/kWh`
+              : "";
 
       return `<button type="button" class="tile" data-zone="${tile.zone}"
           style="--zone:${color}" aria-pressed="${tile.zone === state.zone}">
@@ -382,6 +404,7 @@ async function initIndex() {
   state.overview = overview;
   if (!ZONES.includes(state.zone)) state.zone = "SE3";
 
+  applyFx(overview);
   renderBanners(overview);
   renderFooterMeta(overview);
   const blurb = el("blurb");
@@ -444,6 +467,7 @@ async function initAccuracy() {
     loadJSON("data/accuracy.json"),
   ]);
   state.overview = overview;
+  applyFx(overview);
   renderBanners(overview);
   renderFooterMeta(overview);
 
@@ -545,6 +569,7 @@ async function initModels() {
     loadJSON("data/overview.json"),
     loadJSON("data/models.json"),
   ]);
+  applyFx(overview);
   renderBanners(overview);
   renderFooterMeta(overview);
 

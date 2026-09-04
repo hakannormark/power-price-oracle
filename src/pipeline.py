@@ -17,7 +17,7 @@ from .config import EVAL_WINDOW_DAYS, FIXTURE_ACTUALS_PATH, ZONES, ensure_dirs
 from .evaluate.score import evaluate, zone_slice
 from .explain.drivers import build_drivers, global_blurb
 from .features.build import build_features
-from .fetch import entsoe_fundamentals, entsoe_prices, open_meteo, svk_text
+from .fetch import ecb_fx, entsoe_fundamentals, entsoe_prices, open_meteo, svk_text
 from .models.official import actuals_index
 from .models.registry import (
     BASE_MODELS,
@@ -63,7 +63,9 @@ def run(skip_fetch: bool = False) -> int:
         sources["open_meteo"] = {"ok": False, "error": "skipped (--skip-fetch)"}
         sources["entsoe_fundamentals"] = {"ok": False, "error": "skipped (--skip-fetch)"}
         sources["svk_text"] = {"ok": False, "error": "skipped (--skip-fetch)"}
+        sources["ecb_fx"] = {"ok": False, "error": "skipped (--skip-fetch)"}
         weather, fundamentals, svk = None, None, svk_text.load_cached_svk_text()
+        fx = ecb_fx.load_cached()
         price_rows: list[dict] = []
     else:
         start, end = entsoe_prices.scheduled_window(now)
@@ -81,6 +83,7 @@ def run(skip_fetch: bool = False) -> int:
         svk, sources["svk_text"] = svk_text.fetch_svk_text()
         if svk is None:
             svk = svk_text.load_cached_svk_text()
+        fx, sources["ecb_fx"] = ecb_fx.fetch_eur_sek()
 
     # ---- 3. actuals -----------------------------------------------------
     added = upsert_actuals(price_rows) if price_rows else 0
@@ -156,6 +159,7 @@ def run(skip_fetch: bool = False) -> int:
         "degraded": degraded,
         "demo": demo,
         "models": model_ids(),
+        "fx": fx,
         "now": now,
     }
     index = actuals_index(actuals)
@@ -174,7 +178,7 @@ def run(skip_fetch: bool = False) -> int:
     publish_api.write_zones_index(forecast_payloads, meta)
     publish_api.write_models()
     publish_api.write_accuracy(accuracy, zone_slices)
-    status = publish_api.write_status(run_id, sources, degraded, now, demo)
+    status = publish_api.write_status(run_id, sources, degraded, now, demo, fx)
 
     publish_site.write_overview(
         forecast_payloads, accuracy, status, global_blurb(drivers, degraded), now
@@ -189,6 +193,7 @@ def run(skip_fetch: bool = False) -> int:
     print(f"  actuals         : {len(actuals)} rows (+{added} new)")
     print(f"  forecast rows   : +{written}")
     print(f"  scored points   : {accuracy['scored_points']}")
+    print(f"  eur/sek         : {fx['rate'] if fx else 'unavailable'}")
     for name, state in sources.items():
         flag = "ok" if state.get("ok") else f"FAIL — {state.get('error', 'unknown')}"
         print(f"  {name:<16}: {flag}")

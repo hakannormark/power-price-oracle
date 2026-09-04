@@ -27,7 +27,10 @@
 
   function scale(value, unit) {
     if (value === null || value === undefined) return null;
-    return unit === "ore" ? value / 10 : value;
+    if (unit !== "ore") return value;
+    // Mirrors toDisplay() in app.js: öre is a currency conversion from EUR.
+    const rate = (window.PPOApp && window.PPOApp.state.fx) || null;
+    return rate ? (value * rate) / 10 : null;
   }
 
   function unitLabel(unit) {

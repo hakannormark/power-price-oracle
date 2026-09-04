@@ -7,5 +7,11 @@ data/raw/
 .DS_Store
 _site/
 
+# Local secret storage. The ENTSO-E token belongs in GitHub Actions secrets and
+# in the ENTSOE_TOKEN environment variable — never in the working tree.
+API key/
+*.key
+secrets/
+
 # Published state is tracked on purpose:
 #   data/actuals.jsonl, data/forecasts.jsonl, api/, site/data/

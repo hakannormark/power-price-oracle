@@ -104,6 +104,11 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 SVK_DRIFTINFO_URL = (
     "https://www.svk.se/om-kraftsystemet/kraftsystemdata/information-fran-driften/"
 )
+ECB_FX_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
+
+# Reject a EUR/SEK reading outside this band: it means the feed changed shape,
+# not that the krona moved that far.
+FX_SANITY_RANGE = (7.0, 20.0)
 
 HTTP_TIMEOUT = 45
 HTTP_RETRIES = 3
@@ -117,6 +122,7 @@ FIXTURES_DIR = DATA_DIR / "fixtures"
 ACTUALS_PATH = DATA_DIR / "actuals.jsonl"
 FORECASTS_PATH = DATA_DIR / "forecasts.jsonl"
 CLIMATOLOGY_PATH = DATA_DIR / "weather_climatology.json"
+FX_PATH = DATA_DIR / "fx_rate.json"
 SVK_TEXT_PATH = RAW_DIR / "svk_driftinfo.txt"
 FIXTURE_ACTUALS_PATH = FIXTURES_DIR / "actuals_demo.jsonl"
 
@@ -131,9 +137,15 @@ ROUND_DECIMALS = 3
 REPO_URL = "https://github.com/hakannormark/power-price-oracle"
 
 
-def ore_per_kwh(eur_per_mwh: float) -> float:
-    """EUR/MWh -> öre/kWh. 85 EUR/MWh == 8.5 öre/kWh."""
-    return eur_per_mwh / 10.0
+def ore_per_kwh(eur_per_mwh: float, eur_sek: float) -> float:
+    """EUR/MWh -> öre/kWh, via the EUR/SEK rate.
+
+    The market is denominated in EUR, so this is a currency conversion and not
+    just a change of unit: 1 EUR/MWh is 0.1 eurocent/kWh, which only becomes öre
+    after multiplying by SEK per EUR. At 11.50 SEK/EUR, 110 EUR/MWh is about
+    126 öre/kWh.
+    """
+    return eur_per_mwh * eur_sek / 10.0
 
 
 def ensure_dirs() -> None:
