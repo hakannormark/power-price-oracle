@@ -248,6 +248,7 @@ GitHub Pages tillåter GET från webbläsare, och Home Assistant behöver inte C
 | --- | --- |
 | `seasonal_naive` | Priset samma veckodag och timme sju dygn tidigare. Referensen alla andra mäts mot. |
 | `weather_scaled` | Den naiva nivån skalad med vindindex, temperaturavvikelse och sol, med egna vikter per elområde. Använder ENTSO-E:s residuallast när den finns. |
+| `shrunk_scaled` | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så ett avvikande dygn inte kopieras rakt in. Backtestad till 5 % lägre MAE än den naiva i alla fyra elområden. Tävlar — ingår ännu inte i ensemblen. |
 | `ensemble` | 35 % naiv + 65 % väderskalad. Sajtens och API:ts standardmodell. |
 
 Ingen tränad modell i v1 — en färsk klon ska ge en prognos direkt. Kroken för

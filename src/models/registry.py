@@ -5,12 +5,14 @@ from __future__ import annotations
 from .ensemble import Ensemble
 from .official import Official
 from .seasonal_naive import SeasonalNaive
+from .shrunk_scaled import ShrunkScaled
 from .weather_scaled import WeatherScaled
 
 # Models the pipeline runs directly, in order.
 BASE_MODELS = [
     SeasonalNaive(),
     WeatherScaled(),
+    ShrunkScaled(),
 ]
 
 # Derived models are built from base-model output after the base pass.

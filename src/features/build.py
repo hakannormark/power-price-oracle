@@ -33,6 +33,9 @@ FEATURE_COLUMNS = [
     "price_lag_24h",
     "price_lag_48h",
     "price_lag_168h",
+    "price_lag_336h",
+    "price_lag_504h",
+    "price_lag_672h",
     "price_zone_yesterday_profile",
 ]
 
@@ -136,13 +139,22 @@ def build_features(
         prices = prices.drop_duplicates(subset=["ts", "zone"], keep="last")
         frame = frame.merge(prices, on=["ts", "zone"], how="left")
 
-        for label, hours in (("price_lag_24h", 24), ("price_lag_48h", 48), ("price_lag_168h", 168)):
+        weekly_lags = [("price_lag_168h", 168), ("price_lag_336h", 336), ("price_lag_504h", 504), ("price_lag_672h", 672)]
+        for label, hours in [("price_lag_24h", 24), ("price_lag_48h", 48), *weekly_lags]:
             shifted = prices.copy()
             shifted["ts"] = shifted["ts"] + pd.Timedelta(hours=hours)
             shifted = shifted.rename(columns={"actual_price": label})
             frame = frame.merge(shifted, on=["ts", "zone"], how="left")
     else:
-        for column in ("actual_price", "price_lag_24h", "price_lag_48h", "price_lag_168h"):
+        for column in (
+            "actual_price",
+            "price_lag_24h",
+            "price_lag_48h",
+            "price_lag_168h",
+            "price_lag_336h",
+            "price_lag_504h",
+            "price_lag_672h",
+        ):
             frame[column] = pd.NA
 
     frame["price_zone_yesterday_profile"] = frame["price_lag_24h"]
@@ -161,6 +173,9 @@ def build_features(
         "price_lag_24h",
         "price_lag_48h",
         "price_lag_168h",
+        "price_lag_336h",
+        "price_lag_504h",
+        "price_lag_672h",
         "price_zone_yesterday_profile",
     ]
     for column in numeric:

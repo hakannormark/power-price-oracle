@@ -104,6 +104,16 @@
         Finns ENTSO-E:s publicerade prognoser för last och vindkraft används residuallasten
         i stället för rå vindhastighet.</p>
 
+      <p><b>Den naiva nivåns svaghet.</b> Att utgå från en enda observation — samma
+        timme för sju dygn sedan — betyder att ett avvikande dygn kopieras rakt in i
+        prognosen, åt båda hållen. En lördag som föll till nära noll blir nästa lördags
+        prognos, och en kväll som sköt i höjden blir nästa veckas kväll. Därför kör
+        sajten även en modell där grundnivån vägs 70/30 mot medianen för samma timme de
+        senaste fyra veckorna. På 90 dygns historik sänkte det medelfelet med 5 procent i
+        alla fyra elområden. Den tävlar på
+        <a href="traffsakerhet.html">träffsäkerhetssidan</a> men ingår ännu inte i
+        ensemblen — den ska visa sig bättre på riktiga prognoser först.</p>
+
       <h2>Vad v1 inte gör</h2>
       <ul>
         <li>Ingen marknadskoppling. Ingen Euphemia, inga budkurvor, ingen simulering av
