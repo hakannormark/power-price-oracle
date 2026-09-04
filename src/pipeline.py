@@ -25,6 +25,7 @@ from .evaluate.score import evaluate, zone_slice
 from .explain.drivers import build_drivers, global_blurb
 from .features.build import build_features
 from .fetch import ecb_fx, entsoe_fundamentals, entsoe_prices, nordpool_umm, open_meteo, svk_text
+from .fetch.entsoe_supply import latest_reservoir_state
 from .models.official import actuals_index
 from .models.registry import (
     BASE_MODELS,
@@ -37,6 +38,7 @@ from .publish import api as publish_api
 from .publish import site_data as publish_site
 from .store import (
     append_forecasts,
+    load_reservoirs,
     load_umm,
     upsert_umm,
     load_actuals,
@@ -168,7 +170,8 @@ def run(skip_fetch: bool = False) -> int:
     for point in predictions.get("ensemble", []):
         ensemble_by_zone[point.zone].append({"ts": point.ts, "p50": point.p50})
     outages = nordpool_umm.current_outages(load_umm(since=now - timedelta(days=400)), now)
-    drivers = build_drivers(features, ensemble_by_zone, svk, now, outages)
+    reservoirs = latest_reservoir_state(load_reservoirs(), now)
+    drivers = build_drivers(features, ensemble_by_zone, svk, now, outages, reservoirs)
 
     # ---- 11-12. publish -------------------------------------------------
     meta = {

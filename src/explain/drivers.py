@@ -263,6 +263,29 @@ def outage_bullets(block: dict | None) -> list[str]:
     return lines
 
 
+def reservoir_bullet(state: dict | None) -> str | None:
+    """Reservoir fill as a fact for the reader, not as model input.
+
+    It was tested both as a level adjustment and as an amplifier of the weather
+    effect and improved neither, so no model consumes it. It still tells a
+    reader something true about how much slack the system has.
+    """
+    if not state:
+        return None
+    fill = state.get("fill_ratio")
+    anomaly = state.get("week_anomaly")
+    if fill is None:
+        return None
+    if anomaly is None:
+        return f"Vattenmagasinen är fyllda till {sv_num(100 * fill, 0)} %."
+    direction = "under" if anomaly < 0 else "över"
+    return (
+        f"Vattenmagasinen är fyllda till {sv_num(100 * fill, 0)} %, "
+        f"{sv_num(abs(100 * anomaly), 0)} procentenheter {direction} det normala för "
+        "årstiden."
+    )
+
+
 def rank_outages(items: list[dict]) -> list[dict]:
     """Order by what a reader needs told first, not by raw megawatts."""
     return sorted(
@@ -299,6 +322,7 @@ def build_drivers(
     svk_text: str | None = None,
     now: datetime | None = None,
     outages: dict[str, dict] | None = None,
+    reservoirs: dict[str, dict] | None = None,
 ) -> dict[str, dict]:
     """Driver block per zone, matching the `drivers` object in the forecast API."""
     now = now or now_local()
@@ -311,6 +335,9 @@ def build_drivers(
         regime = classify_regime(zone, snap)
         outage_block = (outages or {}).get(zone)
         outage_lines = outage_bullets(outage_block)
+        water = reservoir_bullet((reservoirs or {}).get(zone))
+        if water:
+            outage_lines = outage_lines + [water]
         headline = outage_headline(zone, outage_block)
         if headline:
             regime = "outage_tight"
@@ -320,6 +347,7 @@ def build_drivers(
             "headline_sv": headline or HEADLINES_SV[regime].format(zone=zone),
             "bullets_sv": outage_lines + _bullets(zone, regime, snap, spread, extra)[: 5 - len(outage_lines)],
             "outages": outage_block or {"items": []},
+            "reservoir": (reservoirs or {}).get(zone),
             "features": {
                 "wind_index_local": r3(snap["wind_index_local"]),
                 "wind_index_north": r3(snap["wind_index_north"]),

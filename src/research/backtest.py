@@ -61,6 +61,13 @@ class Sample:
     d_production_mw: float = 0.0
     d_import_mw: float = 0.0
     d_export_mw: float = 0.0
+    unplanned_production_mw: float = 0.0
+    unplanned_nuclear_mw: float = 0.0
+    unplanned_import_lost_mw: float = 0.0
+    d_unplanned_mw: float = 0.0
+    # Reservoir fill for the zone, as published before issue time.
+    fill_ratio: float = float("nan")
+    fill_anomaly: float = float("nan")
     wind_index_local: float = 1.0
     wind_index_north: float = 1.0
     wind_index_south: float = 1.0
@@ -134,6 +141,34 @@ def build_samples(
 
     umm_rows = load_umm() if with_outages else []
     log.info("outage rows: %s", len(umm_rows))
+
+    # Reservoir readings, keyed per zone and sorted, so each issue time can pick
+    # the newest reading that was already published then. ENTSO-E publishes with
+    # roughly a two-week lag, which is applied here rather than assumed away.
+    reservoirs: dict[str, list] = {}
+    try:
+        from ..fetch.entsoe_supply import reservoir_features
+        from ..store import load_reservoirs
+
+        feats = reservoir_features(load_reservoirs())
+        for row in feats.itertuples():
+            reservoirs.setdefault(row.zone, []).append(
+                (row.ts.to_pydatetime(), row.fill_ratio, row.week_anomaly)
+            )
+        for zone in reservoirs:
+            reservoirs[zone].sort()
+        log.info("reservoir zones: %s", len(reservoirs))
+    except Exception as exc:  # noqa: BLE001
+        log.info("no reservoir data (%s)", exc)
+
+    def reservoir_at(zone: str, when: datetime):
+        best = (float("nan"), float("nan"))
+        for ts, fill, anomaly in reservoirs.get(zone, []):
+            if ts <= when - timedelta(days=14):
+                best = (fill, anomaly)
+            else:
+                break
+        return best
     weather = load_weather_archive()
     log.info("weather points: %s", len(weather))
 
@@ -162,6 +197,9 @@ def build_samples(
                     "production_out_mw": row.production_out_mw,
                     "import_lost_mw": row.import_lost_mw,
                     "export_lost_mw": row.export_lost_mw,
+                    "unplanned_production_mw": getattr(row, "unplanned_production_mw", 0.0),
+                    "unplanned_nuclear_mw": getattr(row, "unplanned_nuclear_mw", 0.0),
+                    "unplanned_import_lost_mw": getattr(row, "unplanned_import_lost_mw", 0.0),
                 }
 
         for zone in ZONES:
@@ -180,7 +218,10 @@ def build_samples(
                     "d_production_mw": now_state.get("production_out_mw", 0.0) - then_state.get("production_out_mw", 0.0),
                     "d_import_mw": now_state.get("import_lost_mw", 0.0) - then_state.get("import_lost_mw", 0.0),
                     "d_export_mw": now_state.get("export_lost_mw", 0.0) - then_state.get("export_lost_mw", 0.0),
+                    "d_unplanned_mw": now_state.get("unplanned_production_mw", 0.0)
+                    - then_state.get("unplanned_production_mw", 0.0),
                 }
+                fill, anomaly = reservoir_at(zone, issue)
                 local = weather.get(zone, {}).get(ts, {})
                 samples.append(
                     Sample(
@@ -189,6 +230,8 @@ def build_samples(
                         wind_index_south=regional(ts, SOUTH_WIND_POINTS, "wind_index"),
                         temp_anomaly_local=float(local.get("temp_anomaly", 0.0) or 0.0),
                         solar_index_local=float(local.get("solar_index", 0.0) or 0.0),
+                        fill_ratio=fill,
+                        fill_anomaly=anomaly,
                         issued=issue,
                         ts=ts,
                         zone=zone,
@@ -246,6 +289,13 @@ def to_frame(samples: list[Sample]) -> pd.DataFrame:
     frame["wind_north_dev"] = frame["wind_index_north"] - 1.0
     frame["wind_south_dev"] = frame["wind_index_south"] - 1.0
     frame["temp_dev"] = frame["temp_anomaly_local"] / 10.0
+
+    # Reservoirs. Low storage should mean a scarcer, steeper system.
+    frame["fill_dev"] = -(frame["fill_anomaly"].fillna(0.0))
+    # The interaction that motivates fetching this at all: with empty reservoirs
+    # hydro cannot absorb a windless week cheaply, so the same wind deviation
+    # should move the price further. An additive level term cannot express that.
+    frame["wind_x_fill"] = frame["wind_dev"] * frame["fill_dev"]
     frame["quarter"] = frame["issued"].dt.tz_localize(None).dt.to_period("Q")
     frame["bucket"] = (frame["horizon_h"] - 1) // 24
     return frame
@@ -451,6 +501,16 @@ CANDIDATES: list[tuple] = [
     ),
     # The twenty hand-set weather coefficients, against fitted alternatives and
     # against not scaling by weather at all.
+    # Unplanned outages only: a planned revision is priced in weeks ahead, a trip
+    # is not, and pooling them buries the rare informative events.
+    ("+ unplanned production", "level_weather_guessed", ["unplanned_production_mw"]),
+    ("+ unplanned nuclear", "level_weather_guessed", ["unplanned_nuclear_mw"]),
+    ("+ unplanned import lost", "level_weather_guessed", ["unplanned_import_lost_mw"]),
+    ("+ d unplanned", "level_weather_guessed", ["d_unplanned_mw"]),
+    # Reservoirs, additively and as an interaction with wind.
+    ("+ reservoir level", "level_weather_guessed", ["fill_dev"]),
+    ("+ wind x reservoir", "level_weather_guessed", ["wind_x_fill"]),
+    ("+ reservoir + interaction", "level_weather_guessed", ["fill_dev", "wind_x_fill"]),
     ("ensemble as shipped", "ens_current", []),
     ("ensemble = shrunk_scaled", "ens_shrunk_only", []),
     ("ensemble 80/20 naive", "ens_80_20_naive", []),

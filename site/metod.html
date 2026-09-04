@@ -75,15 +75,17 @@
         <dt>Koppling till DK och DE</dt>
         <dd>SE4 brukar följa Danmark och Tyskland mer än SE1. Därför hämtas väder även
           för Köpenhamn och Hamburg som drivare, trots att de inte är egna elområden här.</dd>
-        <dt>Vattenvärde (ännu inte modellerat)</dt>
-        <dd>Vattenkraftens magasinnivåer bestämmer hur billigt vattnet får användas i dag
-          i stället för i vinter. Det är den enskilt viktigaste faktorn som v1 saknar.</dd>
+        <dt>Vattenvärde (mätt, ingår inte)</dt>
+        <dd>Magasinnivåerna hämtas nu per elområde från ENTSO-E, fyra år bakåt, och
+          visas som fakta. De prövades i modellen både som nivåjustering och som
+          förstärkning av vädereffekten — ingen av dem förbättrade prognosen.
+          Se avsnittet nedan.</dd>
         <dt>Kärnkraftsrevisioner (mätt, ingår ändå inte)</dt>
         <dd>Sidan hämtar dem numera från Nord Pools REMIT-meddelanden och visar
           dem som fakta. De prövades som modellindata och gav ingen förbättring —
           en planerad revision är känd i veckor, så förra veckans pris har redan
-          prisat in den. Ett <em>oplanerat</em> haveri är en annan sak, men det
-          har ännu inte testats separat.</dd>
+          prisat in den. Oplanerade haverier testades också separat och gav
+          heller ingen förbättring — se nedan.</dd>
       </dl>
 
       <h2>Vad v1 faktiskt gör</h2>
@@ -188,6 +190,36 @@
           för elpris. Att redovisa 32 var felet.</li>
       </ul>
 
+      <h3>Tre saker till som mättes och inte höll</h3>
+      <p>Alla tre var rimliga hypoteser. Ingen av dem förbättrade prognosen.
+        Utgångsläget är standardmodellens 25,68 i medelfel.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Tillägg</th><th>MAE</th><th>Effekt</th></tr></thead>
+          <tbody>
+            <tr><td>Oplanerade kärnkraftsbortfall</td><td class="num">25,68</td><td>ingen alls</td></tr>
+            <tr><td>Oplanerade bortfall, förändring mot referensveckan</td><td class="num">25,68</td><td>ingen alls</td></tr>
+            <tr><td>Oplanerade produktionsbortfall totalt</td><td class="num">25,85</td><td class="empty">sämre</td></tr>
+            <tr><td>Magasinnivå som nivåjustering</td><td class="num">26,00</td><td class="empty">sämre</td></tr>
+            <tr><td>Magasinnivå × vind (interaktion)</td><td class="num">25,76</td><td class="empty">sämre</td></tr>
+            <tr><td>Båda magasintermerna</td><td class="num">26,05</td><td class="empty">sämre</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Oplanerade haverier.</b> Det första avbrottstestet slog ihop 11 277
+        planerade med 7 162 oplanerade bortfall, vilket dränkte de sällsynta
+        händelser som faktiskt bär nyhetsvärde. Uppdelat gav de oplanerade en
+        koefficient på +0,01 — alltså noll. Den troliga förklaringen är gleshet:
+        105 oplanerade kärnkraftsbortfall på fyra år blir en handfull per
+        testperiod, och då går ingen effekt att skilja från brus.</p>
+      <p><b>Magasinnivå.</b> Additivt blev det sämre, vilket var väntat — nivån
+        rör sig någon procent i veckan och förra veckans pris bär den redan.
+        Interaktionshypotesen var mer intressant: med tomma magasin kan
+        vattenkraften inte absorbera en vindstilla vecka billigt, så samma
+        vindavvikelse borde slå hårdare. Den fick <em>rätt tecken</em> (+0,09) men
+        förbättrade ändå inte prognosen. Mekanismen finns antagligen; den är för
+        svag för att synas i sjudygnsfel.</p>
+
       <h3>Det viktigaste förbehållet</h3>
       <p>Backtestet använder ERA5-reanalys som väderunderlag, alltså ett perfekt
         väder i efterhand. I drift kommer vädret från en prognos som blir sämre ju
@@ -206,9 +238,7 @@
           <code>FUTURE:</code>, men v1 kör helt utan tränade artefakter så att en färsk
           klon fungerar direkt.</li>
         <li>Ingen bränsle- eller utsläppsrättsprisdata.</li>
-        <li>Inga vattenmagasin. Datat finns per elområde hos ENTSO-E — 208
-          veckopunkter tillbaka till 2022 — och hämtaren är byggd, men den har
-          ännu inte körts och nivåerna har därför aldrig prövats mot utfall.</li>
+        <li>Inga vattenmagasin i modellen — hämtade, prövade, utan effekt.</li>
         <li>Inga avbrott i modellen — se ovan. De visas som fakta, inte som indata.</li>
         <li>Ingen AI-overlay. v1 är statistisk och väderjusterad, ingenting annat.</li>
       </ul>

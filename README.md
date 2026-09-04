@@ -263,6 +263,14 @@ standarden är en enskild modell och inte en sammanvägning.
 efterhand. Den väderdrivna delen av försprånget är därför optimistisk.
 Dämpningen av nivån, värd 7,9 % på egen hand, beror inte på väder.
 
+### Testat och förkastat
+
+Utöver `median4` och trendjustering har följande prövats mot standardmodellens
+25,68 och inte hållit: oplanerade kärnkraftsbortfall (25,68 — ingen effekt),
+oplanerade produktionsbortfall (25,85), magasinnivå additivt (26,00), och
+magasinnivå som förstärkning av vädereffekten (25,76). Datat hämtas ändå och
+visas som fakta på sajten.
+
 ### Osäkerhetsbandet
 
 Talen ovan mäter mittlinjen. Bandet p10–p90 mättes separat och var trasigt: den

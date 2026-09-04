@@ -61,6 +61,14 @@ FUEL_NAMES = {
 }
 NUCLEAR_FUEL_CODES = {14}
 
+# unavailabilityType, verified against the free-text reason on 400 live messages:
+#   1 -> Failure, Awaiting information, Technical issues   -> unplanned
+#   2 -> Foreseen maintenance, Planned maintenance         -> planned
+# The numbering is the opposite of the obvious guess, which is why it was
+# checked rather than assumed. Anything else is treated as planned, because
+# claiming an outage is a surprise when it is not would invent signal.
+UNPLANNED_TYPE = 1
+
 
 def _page(params: dict) -> dict:
     return get(UMM_API_URL, params=params, retries=3).json()
@@ -118,6 +126,8 @@ def to_rows(messages: Iterable[dict]) -> list[dict]:
             "reason": (message.get("unavailabilityReason") or "")[:120],
             "remarks": (message.get("remarks") or "")[:200],
             "outdated": bool(message.get("isOutdated")),
+            "unavailability_type": message.get("unavailabilityType"),
+            "unplanned": message.get("unavailabilityType") == UNPLANNED_TYPE,
         }
 
         for kind in UNIT_KINDS:
@@ -226,7 +236,18 @@ def hourly_outages(
     live = dedupe_events(known_at(rows, as_of) if as_of else latest_versions(rows))
     hours = hour_range(start, end)
     index = {ts: i for i, ts in enumerate(hours)}
-    fields = ("production_out_mw", "nuclear_out_mw", "import_lost_mw", "export_lost_mw")
+    fields = (
+        "production_out_mw",
+        "nuclear_out_mw",
+        "import_lost_mw",
+        "export_lost_mw",
+        # Split out because the two behave oppositely: a planned revision is
+        # announced weeks ahead and is already in last week's price, while a
+        # trip is news the price cannot contain.
+        "unplanned_production_mw",
+        "unplanned_nuclear_mw",
+        "unplanned_import_lost_mw",
+    )
     grid = {(zone, f): [0.0] * len(hours) for zone in ZONES for f in fields}
 
     for row in live:
@@ -238,18 +259,25 @@ def hourly_outages(
         first = parse_iso(row["event_start"]).replace(minute=0, second=0, microsecond=0)
         last = parse_iso(row["event_stop"])
 
+        unplanned = bool(row.get("unplanned"))
         targets: list[tuple[str, str]] = []
         if row["kind"] == "production":
             zone = row.get("zone")
             if zone in ZONES:
                 targets.append((zone, "production_out_mw"))
+                if unplanned:
+                    targets.append((zone, "unplanned_production_mw"))
                 if row.get("nuclear"):
                     targets.append((zone, "nuclear_out_mw"))
+                    if unplanned:
+                        targets.append((zone, "unplanned_nuclear_mw"))
         else:
             if row.get("from_area") in ZONES:
                 targets.append((row["from_area"], "export_lost_mw"))
             if row.get("to_area") in ZONES:
                 targets.append((row["to_area"], "import_lost_mw"))
+                if unplanned:
+                    targets.append((row["to_area"], "unplanned_import_lost_mw"))
         if not targets:
             continue
 
