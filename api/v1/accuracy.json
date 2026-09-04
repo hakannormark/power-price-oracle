@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-04T12:04:41+02:00",
+ "generated_at": "2026-09-04T12:37:34+02:00",
  "window_days": 90,
  "unit": "EUR/MWh",
  "min_samples": 24,
@@ -19,7 +19,7 @@
   "ensemble"
  ],
  "reference_model": "seasonal_naive",
- "default_model": "ensemble",
+ "default_model": "shrunk_scaled",
  "scored_points": 0,
  "zones": {
   "SE1": {},

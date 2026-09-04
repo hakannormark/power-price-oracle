@@ -1,13 +1,13 @@
 {
  "zone": "SE2",
  "zone_name": "Sundsvall",
- "generated_at": "2026-09-04T12:04:41+02:00",
- "run_id": "20260904T1004Z",
+ "generated_at": "2026-09-04T12:37:34+02:00",
+ "run_id": "20260904T1037Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
  "demo": false,
- "default_model": "ensemble",
+ "default_model": "shrunk_scaled",
  "models": [
   "seasonal_naive",
   "weather_scaled",
@@ -19,7 +19,7 @@
   "rate": 11.1245,
   "date": "2026-09-03",
   "source": "ECB",
-  "fetched_at": "2026-09-04T12:06:23+02:00",
+  "fetched_at": "2026-09-04T12:38:51+02:00",
   "stale": false
  },
  "series": [
@@ -5035,7 +5035,7 @@
   "bullets_sv": [
    "Överföringen SE2 → SE3 är begränsad med 2 500 MW, 32 % av kapaciteten från 9 sep 06:00 till 9 okt.",
    "Överföringen SE2 → SE3 är begränsad med 2 300 MW, 30 % av kapaciteten från 1 sep 06:00 till 28 sep.",
-   "Överföringen SE2 → SE3 är begränsad med 2 000 MW, 26 % av kapaciteten från 6 sep 12:00 till 8 okt.",
+   "Överföringen SE2 → SE3 är begränsad med 2 000 MW, 26 % av kapaciteten från 24 aug 06:00 till 7 sep.",
    "Vinden i SE2 är nära normal, vindindex 0,87.",
    "Temperaturen ligger 4,0 grader under normalt, vilket drar upp förbrukningen."
   ],
@@ -5070,9 +5070,75 @@
      "nuclear": false,
      "unavailable_mw": 2000.0,
      "installed_mw": 7700.0,
+     "from": "2026-08-24T06:00:00+02:00",
+     "to": "2026-09-07T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE2 → SE3",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 2000.0,
+     "installed_mw": 7700.0,
+     "from": "2026-05-04T00:00:00+02:00",
+     "to": "2026-10-31T23:00:00+01:00",
+     "reason": "Ringhals 3 yearly maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE2 → SE3",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 2000.0,
+     "installed_mw": 7700.0,
      "from": "2026-09-06T12:00:00+02:00",
      "to": "2026-10-08T17:00:00+02:00",
      "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE2 → SE3",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 1900.0,
+     "installed_mw": 7600.0,
+     "from": "2026-09-02T00:00:00+02:00",
+     "to": "2026-10-15T23:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE2 → SE3",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 1600.0,
+     "installed_mw": 7600.0,
+     "from": "2026-09-08T06:00:00+02:00",
+     "to": "2026-10-02T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE2 → SE3",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 1400.0,
+     "installed_mw": 7600.0,
+     "from": "2026-08-22T06:00:00+02:00",
+     "to": "2026-09-07T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE2 → SE3",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 1300.0,
+     "installed_mw": 7300.0,
+     "from": "2026-08-03T06:00:00+02:00",
+     "to": "2026-11-08T17:00:00+01:00",
+     "reason": "Renewal of transmission line"
     },
     {
      "kind": "transmission",
@@ -5083,6 +5149,28 @@
      "installed_mw": 3300.0,
      "from": "2026-09-01T06:00:00+02:00",
      "to": "2026-09-28T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE1 → SE2",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 850.0,
+     "installed_mw": 3300.0,
+     "from": "2026-08-24T06:00:00+02:00",
+     "to": "2026-10-06T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE2 → SE1",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 850.0,
+     "installed_mw": 3000.0,
+     "from": "2026-08-24T06:00:00+02:00",
+     "to": "2026-10-06T17:00:00+02:00",
      "reason": "Foreseen maintenance"
     },
     {
@@ -5106,94 +5194,6 @@
      "from": "2026-09-01T06:00:00+02:00",
      "to": "2026-09-28T17:00:00+02:00",
      "reason": "Foreseen maintenance"
-    },
-    {
-     "kind": "transmission",
-     "unit": "NO3 → SE2",
-     "fuel": null,
-     "nuclear": false,
-     "unavailable_mw": 400.0,
-     "installed_mw": 600.0,
-     "from": "2026-09-01T06:00:00+02:00",
-     "to": "2026-09-28T17:00:00+02:00",
-     "reason": "Foreseen maintenance"
-    },
-    {
-     "kind": "transmission",
-     "unit": "SE2 → NO4",
-     "fuel": null,
-     "nuclear": false,
-     "unavailable_mw": 300.0,
-     "installed_mw": 300.0,
-     "from": "2026-09-07T06:00:00+02:00",
-     "to": "2026-09-12T17:00:00+02:00",
-     "reason": "Updated end time"
-    },
-    {
-     "kind": "transmission",
-     "unit": "NO4 → SE2",
-     "fuel": null,
-     "nuclear": false,
-     "unavailable_mw": 250.0,
-     "installed_mw": 250.0,
-     "from": "2026-09-07T06:00:00+02:00",
-     "to": "2026-09-12T17:00:00+02:00",
-     "reason": "Updated end time"
-    },
-    {
-     "kind": "production",
-     "unit": "Harrsele",
-     "fuel": "vattenkraft",
-     "nuclear": false,
-     "unavailable_mw": 132.0,
-     "installed_mw": 216.0,
-     "from": "2026-09-07T05:30:00+02:00",
-     "to": "2026-09-10T15:00:00+02:00",
-     "reason": "Work on grid"
-    },
-    {
-     "kind": "production",
-     "unit": "Stornorrfors",
-     "fuel": "vattenkraft",
-     "nuclear": false,
-     "unavailable_mw": 128.0,
-     "installed_mw": 602.0,
-     "from": "2026-08-17T05:30:00+02:00",
-     "to": "2026-09-16T13:30:00+02:00",
-     "reason": "Maintenance"
-    },
-    {
-     "kind": "production",
-     "unit": "Krångede",
-     "fuel": "vattenkraft",
-     "nuclear": false,
-     "unavailable_mw": 126.0,
-     "installed_mw": 252.0,
-     "from": "2026-09-08T08:00:00+02:00",
-     "to": "2026-09-08T16:00:00+02:00",
-     "reason": "Maintenance"
-    },
-    {
-     "kind": "production",
-     "unit": "Krångede",
-     "fuel": "vattenkraft",
-     "nuclear": false,
-     "unavailable_mw": 126.0,
-     "installed_mw": 252.0,
-     "from": "2026-09-09T08:00:00+02:00",
-     "to": "2026-09-09T16:00:00+02:00",
-     "reason": "Maintenance"
-    },
-    {
-     "kind": "production",
-     "unit": "SCA Ostrand",
-     "fuel": "annat",
-     "nuclear": false,
-     "unavailable_mw": 119.0,
-     "installed_mw": 119.0,
-     "from": "2026-09-04T11:30:00+02:00",
-     "to": "2026-09-04T18:00:00+02:00",
-     "reason": "Technical problems"
     }
    ]
   },

@@ -1,5 +1,5 @@
 {
- "default_model": "ensemble",
+ "default_model": "shrunk_scaled",
  "reference_model": "seasonal_naive",
  "models": [
   {
@@ -23,19 +23,19 @@
   {
    "id": "shrunk_scaled",
    "name_sv": "Väderskalad, dämpad nivå",
-   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. På 90 dygns historik sänkte det medelfelet med 5 procent i alla fyra elområden.",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 för den väderskalade. Detta är sajtens standardmodell.",
    "quantiles": true,
    "derived": false,
-   "is_default": false,
+   "is_default": true,
    "is_reference": false
   },
   {
    "id": "ensemble",
    "name_sv": "Ensemble",
-   "description_sv": "Viktat snitt av de andra modellerna: 35 % säsongsnaiv och 65 % väderskalad. Bandet spänner över båda modellernas intervall. Detta är sajtens standardmodell.",
+   "description_sv": "Viktat snitt av säsongsnaiv och väderskalad, 35/65. Var sajtens standardmodell fram till att den mättes: på 82 576 timmar ut ur urvalet hamnade den på 28,40 i medelfel mot 25,63 för den dämpade väderskalade modellen. Varje blandning gjorde resultatet sämre än den bästa modellen ensam, så ensemblen finns kvar som jämförelse i stället för som standard.",
    "quantiles": true,
    "derived": true,
-   "is_default": true,
+   "is_default": false,
    "is_reference": false
   }
  ]

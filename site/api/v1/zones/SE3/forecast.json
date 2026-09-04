@@ -1,13 +1,13 @@
 {
  "zone": "SE3",
  "zone_name": "Stockholm",
- "generated_at": "2026-09-04T12:04:41+02:00",
- "run_id": "20260904T1004Z",
+ "generated_at": "2026-09-04T12:37:34+02:00",
+ "run_id": "20260904T1037Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
  "demo": false,
- "default_model": "ensemble",
+ "default_model": "shrunk_scaled",
  "models": [
   "seasonal_naive",
   "weather_scaled",
@@ -19,7 +19,7 @@
   "rate": 11.1245,
   "date": "2026-09-03",
   "source": "ECB",
-  "fetched_at": "2026-09-04T12:06:23+02:00",
+  "fetched_at": "2026-09-04T12:38:51+02:00",
   "stale": false
  },
  "series": [
@@ -5031,11 +5031,11 @@
  "drivers": {
   "regime": "outage_tight",
   "regime_label_sv": "Bortfall i systemet",
-  "headline_sv": "Forsmark Block1 är ur drift med 1 098 MW från 6 sep — det stramar åt SE3.",
+  "headline_sv": "Överföringen SE3 → SE4 är begränsad med 2 900 MW från 9 sep.",
   "bullets_sv": [
-   "Kärnkraftsblocket Forsmark Block1 är ur drift med 1 098 MW från 6 sep 12:00 till 17 nov.",
    "Överföringen SE3 → SE4 är begränsad med 2 900 MW, 47 % av kapaciteten från 9 sep 06:00 till 9 okt.",
-   "Överföringen SE3 → SE4 är begränsad med 2 500 MW, 40 % av kapaciteten från 7 sep 08:00 till 8 sep.",
+   "Överföringen SE3 → SE4 är begränsad med 2 700 MW, 44 % av kapaciteten från 24 aug 06:00 till 7 sep.",
+   "Överföringen SE3 → SE4 är begränsad med 2 500 MW, 40 % av kapaciteten från 2 sep 00:00 till 15 okt.",
    "Vinden i SE3 är nära normal, vindindex 1,00.",
    "Temperaturen ligger 3,7 grader under normalt, vilket drar upp förbrukningen."
   ],
@@ -5051,6 +5051,39 @@
      "from": "2026-09-09T06:00:00+02:00",
      "to": "2026-10-09T17:00:00+02:00",
      "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE3 → SE4",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 2700.0,
+     "installed_mw": 6200.0,
+     "from": "2026-08-24T06:00:00+02:00",
+     "to": "2026-09-07T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE3 → SE4",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 2500.0,
+     "installed_mw": 6200.0,
+     "from": "2026-09-02T00:00:00+02:00",
+     "to": "2026-10-15T23:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE3 → SE4",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 2500.0,
+     "installed_mw": 6200.0,
+     "from": "2026-05-04T00:00:00+02:00",
+     "to": "2026-10-31T23:00:00+01:00",
+     "reason": "Ringhals 3 yearly maintenance"
     },
     {
      "kind": "transmission",
@@ -5076,6 +5109,17 @@
     },
     {
      "kind": "transmission",
+     "unit": "SE3 → SE3A",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 2310.0,
+     "installed_mw": 2810.0,
+     "from": "2026-09-08T06:00:00+02:00",
+     "to": "2026-10-02T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
      "unit": "SE2 → SE3",
      "fuel": null,
      "nuclear": false,
@@ -5087,113 +5131,69 @@
     },
     {
      "kind": "transmission",
-     "unit": "SE2 → SE3",
+     "unit": "SE3 → SE3A",
      "fuel": null,
      "nuclear": false,
-     "unavailable_mw": 2000.0,
-     "installed_mw": 7700.0,
-     "from": "2026-09-06T12:00:00+02:00",
-     "to": "2026-10-08T17:00:00+02:00",
+     "unavailable_mw": 2210.0,
+     "installed_mw": 2810.0,
+     "from": "2026-09-02T00:00:00+02:00",
+     "to": "2026-10-15T23:00:00+02:00",
      "reason": "Foreseen maintenance"
     },
     {
      "kind": "transmission",
-     "unit": "SE3 → NO1",
+     "unit": "SE3 → SE3A",
      "fuel": null,
      "nuclear": false,
-     "unavailable_mw": 1450.0,
-     "installed_mw": 2095.0,
-     "from": "2026-09-07T07:00:00+02:00",
-     "to": "2026-09-08T16:00:00+02:00",
-     "reason": "Condition check on station components"
-    },
-    {
-     "kind": "transmission",
-     "unit": "NO1 → SE3",
-     "fuel": null,
-     "nuclear": false,
-     "unavailable_mw": 1350.0,
-     "installed_mw": 2145.0,
-     "from": "2026-09-07T07:00:00+02:00",
-     "to": "2026-09-08T16:00:00+02:00",
-     "reason": "Condition check on station components"
-    },
-    {
-     "kind": "transmission",
-     "unit": "SE3 → NO1",
-     "fuel": null,
-     "nuclear": false,
-     "unavailable_mw": 1245.0,
-     "installed_mw": 2095.0,
-     "from": "2026-09-09T06:00:00+02:00",
-     "to": "2026-10-09T17:00:00+02:00",
-     "reason": "Foreseen maintenance"
-    },
-    {
-     "kind": "production",
-     "unit": "Forsmark Block1",
-     "fuel": "kärnkraft",
-     "nuclear": true,
-     "unavailable_mw": 1098.0,
-     "installed_mw": 1098.0,
-     "from": "2026-09-06T12:00:00+02:00",
-     "to": "2026-11-17T12:00:00+01:00",
-     "reason": "Yearly outage."
+     "unavailable_mw": 2210.0,
+     "installed_mw": 2810.0,
+     "from": "2026-05-04T00:00:00+02:00",
+     "to": "2026-10-31T23:00:00+01:00",
+     "reason": "Ringhals 3 yearly maintenance"
     },
     {
      "kind": "transmission",
      "unit": "SE3 → SE4",
      "fuel": null,
      "nuclear": false,
-     "unavailable_mw": 1000.0,
+     "unavailable_mw": 2200.0,
      "installed_mw": 6200.0,
-     "from": "2026-08-17T06:00:00+02:00",
+     "from": "2026-09-08T06:00:00+02:00",
+     "to": "2026-10-02T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE3 → SE4",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 2200.0,
+     "installed_mw": 6200.0,
+     "from": "2026-08-22T06:00:00+02:00",
+     "to": "2026-09-07T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE3 → SE3A",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 2110.0,
+     "installed_mw": 2810.0,
+     "from": "2026-08-22T06:00:00+02:00",
+     "to": "2026-09-07T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE3 → SE4",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 2000.0,
+     "installed_mw": 6200.0,
+     "from": "2026-08-03T06:00:00+02:00",
      "to": "2026-11-08T17:00:00+01:00",
-     "reason": "Renewal"
-    },
-    {
-     "kind": "transmission",
-     "unit": "FI → SE3",
-     "fuel": null,
-     "nuclear": false,
-     "unavailable_mw": 1000.0,
-     "installed_mw": 1200.0,
-     "from": "2026-09-09T06:00:00+02:00",
-     "to": "2026-10-09T17:00:00+02:00",
-     "reason": "Foreseen maintenance"
-    },
-    {
-     "kind": "transmission",
-     "unit": "SE3 → DK1",
-     "fuel": null,
-     "nuclear": false,
-     "unavailable_mw": 515.0,
-     "installed_mw": 715.0,
-     "from": "2026-09-09T06:00:00+02:00",
-     "to": "2026-10-09T17:00:00+02:00",
-     "reason": "Foreseen maintenance"
-    },
-    {
-     "kind": "transmission",
-     "unit": "FI → SE3",
-     "fuel": null,
-     "nuclear": false,
-     "unavailable_mw": 500.0,
-     "installed_mw": 1200.0,
-     "from": "2026-09-06T12:00:00+02:00",
-     "to": "2026-10-08T17:00:00+02:00",
-     "reason": "Foreseen maintenance"
-    },
-    {
-     "kind": "production",
-     "unit": "Hojum",
-     "fuel": "vattenkraft",
-     "nuclear": false,
-     "unavailable_mw": 123.0,
-     "installed_mw": 168.0,
-     "from": "2026-07-28T15:08:00+02:00",
-     "to": "2026-12-28T16:00:00+01:00",
-     "reason": "Unplanned failure."
+     "reason": "Renewal of transmission line"
     }
    ]
   },

@@ -1,13 +1,13 @@
 {
  "zone": "SE1",
  "zone_name": "Luleå",
- "generated_at": "2026-09-04T12:04:41+02:00",
- "run_id": "20260904T1004Z",
+ "generated_at": "2026-09-04T12:37:34+02:00",
+ "run_id": "20260904T1037Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
  "demo": false,
- "default_model": "ensemble",
+ "default_model": "shrunk_scaled",
  "models": [
   "seasonal_naive",
   "weather_scaled",
@@ -19,7 +19,7 @@
   "rate": 11.1245,
   "date": "2026-09-03",
   "source": "ECB",
-  "fetched_at": "2026-09-04T12:06:23+02:00",
+  "fetched_at": "2026-09-04T12:38:51+02:00",
   "stale": false
  },
  "series": [
@@ -5034,8 +5034,8 @@
   "headline_sv": "Överföringen SE1 → SE2 är begränsad med 1 000 MW från 1 sep.",
   "bullets_sv": [
    "Överföringen SE1 → SE2 är begränsad med 1 000 MW, 30 % av kapaciteten från 1 sep 06:00 till 28 sep.",
-   "Anläggningen (vattenkraft) Kvistforsen är ur drift med 140 MW från 9 sep 07:00 till 9 sep.",
-   "Anläggningen (vattenkraft) Vargfors är ur drift med 131 MW från 11 sep 11:45 till 11 sep.",
+   "Överföringen SE1 → SE2 är begränsad med 850 MW, 26 % av kapaciteten från 24 aug 06:00 till 6 okt.",
+   "Överföringen SE2 → SE1 är begränsad med 850 MW, 28 % av kapaciteten från 24 aug 06:00 till 6 okt.",
    "Vindprognosen i SE1 ligger 1,54 gånger det normala kommande två dygn.",
    "Temperaturen ligger 5,5 grader under normalt, vilket drar upp förbrukningen."
   ],
@@ -5050,6 +5050,39 @@
      "installed_mw": 3300.0,
      "from": "2026-09-01T06:00:00+02:00",
      "to": "2026-09-28T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE1 → SE2",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 850.0,
+     "installed_mw": 3300.0,
+     "from": "2026-08-24T06:00:00+02:00",
+     "to": "2026-10-06T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE2 → SE1",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 850.0,
+     "installed_mw": 3000.0,
+     "from": "2026-08-24T06:00:00+02:00",
+     "to": "2026-10-06T17:00:00+02:00",
+     "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE1 → NO4",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 400.0,
+     "installed_mw": 1000.0,
+     "from": "2026-08-24T06:00:00+02:00",
+     "to": "2026-10-06T17:00:00+02:00",
      "reason": "Foreseen maintenance"
     },
     {
