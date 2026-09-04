@@ -9,8 +9,9 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator
 
 from .config import (
-    ACTUALS_PATH,
+    ACTUALS_DIR,
     ARCHIVE_DIR,
+    LEGACY_ACTUALS_PATH,
     FORECASTS_PATH,
     FORECAST_RETAIN_DAYS,
     FORECAST_ROTATE_MB,
@@ -68,31 +69,87 @@ def r3(value: float | None) -> float | None:
 
 
 # ---------------------------------------------------------------- actuals
+#
+# Partitioned one file per delivery year. Compacting the whole history on every
+# run would rewrite a multi-megabyte blob three times a day; only the years a
+# run actually touches are rewritten.
 
 
-def load_actuals() -> list[dict[str, Any]]:
-    return list(read_jsonl(ACTUALS_PATH))
+def _year_path(year: int) -> Path:
+    return ACTUALS_DIR / f"{year}.jsonl"
+
+
+def _migrate_legacy_actuals() -> None:
+    """Split a pre-partition data/actuals.jsonl into per-year files, once."""
+    if not LEGACY_ACTUALS_PATH.exists():
+        return
+    rows = list(read_jsonl(LEGACY_ACTUALS_PATH))
+    if rows:
+        _write_years(_group_by_year(rows))
+        log.info("Migrated %s rows from actuals.jsonl into %s", len(rows), ACTUALS_DIR)
+    LEGACY_ACTUALS_PATH.unlink()
+
+
+def _group_by_year(rows: Iterable[dict[str, Any]]) -> dict[int, list[dict[str, Any]]]:
+    grouped: dict[int, list[dict[str, Any]]] = {}
+    for row in rows:
+        grouped.setdefault(parse_iso(row["ts"]).year, []).append(row)
+    return grouped
+
+
+def _write_years(grouped: dict[int, list[dict[str, Any]]]) -> None:
+    for year, rows in grouped.items():
+        ordered = sorted(rows, key=lambda r: (r["zone"], parse_iso(r["ts"])))
+        write_jsonl(_year_path(year), ordered)
+
+
+def actual_years() -> list[int]:
+    if not ACTUALS_DIR.exists():
+        return []
+    years = []
+    for path in ACTUALS_DIR.glob("*.jsonl"):
+        try:
+            years.append(int(path.stem))
+        except ValueError:
+            continue
+    return sorted(years)
+
+
+def load_actuals(since=None) -> list[dict[str, Any]]:
+    """All stored official prices, or only those from `since` onward."""
+    _migrate_legacy_actuals()
+    rows: list[dict[str, Any]] = []
+    for year in actual_years():
+        if since is not None and year < since.year:
+            continue
+        for row in read_jsonl(_year_path(year)):
+            if since is not None and parse_iso(row["ts"]) < since:
+                continue
+            rows.append(row)
+    return rows
 
 
 def upsert_actuals(rows: Iterable[dict[str, Any]]) -> int:
     """Merge new official prices in, keeping one row per (zone, ts).
 
-    The file is rewritten sorted and compacted every run; actuals are facts, so
-    a later publication of the same hour simply wins.
+    Actuals are facts, so a later publication of the same hour simply wins.
+    Only the years present in `rows` are read back and rewritten.
     """
-    merged: dict[tuple[str, str], dict[str, Any]] = {}
-    for row in read_jsonl(ACTUALS_PATH):
-        merged[(row["zone"], row["ts"])] = row
-
+    _migrate_legacy_actuals()
+    incoming = _group_by_year(rows)
     added = 0
-    for row in rows:
-        key = (row["zone"], row["ts"])
-        if key not in merged:
-            added += 1
-        merged[key] = row
 
-    ordered = sorted(merged.values(), key=lambda r: (r["zone"], parse_iso(r["ts"])))
-    write_jsonl(ACTUALS_PATH, ordered)
+    for year, year_rows in incoming.items():
+        merged: dict[tuple[str, str], dict[str, Any]] = {
+            (r["zone"], r["ts"]): r for r in read_jsonl(_year_path(year))
+        }
+        for row in year_rows:
+            key = (row["zone"], row["ts"])
+            if key not in merged:
+                added += 1
+            merged[key] = row
+        _write_years({year: list(merged.values())})
+
     return added
 
 

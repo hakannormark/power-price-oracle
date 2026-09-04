@@ -2,7 +2,28 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
+
+
+def _load_dotenv() -> None:
+    """Read a local .env into the environment, without overriding real env vars.
+
+    Lets a developer keep ENTSOE_TOKEN out of their shell profile and out of the
+    repo; CI passes the secret as a real environment variable and is untouched.
+    """
+    path = Path(__file__).resolve().parent.parent / ".env"
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+
+
+_load_dotenv()
 
 PROJECT_NAME = "Power Price Oracle"
 SITE_TITLE_SV = "Spotprognos"
@@ -91,6 +112,9 @@ HISTORY_API_DAYS = 30
 
 # Backfill
 BACKFILL_DAYS = 90
+# Supply-side drivers move over seasons, so learning anything from them needs
+# years of prices, not months.
+DEEP_BACKFILL_DAYS = 1095
 # Workflow trigger: run the backfill when actuals hold fewer than 30 days x 4 zones.
 BACKFILL_MIN_ROWS = 24 * 30 * 4
 
@@ -119,7 +143,8 @@ DATA_DIR = ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 ARCHIVE_DIR = DATA_DIR / "archive"
 FIXTURES_DIR = DATA_DIR / "fixtures"
-ACTUALS_PATH = DATA_DIR / "actuals.jsonl"
+ACTUALS_DIR = DATA_DIR / "actuals"          # one JSONL per delivery year
+LEGACY_ACTUALS_PATH = DATA_DIR / "actuals.jsonl"  # migrated on first run
 FORECASTS_PATH = DATA_DIR / "forecasts.jsonl"
 CLIMATOLOGY_PATH = DATA_DIR / "weather_climatology.json"
 FX_PATH = DATA_DIR / "fx_rate.json"
