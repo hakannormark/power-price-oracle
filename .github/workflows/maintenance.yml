@@ -54,24 +54,42 @@ jobs:
         if: inputs.task == 'deep-backfill'
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
-        run: python -m src.backfill --days ${{ inputs.days }}
-
-      - name: Fetch hydro reservoir history
-        if: inputs.task == 'fetch-reservoirs'
-        env:
-          ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
-        run: python -m src.fetch_reservoirs
+        # Staged outside the repo: the download takes minutes, and origin moves
+        # underneath it. The merge below is seconds and can be retried against a
+        # fresh checkout, which a rebase of two JSONL files cannot.
+        run: python -m src.backfill --days ${{ inputs.days }} --stage "$RUNNER_TEMP/staged.jsonl"
 
       - name: Commit new history
         if: inputs.task == 'deep-backfill' || inputs.task == 'fetch-reservoirs'
+        env:
+          ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
-          if git diff --cached --quiet; then
-            echo "Nothing changed."
-          else
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "${{ github.ref_name }}"
+            git reset --hard "origin/${{ github.ref_name }}"
+
+            if [ "${{ inputs.task }}" = "deep-backfill" ]; then
+              python -m src.backfill --merge "$RUNNER_TEMP/staged.jsonl"
+            else
+              python -m src.fetch_reservoirs
+            fi
+
+            git add data
+            if git diff --cached --quiet; then
+              echo "Nothing changed."
+              exit 0
+            fi
             git commit -m "chore: ${{ inputs.task }}"
-            git pull --rebase --autostash origin ${{ github.ref_name }}
-            git push origin HEAD:${{ github.ref_name }}
-          fi
+            if git push origin "HEAD:${{ github.ref_name }}"; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected, remote moved. Re-merging onto the new head."
+            sleep $((attempt * 5))
+          done
+          echo "::error::Could not push after 5 attempts."
+          exit 1
