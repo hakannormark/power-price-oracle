@@ -149,6 +149,49 @@ def probe_outages_raw() -> None:
                 print("      " + response.text[:400].replace("\n", " "))
 
 
+def probe_transmission() -> None:
+    """Interconnector state: capacity offered, and cables reported out.
+
+    A cable out of service moves a zone within the hour, the way a reactor trip
+    does, so this is the half of the supply side that fits inside a seven-day
+    forecast window.
+    """
+    import pandas as pd
+
+    rule("Transmission — day-ahead capacity and cable outages")
+    client, now = _client(), now_local()
+    start = pd.Timestamp(now - timedelta(days=14))
+    end = pd.Timestamp(now + timedelta(days=2))
+
+    # The borders that actually price SE3 and SE4.
+    borders = [("SE_3", "SE_4"), ("SE_2", "SE_3"), ("SE_4", "DE_LU"), ("SE_3", "FI"), ("SE_4", "DK_2")]
+
+    print("\n  -- net transfer capacity, day-ahead --")
+    for a, b in borders:
+        try:
+            series = client.query_net_transfer_capacity_dayahead(a, b, start=start, end=end)
+            if series is None or len(series) == 0:
+                print(f"  {a}->{b}: empty")
+                continue
+            print(
+                f"  {a}->{b}: {len(series)} points, min {series.min():,.0f} "
+                f"max {series.max():,.0f} MW, latest {series.iloc[-1]:,.0f}"
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(f"  {a}->{b}: FAIL {type(exc).__name__}: {str(exc)[:70]}")
+
+    print("\n  -- transmission unavailability --")
+    for a, b in borders[:3]:
+        try:
+            frame = client.query_unavailability_transmission(a, b, start=start, end=end)
+            if frame is None or len(frame) == 0:
+                print(f"  {a}->{b}: empty")
+                continue
+            print(f"  {a}->{b}: {len(frame)} records, columns {list(frame.columns)}")
+        except Exception as exc:  # noqa: BLE001
+            print(f"  {a}->{b}: FAIL {type(exc).__name__}: {str(exc)[:70]}")
+
+
 def probe_other() -> None:
     rule("Other sources")
     from .fetch import ecb_fx, open_meteo, svk_text
@@ -179,6 +222,7 @@ def main(argv: list[str] | None = None) -> int:
     probe_reservoirs()
     probe_outages()
     probe_outages_raw()
+    probe_transmission()
     if not args.supply:
         probe_other()
     return 0
