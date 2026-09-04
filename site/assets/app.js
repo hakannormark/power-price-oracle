@@ -133,6 +133,18 @@ function applyFx(payload) {
   });
 }
 
+// Keep the legend naming whichever model is actually published.
+function renderModelLabels(payload) {
+  const models = payload.models || [];
+  const id = payload.default_model;
+  const named = Array.isArray(models)
+    ? (models.find((m) => m && m.id === id) || {}).name_sv
+    : null;
+  document.querySelectorAll("[data-default-model-label]").forEach((node) => {
+    node.textContent = named ? `Prognos, ${named.toLowerCase()} p50` : `Prognos, ${id} p50`;
+  });
+}
+
 function renderFooterMeta(overview) {
   document.querySelectorAll("[data-updated]").forEach((node) => {
     node.textContent = fmtStamp(overview.generated_at);
@@ -405,6 +417,7 @@ async function initIndex() {
   if (!ZONES.includes(state.zone)) state.zone = "SE3";
 
   applyFx(overview);
+  renderModelLabels(overview);
   renderBanners(overview);
   renderFooterMeta(overview);
   const blurb = el("blurb");
@@ -468,6 +481,7 @@ async function initAccuracy() {
   ]);
   state.overview = overview;
   applyFx(overview);
+  renderModelLabels(overview);
   renderBanners(overview);
   renderFooterMeta(overview);
 
@@ -570,6 +584,7 @@ async function initModels() {
     loadJSON("data/models.json"),
   ]);
   applyFx(overview);
+  renderModelLabels(overview);
   renderBanners(overview);
   renderFooterMeta(overview);
 

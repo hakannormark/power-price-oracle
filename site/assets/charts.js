@@ -77,6 +77,16 @@
     return hour === 0 || hour === 12;
   }
 
+  function yAxisCeiling(actual, p50) {
+    const values = actual.concat(p50).filter((v) => v !== null && v !== undefined);
+    if (!values.length) return null;
+    const top = Math.max(...values);
+    const bottom = Math.min(...values, 0);
+    // Twice the visible range leaves clear room above the median line for the
+    // band without handing the axis over to its spikes.
+    return Math.ceil((bottom + (top - bottom) * 2.2) / 10) * 10;
+  }
+
   function hourLabel(iso) {
     const date = new Date(iso);
     if (date.getHours() === 0) {
@@ -280,6 +290,12 @@
           nameLocation: "end",
           nameTextStyle: { color: COLORS.faint, fontSize: 11, align: "left" },
           nameGap: 18,
+          // The calibrated band is asymmetric and its upper tail runs to two or
+          // three times the level. Letting it set the axis squeezes the median
+          // and the official price into the bottom fifth of the chart, which is
+          // the part people actually read. The band still draws; it clips at the
+          // top edge, and the tooltip carries the exact numbers.
+          max: yAxisCeiling(actual, p50),
         }),
         series: chartSeries,
       }),
