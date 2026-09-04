@@ -1,18 +1,18 @@
 {
- "generated_at": "2026-09-04T15:22:43+02:00",
- "run_id": "20260904T1322Z",
+ "generated_at": "2026-09-04T16:02:50+02:00",
+ "run_id": "20260904T1402Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
  "resolution": "PT60M",
- "default_model": "shrunk_scaled",
+ "default_model": "recency_scaled",
  "reference_model": "seasonal_naive",
  "fx": {
   "pair": "EUR/SEK",
-  "rate": 11.1245,
-  "date": "2026-09-03",
+  "rate": 11.1005,
+  "date": "2026-09-04",
   "source": "ECB",
-  "fetched_at": "2026-09-04T15:23:43+02:00",
+  "fetched_at": "2026-09-04T16:03:48+02:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
@@ -24,13 +24,12 @@
    "zone": "SE1",
    "name": "Luleå",
    "current": {
-    "ts": "2026-09-04T15:00:00+02:00",
-    "eur_mwh": 43.975,
-    "ore_kwh": 48.92,
+    "ts": "2026-09-04T16:00:00+02:00",
+    "eur_mwh": 46.712,
+    "ore_kwh": 51.853,
     "source": "official"
    },
    "spark": [
-    46.712,
     53.492,
     60.212,
     53.347,
@@ -53,7 +52,8 @@
     5.595,
     3.877,
     3.558,
-    3.465
+    3.465,
+    5.82
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -63,13 +63,12 @@
    "zone": "SE2",
    "name": "Sundsvall",
    "current": {
-    "ts": "2026-09-04T15:00:00+02:00",
-    "eur_mwh": 49.875,
-    "ore_kwh": 55.483,
+    "ts": "2026-09-04T16:00:00+02:00",
+    "eur_mwh": 53.653,
+    "ore_kwh": 59.558,
     "source": "official"
    },
    "spark": [
-    53.653,
     62.837,
     70.852,
     62.51,
@@ -92,7 +91,8 @@
     1.913,
     2.518,
     2.985,
-    0.255
+    0.255,
+    3.638
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -102,13 +102,12 @@
    "zone": "SE3",
    "name": "Stockholm",
    "current": {
-    "ts": "2026-09-04T15:00:00+02:00",
-    "eur_mwh": 51.9,
-    "ore_kwh": 57.736,
+    "ts": "2026-09-04T16:00:00+02:00",
+    "eur_mwh": 56.145,
+    "ore_kwh": 62.324,
     "source": "official"
    },
    "spark": [
-    56.145,
     65.325,
     91.692,
     96.947,
@@ -131,7 +130,8 @@
     3.885,
     3.817,
     3.325,
-    3.272
+    3.272,
+    6.643
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -141,13 +141,12 @@
    "zone": "SE4",
    "name": "Malmö",
    "current": {
-    "ts": "2026-09-04T15:00:00+02:00",
-    "eur_mwh": 52.705,
-    "ore_kwh": 58.632,
+    "ts": "2026-09-04T16:00:00+02:00",
+    "eur_mwh": 57.183,
+    "ore_kwh": 63.476,
     "source": "official"
    },
    "spark": [
-    57.183,
     66.382,
     106.797,
     122.645,
@@ -170,7 +169,8 @@
     4.633,
     4.298,
     3.447,
-    4.42
+    4.42,
+    7.793
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -183,42 +183,49 @@
     "seasonal_naive": 13.405,
     "weather_scaled": 13.528,
     "shrunk_scaled": 10.832,
+    "recency_scaled": null,
     "ensemble": 13.485
    },
    "24-48h": {
     "seasonal_naive": 10.917,
     "weather_scaled": 8.426,
     "shrunk_scaled": 5.008,
+    "recency_scaled": null,
     "ensemble": 9.22
    },
    "48-72h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "72-96h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "96-120h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "120-144h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "144-168h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    }
   },
@@ -227,42 +234,49 @@
     "seasonal_naive": 11.764,
     "weather_scaled": 11.709,
     "shrunk_scaled": 9.825,
+    "recency_scaled": null,
     "ensemble": 11.713
    },
    "24-48h": {
     "seasonal_naive": 11.504,
     "weather_scaled": 11.766,
     "shrunk_scaled": 6.964,
+    "recency_scaled": null,
     "ensemble": 11.674
    },
    "48-72h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "72-96h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "96-120h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "120-144h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "144-168h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    }
   },
@@ -271,42 +285,49 @@
     "seasonal_naive": 16.875,
     "weather_scaled": 17.146,
     "shrunk_scaled": 14.493,
+    "recency_scaled": null,
     "ensemble": 17.051
    },
    "24-48h": {
     "seasonal_naive": 26.608,
     "weather_scaled": 24.885,
     "shrunk_scaled": 17.724,
+    "recency_scaled": null,
     "ensemble": 25.488
    },
    "48-72h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "72-96h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "96-120h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "120-144h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "144-168h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    }
   },
@@ -315,42 +336,49 @@
     "seasonal_naive": 18.985,
     "weather_scaled": 18.661,
     "shrunk_scaled": 16.099,
+    "recency_scaled": null,
     "ensemble": 18.775
    },
    "24-48h": {
     "seasonal_naive": 43.133,
     "weather_scaled": 31.286,
     "shrunk_scaled": 33.784,
+    "recency_scaled": null,
     "ensemble": 35.273
    },
    "48-72h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "72-96h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "96-120h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "120-144h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "144-168h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    }
   }
@@ -376,12 +404,12 @@
   },
   "ecb_fx": {
    "ok": true,
-   "rate": 11.1245,
-   "date": "2026-09-03"
+   "rate": 11.1005,
+   "date": "2026-09-04"
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1180
+   "messages": 1181
   }
  },
  "next_expected_update_utc": "2026-09-04T16:00:00Z",
@@ -407,7 +435,16 @@
   {
    "id": "shrunk_scaled",
    "name_sv": "Väderskalad, dämpad nivå",
-   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 för den väderskalade. Detta är sajtens standardmodell.",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 för den väderskalade. Slogs i sin tur av den färska nivån, se nedan.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "recency_scaled",
+   "name_sv": "Väderskalad, färsk nivå",
+   "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet och upphör därefter, vilket är just vad som skiljer i morgon från nästa fredag. Mätt på 115 396 timmar ut ur urvalet: medelfel 24,07 mot 25,68, och dag ett förbättras med 23 procent.",
    "quantiles": true,
    "derived": false,
    "is_default": true,

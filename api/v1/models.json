@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-04T15:23:51+02:00",
- "default_model": "shrunk_scaled",
+ "generated_at": "2026-09-04T16:03:55+02:00",
+ "default_model": "recency_scaled",
  "models": [
   {
    "id": "seasonal_naive",
@@ -23,7 +23,16 @@
   {
    "id": "shrunk_scaled",
    "name_sv": "Väderskalad, dämpad nivå",
-   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 för den väderskalade. Detta är sajtens standardmodell.",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 för den väderskalade. Slogs i sin tur av den färska nivån, se nedan.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "recency_scaled",
+   "name_sv": "Väderskalad, färsk nivå",
+   "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet och upphör därefter, vilket är just vad som skiljer i morgon från nästa fredag. Mätt på 115 396 timmar ut ur urvalet: medelfel 24,07 mot 25,68, och dag ett förbättras med 23 procent.",
    "quantiles": true,
    "derived": false,
    "is_default": true,

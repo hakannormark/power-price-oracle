@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-04T15:22:43+02:00",
+ "generated_at": "2026-09-04T16:02:50+02:00",
  "window_days": 90,
  "unit": "EUR/MWh",
  "min_samples": 24,
@@ -16,10 +16,11 @@
   "seasonal_naive",
   "weather_scaled",
   "shrunk_scaled",
+  "recency_scaled",
   "ensemble"
  ],
  "reference_model": "seasonal_naive",
- "default_model": "shrunk_scaled",
+ "default_model": "recency_scaled",
  "scored_points": 4992,
  "zones": {
   "SE1": {
@@ -519,42 +520,49 @@
     "seasonal_naive": 15.257,
     "weather_scaled": 15.261,
     "shrunk_scaled": 12.812,
+    "recency_scaled": null,
     "ensemble": 15.256
    },
    "24-48h": {
     "seasonal_naive": 23.04,
     "weather_scaled": 19.091,
     "shrunk_scaled": 15.87,
+    "recency_scaled": null,
     "ensemble": 20.414
    },
    "48-72h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "72-96h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "96-120h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "120-144h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "144-168h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    }
   },
@@ -563,42 +571,49 @@
     "seasonal_naive": 13.405,
     "weather_scaled": 13.528,
     "shrunk_scaled": 10.832,
+    "recency_scaled": null,
     "ensemble": 13.485
    },
    "24-48h": {
     "seasonal_naive": 10.917,
     "weather_scaled": 8.426,
     "shrunk_scaled": 5.008,
+    "recency_scaled": null,
     "ensemble": 9.22
    },
    "48-72h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "72-96h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "96-120h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "120-144h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "144-168h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    }
   },
@@ -607,42 +622,49 @@
     "seasonal_naive": 11.764,
     "weather_scaled": 11.709,
     "shrunk_scaled": 9.825,
+    "recency_scaled": null,
     "ensemble": 11.713
    },
    "24-48h": {
     "seasonal_naive": 11.504,
     "weather_scaled": 11.766,
     "shrunk_scaled": 6.964,
+    "recency_scaled": null,
     "ensemble": 11.674
    },
    "48-72h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "72-96h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "96-120h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "120-144h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "144-168h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    }
   },
@@ -651,42 +673,49 @@
     "seasonal_naive": 16.875,
     "weather_scaled": 17.146,
     "shrunk_scaled": 14.493,
+    "recency_scaled": null,
     "ensemble": 17.051
    },
    "24-48h": {
     "seasonal_naive": 26.608,
     "weather_scaled": 24.885,
     "shrunk_scaled": 17.724,
+    "recency_scaled": null,
     "ensemble": 25.488
    },
    "48-72h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "72-96h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "96-120h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "120-144h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "144-168h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    }
   },
@@ -695,42 +724,49 @@
     "seasonal_naive": 18.985,
     "weather_scaled": 18.661,
     "shrunk_scaled": 16.099,
+    "recency_scaled": null,
     "ensemble": 18.775
    },
    "24-48h": {
     "seasonal_naive": 43.133,
     "weather_scaled": 31.286,
     "shrunk_scaled": 33.784,
+    "recency_scaled": null,
     "ensemble": 35.273
    },
    "48-72h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "72-96h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "96-120h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "120-144h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    },
    "144-168h": {
     "seasonal_naive": null,
     "weather_scaled": null,
     "shrunk_scaled": null,
+    "recency_scaled": null,
     "ensemble": null
    }
   }

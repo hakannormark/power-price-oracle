@@ -1,7 +1,7 @@
 {
  "zone": "SE1",
  "zone_name": "Luleå",
- "generated_at": "2026-09-04T15:22:43+02:00",
+ "generated_at": "2026-09-04T16:02:50+02:00",
  "window_days": 90,
  "unit": "EUR/MWh",
  "min_samples": 24,
@@ -18,10 +18,11 @@
   "seasonal_naive",
   "weather_scaled",
   "shrunk_scaled",
+  "recency_scaled",
   "ensemble"
  ],
  "reference_model": "seasonal_naive",
- "default_model": "shrunk_scaled",
+ "default_model": "recency_scaled",
  "metrics": {
   "seasonal_naive": {
    "0-24h": {
@@ -125,42 +126,49 @@
    "seasonal_naive": 13.405,
    "weather_scaled": 13.528,
    "shrunk_scaled": 10.832,
+   "recency_scaled": null,
    "ensemble": 13.485
   },
   "24-48h": {
    "seasonal_naive": 10.917,
    "weather_scaled": 8.426,
    "shrunk_scaled": 5.008,
+   "recency_scaled": null,
    "ensemble": 9.22
   },
   "48-72h": {
    "seasonal_naive": null,
    "weather_scaled": null,
    "shrunk_scaled": null,
+   "recency_scaled": null,
    "ensemble": null
   },
   "72-96h": {
    "seasonal_naive": null,
    "weather_scaled": null,
    "shrunk_scaled": null,
+   "recency_scaled": null,
    "ensemble": null
   },
   "96-120h": {
    "seasonal_naive": null,
    "weather_scaled": null,
    "shrunk_scaled": null,
+   "recency_scaled": null,
    "ensemble": null
   },
   "120-144h": {
    "seasonal_naive": null,
    "weather_scaled": null,
    "shrunk_scaled": null,
+   "recency_scaled": null,
    "ensemble": null
   },
   "144-168h": {
    "seasonal_naive": null,
    "weather_scaled": null,
    "shrunk_scaled": null,
+   "recency_scaled": null,
    "ensemble": null
   }
  }
