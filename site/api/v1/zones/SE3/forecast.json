@@ -1,8 +1,8 @@
 {
  "zone": "SE3",
  "zone_name": "Stockholm",
- "generated_at": "2026-09-04T10:55:17+02:00",
- "run_id": "20260904T0855Z",
+ "generated_at": "2026-09-04T11:00:38+02:00",
+ "run_id": "20260904T0900Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
@@ -19,7 +19,7 @@
   "rate": 11.1245,
   "date": "2026-09-03",
   "source": "ECB",
-  "fetched_at": "2026-09-04T10:55:58+02:00",
+  "fetched_at": "2026-09-04T11:01:44+02:00",
   "stale": false
  },
  "series": [
@@ -470,9 +470,9 @@
    "source": "official",
    "models": {
     "seasonal_naive": {
-     "p10": -9.363,
+     "p10": -9.721,
      "p50": 38.692,
-     "p90": 86.747
+     "p90": 87.105
     },
     "weather_scaled": {
      "p10": 24.397,
@@ -485,9 +485,9 @@
      "p90": 52.457
     },
     "ensemble": {
-     "p10": -9.176,
+     "p10": -9.527,
      "p50": 36.816,
-     "p90": 88.482
+     "p90": 88.847
     }
    }
   },
@@ -1118,9 +1118,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": -45.74,
+     "p10": -46.098,
      "p50": 2.315,
-     "p90": 50.37
+     "p90": 50.728
     },
     "weather_scaled": {
      "p10": -1.183,
@@ -1133,9 +1133,9 @@
      "p90": 9.531
     },
     "ensemble": {
-     "p10": -44.825,
+     "p10": -45.176,
      "p50": 2.159,
-     "p90": 51.378
+     "p90": 51.743
     }
    }
   },
@@ -1766,9 +1766,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": -32.223,
+     "p10": -32.581,
      "p50": 15.832,
-     "p90": 63.887
+     "p90": 64.245
     },
     "weather_scaled": {
      "p10": 7.887,
@@ -1781,9 +1781,9 @@
      "p90": 14.492
     },
     "ensemble": {
-     "p10": -31.579,
+     "p10": -31.929,
      "p50": 13.507,
-     "p90": 65.165
+     "p90": 65.53
     }
    }
   },
@@ -2414,9 +2414,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 12.02,
+     "p10": 11.662,
      "p50": 60.075,
-     "p90": 108.13
+     "p90": 108.488
     },
     "weather_scaled": {
      "p10": 37.616,
@@ -2429,9 +2429,9 @@
      "p90": 82.313
     },
     "ensemble": {
-     "p10": 11.78,
+     "p10": 11.429,
      "p50": 56.974,
-     "p90": 110.293
+     "p90": 110.658
     }
    }
   },
@@ -3062,9 +3062,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 54.428,
+     "p10": 54.07,
      "p50": 102.483,
-     "p90": 150.538
+     "p90": 150.896
     },
     "weather_scaled": {
      "p10": 49.335,
@@ -3079,7 +3079,7 @@
     "ensemble": {
      "p10": 48.348,
      "p50": 86.093,
-     "p90": 153.549
+     "p90": 153.914
     }
    }
   },
@@ -3710,9 +3710,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 8.697,
+     "p10": 8.339,
      "p50": 56.752,
-     "p90": 104.807
+     "p90": 105.165
     },
     "weather_scaled": {
      "p10": 29.792,
@@ -3725,9 +3725,9 @@
      "p90": 75.027
     },
     "ensemble": {
-     "p10": 8.523,
+     "p10": 8.172,
      "p50": 49.589,
-     "p90": 106.903
+     "p90": 107.268
     }
    }
   },
@@ -4358,9 +4358,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": -3.21,
+     "p10": -3.568,
      "p50": 44.845,
-     "p90": 92.9
+     "p90": 93.258
     },
     "weather_scaled": {
      "p10": 29.397,
@@ -4373,9 +4373,9 @@
      "p90": 72.101
     },
     "ensemble": {
-     "p10": -3.146,
+     "p10": -3.497,
      "p50": 43.463,
-     "p90": 94.758
+     "p90": 95.123
     }
    }
   },
@@ -4972,6 +4972,33 @@
      "p90": 173.994
     }
    }
+  },
+  {
+   "ts": "2026-09-11T10:00:00+02:00",
+   "actual": null,
+   "source": "forecast",
+   "models": {
+    "seasonal_naive": {
+     "p10": 46.222,
+     "p50": 100.83,
+     "p90": 155.438
+    },
+    "weather_scaled": {
+     "p10": 63.498,
+     "p50": 93.223,
+     "p90": 134.838
+    },
+    "shrunk_scaled": {
+     "p10": 58.795,
+     "p50": 86.318,
+     "p90": 124.851
+    },
+    "ensemble": {
+     "p10": 45.298,
+     "p50": 95.885,
+     "p90": 158.547
+    }
+   }
   }
  ],
  "drivers": {
@@ -4979,20 +5006,20 @@
   "regime_label_sv": "Normalläge",
   "headline_sv": "Inget som sticker ut — SE3 följer ett normalt veckomönster.",
   "bullets_sv": [
-   "Vinden i SE3 är nära normal, vindindex 0,90.",
+   "Vinden i SE3 är nära normal, vindindex 0,91.",
    "Temperaturen ligger 3,5 grader under normalt, vilket drar upp förbrukningen.",
-   "Prognosen ger i snitt +15,2 EUR/MWh skillnad mellan SE4 och SE2 kommande två dygn.",
+   "Prognosen ger i snitt +15,0 EUR/MWh skillnad mellan SE4 och SE2 kommande två dygn.",
    "Helgen ingår i fönstret, med lägre industriförbrukning än vardagar.",
    "Svenska kraftnät skriver: ”På västkusten pågår avbrott i samband med ledningsförnyelse, avslutas 8 november.”"
   ],
   "features": {
-   "wind_index_local": 0.899,
-   "wind_index_north": 1.216,
-   "wind_index_south": 1.324,
-   "temp_anomaly_se3_c": -3.473,
-   "temp_local_c": 13.967,
-   "solar_index_daytime": 0.678,
-   "spread_proxy_se4_se2": 15.217
+   "wind_index_local": 0.912,
+   "wind_index_north": 1.227,
+   "wind_index_south": 1.334,
+   "temp_anomaly_se3_c": -3.513,
+   "temp_local_c": 13.927,
+   "solar_index_daytime": 0.704,
+   "spread_proxy_se4_se2": 15.044
   }
  }
 }

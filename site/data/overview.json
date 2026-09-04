@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-04T10:55:17+02:00",
- "run_id": "20260904T0855Z",
+ "generated_at": "2026-09-04T11:00:38+02:00",
+ "run_id": "20260904T0900Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
@@ -12,7 +12,7 @@
   "rate": 11.1245,
   "date": "2026-09-03",
   "source": "ECB",
-  "fetched_at": "2026-09-04T10:55:58+02:00",
+  "fetched_at": "2026-09-04T11:01:44+02:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
@@ -24,13 +24,12 @@
    "zone": "SE1",
    "name": "Luleå",
    "current": {
-    "ts": "2026-09-04T10:00:00+02:00",
-    "eur_mwh": 80.358,
-    "ore_kwh": 89.394,
+    "ts": "2026-09-04T11:00:00+02:00",
+    "eur_mwh": 61.443,
+    "ore_kwh": 68.352,
     "source": "official"
    },
    "spark": [
-    61.443,
     50.462,
     42.07,
     43.308,
@@ -53,7 +52,8 @@
     3.081,
     3.73,
     3.778,
-    3.301
+    3.301,
+    2.786
    ],
    "regime": "cold_tight",
    "regime_label_sv": "Kallt och ansträngt",
@@ -63,13 +63,12 @@
    "zone": "SE2",
    "name": "Sundsvall",
    "current": {
-    "ts": "2026-09-04T10:00:00+02:00",
-    "eur_mwh": 95.998,
-    "ore_kwh": 106.793,
+    "ts": "2026-09-04T11:00:00+02:00",
+    "eur_mwh": 72.375,
+    "ore_kwh": 80.514,
     "source": "official"
    },
    "spark": [
-    72.375,
     58.447,
     47.315,
     49.08,
@@ -92,7 +91,8 @@
     2.883,
     3.648,
     3.864,
-    3.32
+    3.32,
+    2.832
    ],
    "regime": "normal",
    "regime_label_sv": "Normalläge",
@@ -102,13 +102,12 @@
    "zone": "SE3",
    "name": "Stockholm",
    "current": {
-    "ts": "2026-09-04T10:00:00+02:00",
-    "eur_mwh": 100.83,
-    "ore_kwh": 112.168,
+    "ts": "2026-09-04T11:00:00+02:00",
+    "eur_mwh": 75.593,
+    "ore_kwh": 84.093,
     "source": "official"
    },
    "spark": [
-    75.593,
     61.133,
     49.855,
     51.453,
@@ -131,7 +130,8 @@
     2.653,
     3.138,
     3.088,
-    2.667
+    2.667,
+    2.159
    ],
    "regime": "normal",
    "regime_label_sv": "Normalläge",
@@ -141,13 +141,12 @@
    "zone": "SE4",
    "name": "Malmö",
    "current": {
-    "ts": "2026-09-04T10:00:00+02:00",
-    "eur_mwh": 103.417,
-    "ore_kwh": 115.046,
+    "ts": "2026-09-04T11:00:00+02:00",
+    "eur_mwh": 76.868,
+    "ore_kwh": 85.512,
     "source": "official"
    },
    "spark": [
-    76.868,
     62.172,
     50.845,
     52.37,
@@ -170,7 +169,8 @@
     2.756,
     3.135,
     3.03,
-    2.548
+    2.548,
+    1.956
    ],
    "regime": "windy_cheap",
    "regime_label_sv": "Blåsigt och billigt",
