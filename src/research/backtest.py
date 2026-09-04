@@ -68,6 +68,14 @@ class Sample:
     # Reservoir fill for the zone, as published before issue time.
     fill_ratio: float = float("nan")
     fill_anomaly: float = float("nan")
+    # Mean of the bordering zones' price at the same hour one week ago, and the
+    # gap between our own week-old price and theirs. Both knowable at issue time.
+    neighbour_lag168: float = float("nan")
+    neighbour_gap: float = float("nan")
+    # Yesterday's price for this hour, but only where it was actually published
+    # before issue time. Available for roughly the first day and a half of the
+    # window and not beyond, which is precisely a horizon-dependent signal.
+    recent_lag: float = float("nan")
     wind_index_local: float = 1.0
     wind_index_north: float = 1.0
     wind_index_south: float = 1.0
@@ -172,6 +180,20 @@ def build_samples(
     weather = load_weather_archive()
     log.info("weather points: %s", len(weather))
 
+    # Neighbouring zone prices, same shape as our own history.
+    neighbour_px: dict[tuple[str, datetime], float] = {}
+    try:
+        from ..config import NEIGHBOUR_DIR, ZONE_NEIGHBOURS
+        from ..store import read_jsonl
+
+        for path in sorted(NEIGHBOUR_DIR.glob("*.jsonl")):
+            for row in read_jsonl(path):
+                neighbour_px[(row["zone"], parse_iso(row["ts"]))] = float(row["price_eur_mwh"])
+        log.info("neighbour price rows: %s", len(neighbour_px))
+    except Exception as exc:  # noqa: BLE001
+        ZONE_NEIGHBOURS = {}
+        log.info("no neighbour prices (%s)", exc)
+
     def regional(ts: datetime, points: list[str], field: str) -> float:
         values = [weather[p][ts][field] for p in points if p in weather and ts in weather[p]]
         values = [v for v in values if v == v]
@@ -222,6 +244,22 @@ def build_samples(
                     - then_state.get("unplanned_production_mw", 0.0),
                 }
                 fill, anomaly = reservoir_at(zone, issue)
+
+                # The day-ahead auction publishes through the end of tomorrow at
+                # 12:45. Issuing at 08:00, we know prices to the end of today, so
+                # the 24-hour lag exists only for the nearest targets.
+                lag24_ts = ts - timedelta(hours=24)
+                known_through = issue.replace(hour=23, minute=0, second=0, microsecond=0)
+                recent = prices.get((zone, lag24_ts)) if lag24_ts <= known_through else None
+
+                # Neighbours at the same hour last week — knowable at issue time.
+                nb = [
+                    neighbour_px.get((n, ts - timedelta(hours=168)))
+                    for n in ZONE_NEIGHBOURS.get(zone, [])
+                ]
+                nb = [v for v in nb if v is not None]
+                nb_lag = sum(nb) / len(nb) if nb else float("nan")
+                nb_gap = (lags[0] - nb_lag) if nb else float("nan")
                 local = weather.get(zone, {}).get(ts, {})
                 samples.append(
                     Sample(
@@ -232,6 +270,9 @@ def build_samples(
                         solar_index_local=float(local.get("solar_index", 0.0) or 0.0),
                         fill_ratio=fill,
                         fill_anomaly=anomaly,
+                        neighbour_lag168=nb_lag,
+                        neighbour_gap=nb_gap,
+                        recent_lag=float(recent) if recent is not None else float("nan"),
                         issued=issue,
                         ts=ts,
                         zone=zone,
@@ -296,6 +337,29 @@ def to_frame(samples: list[Sample]) -> pd.DataFrame:
     # hydro cannot absorb a windless week cheaply, so the same wind deviation
     # should move the price further. An additive level term cannot express that.
     frame["wind_x_fill"] = frame["wind_dev"] * frame["fill_dev"]
+
+    # Neighbour-informed levels. The hypothesis is not "copy the neighbour" —
+    # their future price is as unknown as ours — but that pooling a bordering
+    # zone's week-old price denoises our own week-old price.
+    has_nb = frame["neighbour_lag168"].notna()
+    for weight in (0.15, 0.25, 0.35):
+        column = f"level_nb{int(weight * 100)}"
+        blended = (1 - weight) * frame["level_shrunk"] + weight * frame["neighbour_lag168"]
+        frame[column] = blended.where(has_nb, frame["level_shrunk"])
+        frame[f"{column}_scaled"] = frame[column] * frame["guessed_scale"]
+    # A wide own-vs-neighbour gap may mean-revert; centred so zero means ignore.
+    frame["nb_gap_dev"] = (frame["neighbour_gap"].fillna(0.0)) / 50.0
+
+    # Yesterday's price where it is known. Every candidate so far has been
+    # equally (in)formed at every horizon, which is why the error curve is flat
+    # across the week — the level never knows more about tomorrow than about
+    # next Friday. This is the one input that does.
+    has_recent = frame["recent_lag"].notna()
+    for weight in (0.6, 0.7, 0.8, 0.85, 0.9, 1.0):
+        column = f"level_recent{int(weight * 100)}"
+        blended = (1 - weight) * frame["level_shrunk"] + weight * frame["recent_lag"]
+        frame[column] = blended.where(has_recent, frame["level_shrunk"])
+        frame[f"{column}_scaled"] = frame[column] * frame["guessed_scale"]
     frame["quarter"] = frame["issued"].dt.tz_localize(None).dt.to_period("Q")
     frame["bucket"] = (frame["horizon_h"] - 1) // 24
     return frame
@@ -511,6 +575,18 @@ CANDIDATES: list[tuple] = [
     ("+ reservoir level", "level_weather_guessed", ["fill_dev"]),
     ("+ wind x reservoir", "level_weather_guessed", ["wind_x_fill"]),
     ("+ reservoir + interaction", "level_weather_guessed", ["fill_dev", "wind_x_fill"]),
+    # Yesterday's price where the auction has published it.
+    ("+ recent lag 60 %", "level_recent60_scaled", []),
+    ("+ recent lag 70 %", "level_recent70_scaled", []),
+    ("+ recent lag 80 %", "level_recent80_scaled", []),
+    ("+ recent lag 85 %", "level_recent85_scaled", []),
+    ("+ recent lag 90 %", "level_recent90_scaled", []),
+    ("+ recent lag 100 %", "level_recent100_scaled", []),
+    # Neighbouring zones.
+    ("+ neighbour level 15 %", "level_nb15_scaled", []),
+    ("+ neighbour level 25 %", "level_nb25_scaled", []),
+    ("+ neighbour level 35 %", "level_nb35_scaled", []),
+    ("+ neighbour gap term", "level_weather_guessed", ["nb_gap_dev"]),
     ("ensemble as shipped", "ens_current", []),
     ("ensemble = shrunk_scaled", "ens_shrunk_only", []),
     ("ensemble 80/20 naive", "ens_80_20_naive", []),

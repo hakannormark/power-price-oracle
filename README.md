@@ -254,7 +254,8 @@ den tillämpas på (`python -m src.research.backtest`).
 | `seasonal_naive` | 29,51 | 0 % | Priset samma veckodag och timme sju dygn tidigare. Referensen alla andra mäts mot. |
 | `weather_scaled` | 28,04 | +5,0 % | Den naiva nivån skalad med vindindex, temperaturavvikelse och sol, med egna vikter per elområde. |
 | `ensemble` | 28,40 | +3,8 % | 35 % naiv + 65 % väderskalad. Var standard tills den mättes. |
-| **`shrunk_scaled`** | **25,63** | **+13,1 %** | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de fyra senaste veckorna. **Sajtens standardmodell.** |
+| `shrunk_scaled` | 25,68 | +13,3 % | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de fyra senaste veckorna. |
+| **`recency_scaled`** | **24,07** | **+18,7 %** | Som ovan, men där gårdagens pris för samma timme redan publicerats vägs det in med 70 %. Dag 1 förbättras 23 %. **Sajtens standardmodell.** |
 
 Varje blandning av `shrunk_scaled` med de övriga blev sämre än modellen ensam, så
 standarden är en enskild modell och inte en sammanvägning.
@@ -265,11 +266,18 @@ Dämpningen av nivån, värd 7,9 % på egen hand, beror inte på väder.
 
 ### Testat och förkastat
 
-Utöver `median4` och trendjustering har följande prövats mot standardmodellens
-25,68 och inte hållit: oplanerade kärnkraftsbortfall (25,68 — ingen effekt),
-oplanerade produktionsbortfall (25,85), magasinnivå additivt (26,00), och
-magasinnivå som förstärkning av vädereffekten (25,76). Datat hämtas ändå och
-visas som fakta på sajten.
+Sju hypoteser har prövats mot standardmodellen och fallit: fyraveckorsmedian
+ensam (−8,5 %), trendjustering (−39 %), oplanerade kärnkraftsbortfall (ingen
+effekt), oplanerade produktionsbortfall (25,85), magasinnivå additivt (26,00),
+magasinnivå som förstärkning av vädereffekten (25,76) och grannområdenas priser
+(26,22 vid 15 % vikt, monotont sämre därutöver).
+
+Mönstret är genomgående: allt som rör sig långsamt eller redan är offentligt
+absorberas av förra veckans pris. Det som hjälpte var att minska bruset i
+nivåskattningen — och att använda gårdagens pris, som är den enda indata som
+faktiskt skiljer i morgon från nästa fredag.
+
+Magasinnivåer och avbrott hämtas ändå och visas som fakta på sajten.
 
 ### Osäkerhetsbandet
 

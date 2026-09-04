@@ -126,7 +126,8 @@
             <tr><td>Väderskalad</td><td class="num">28,04</td><td class="num">+5,0 %</td></tr>
             <tr><td>Ensemble 35/65</td><td class="num">28,40</td><td class="num">+3,8 %</td></tr>
             <tr><td>Enbart dämpad nivå, utan väder</td><td class="num">27,18</td><td class="num">+7,9 %</td></tr>
-            <tr><td><b>Dämpad nivå + väderskalning</b></td><td class="num"><b>25,63</b></td><td class="num best"><b>+13,1 %</b></td></tr>
+            <tr><td>Dämpad nivå + väderskalning</td><td class="num">25,68</td><td class="num">+13,3 %</td></tr>
+            <tr><td><b>Färsk nivå + väderskalning</b></td><td class="num"><b>24,07</b></td><td class="num best"><b>+18,7 %</b></td></tr>
           </tbody>
         </table>
       </div>
@@ -143,6 +144,33 @@
         blev 8,5 procent sämre, och att justera veckolaggen med den senaste veckans
         nivåtrend blev 39 procent sämre. Priser trendar, och en median släpar efter
         nivåskiften.</p>
+
+      <h3>Gårdagens pris — det som skiljer i morgon från nästa fredag</h3>
+      <p>Länge var felkurvan över veckan platt. Dag 5 hamnade till och med
+        marginellt bättre än dag 1, vilket borde vara omöjligt för en prognos
+        värd namnet. Förklaringen visade sig inte vara att väderprognoser blir
+        sämre med horisonten — backtestet matar modellerna med ERA5-reanalys,
+        alltså perfekt väder, och kurvan var platt ändå. Problemet var att
+        <em>ingenting</em> i modellen visste mer om i morgon än om nästa vecka.
+        Nivån var förra veckans pris oavsett horisont.</p>
+      <p>Day-ahead-auktionen publicerar till och med morgondagens slut. För en
+        timme tidigt i fönstret är alltså gårdagens pris för samma timme ett
+        publicerat faktum; för en timme sju dygn fram är gårdagen fortfarande i
+        framtiden. Att väga in den 24-timmarslaggen med 70 procent där den finns
+        ger:</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Prognosdygn</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr></thead>
+          <tbody>
+            <tr><td>MAE tidigare</td><td class="num">25,4</td><td class="num">26,0</td><td class="num">25,8</td><td class="num">25,4</td><td class="num">25,2</td><td class="num">25,5</td><td class="num">26,1</td></tr>
+            <tr><td><b>MAE nu</b></td><td class="num best"><b>19,5</b></td><td class="num best"><b>21,1</b></td><td class="num">25,4</td><td class="num">25,2</td><td class="num">25,5</td><td class="num">26,1</td><td class="num">25,8</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Dag ett förbättras med 23 procent och dag tre till sju rörs inte alls —
+        eftersom det är precis där laggen slutar existera. Modellen låtsas inte
+        veta mer om nästa fredag än den gjorde förut. Vikten 0,70 är robust vald:
+        optimum är platt mellan 0,60 och 0,80.</p>
 
       <h3>Väderskalningens vikter håller</h3>
       <p>De handsatta vikterna per elområde — SE1 och SE2 mot sin egen vind, SE4
@@ -203,6 +231,8 @@
             <tr><td>Magasinnivå som nivåjustering</td><td class="num">26,00</td><td class="empty">sämre</td></tr>
             <tr><td>Magasinnivå × vind (interaktion)</td><td class="num">25,76</td><td class="empty">sämre</td></tr>
             <tr><td>Båda magasintermerna</td><td class="num">26,05</td><td class="empty">sämre</td></tr>
+            <tr><td>Grannområdenas pris, 15 % vikt</td><td class="num">26,22</td><td class="empty">sämre</td></tr>
+            <tr><td>Grannområdenas pris, 35 % vikt</td><td class="num">28,31</td><td class="empty">mycket sämre</td></tr>
           </tbody>
         </table>
       </div>
@@ -212,6 +242,12 @@
         koefficient på +0,01 — alltså noll. Den troliga förklaringen är gleshet:
         105 oplanerade kärnkraftsbortfall på fyra år blir en handfull per
         testperiod, och då går ingen effekt att skilja från brus.</p>
+      <p><b>Grannområdenas priser.</b> SE4 följer Danmark och Tyskland, så deras
+        pris samma timme förra veckan borde vara en oberoende mätning av samma
+        marknadsläge. Det blev monotont sämre ju mer vikt de fick. Grannens vecka
+        är alltså inte en oberoende mätning utan en brusigare version av vår
+        egen — elområdena är kopplade, så informationen sitter redan i det egna
+        priset.</p>
       <p><b>Magasinnivå.</b> Additivt blev det sämre, vilket var väntat — nivån
         rör sig någon procent i veckan och förra veckans pris bär den redan.
         Interaktionshypotesen var mer intressant: med tomma magasin kan

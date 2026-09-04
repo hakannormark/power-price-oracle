@@ -78,7 +78,7 @@ class ShrunkScaled:
         "de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras "
         "rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: "
         "medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 "
-        "för den väderskalade. Detta är sajtens standardmodell."
+        "för den väderskalade. Slogs i sin tur av den färska nivån, se nedan."
     )
     quantiles = True
     derived = False

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .ensemble import Ensemble
 from .official import Official
+from .recency_scaled import RecencyScaled
 from .seasonal_naive import SeasonalNaive
 from .shrunk_scaled import ShrunkScaled
 from .weather_scaled import WeatherScaled
@@ -13,6 +14,7 @@ BASE_MODELS = [
     SeasonalNaive(),
     WeatherScaled(),
     ShrunkScaled(),
+    RecencyScaled(),
 ]
 
 # Derived models are built from base-model output after the base pass.
@@ -27,10 +29,11 @@ MODELS = [*BASE_MODELS, *DERIVED_MODELS]
 #   seasonal_naive          MAE 29.51    0.0 %
 #   weather_scaled          MAE 28.04   +5.0 %
 #   ensemble (0.35/0.65)    MAE 28.40   +3.8 %
-#   shrunk_scaled           MAE 25.63  +13.1 %
-# Every blend of shrunk_scaled with the others scored worse than shrunk_scaled
-# alone, so the default is the single model rather than a mixture.
-DEFAULT_MODEL_ID = "shrunk_scaled"
+#   shrunk_scaled           MAE 25.68  +13.3 %
+#   recency_scaled          MAE 24.07  +18.7 %
+# Every blend of the leader with the others scored worse than the leader alone,
+# so the default is a single model rather than a mixture.
+DEFAULT_MODEL_ID = "recency_scaled"
 REFERENCE_MODEL_ID = "seasonal_naive"  # skill is measured against this one
 
 OFFICIAL = Official()
