@@ -15,7 +15,7 @@ import pandas as pd
 
 from ..config import ZONES
 from ..store import r3
-from ..timeutil import now_local
+from ..timeutil import now_local, parse_iso
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +23,17 @@ LOOKAHEAD_HOURS = 48
 SVK_KEYWORDS = ("kärnkraft", "ledning", "magasin", "avbrott", "Snitt")
 SVK_MAX_CHARS = 220
 
+MONTHS_SV = {
+    1: "jan", 2: "feb", 3: "mars", 4: "apr", 5: "maj", 6: "juni",
+    7: "juli", 8: "aug", 9: "sep", 10: "okt", 11: "nov", 12: "dec",
+}
+
+# A reactor block is worth naming ahead of a bigger corridor restriction: it
+# removes generation outright, where a corridor only moves it.
+NUCLEAR_PRIORITY_MW = 5000
+
 REGIME_LABELS_SV = {
+    "outage_tight": "Bortfall i systemet",
     "windy_cheap": "Blåsigt och billigt",
     "cold_tight": "Kallt och ansträngt",
     "north_split": "Delat land",
@@ -88,6 +98,7 @@ def classify_regime(zone: str, snap: dict) -> str:
 
 
 HEADLINES_SV = {
+    "outage_tight": "{outage_headline}",
     "windy_cheap": "Blåsigt kommande dygn — vinden pressar ner priset i {zone}.",
     "cold_tight": "Kallt väder kommande dygn — högre förbrukning lyfter priset i {zone}.",
     "north_split": "Norr billigare än söder — mycket vind i SE1/SE2 och flaskhals söderut.",
@@ -97,11 +108,17 @@ HEADLINES_SV = {
 
 
 def sv_num(value: float | None, decimals: int = 2, sign: bool = False) -> str:
-    """Swedish number formatting: decimal comma, optional explicit sign."""
+    """Swedish number formatting: decimal comma, non-breaking thousands space."""
     if value is None:
         return "–"
-    text = f"{value:+.{decimals}f}" if sign else f"{value:.{decimals}f}"
-    return text.replace(".", ",")
+    text = f"{value:+,.{decimals}f}" if sign else f"{value:,.{decimals}f}"
+    return text.replace(",", "\u00a0").replace(".", ",")
+
+
+def sv_date(when: datetime, with_time: bool = False) -> str:
+    """Swedish short date; strftime would render English month names here."""
+    base = f"{when.day} {MONTHS_SV[when.month]}"
+    return f"{base} {when:%H:%M}" if with_time else base
 
 
 def _format_index(value: float | None) -> str:
@@ -214,11 +231,74 @@ def _spread_proxy(series_by_zone: dict[str, list[dict]], now: datetime) -> float
     return south - north
 
 
+def outage_bullets(block: dict | None) -> list[str]:
+    """Name what is actually out. These are published facts, not model output.
+
+    Deliberately placed first among the bullets: a gigawatt of nuclear leaving
+    the system matters more to next week's price than any wind index, and the
+    forecast underneath does not yet know about it.
+    """
+    if not block or not block.get("items"):
+        return []
+
+    lines: list[str] = []
+    for item in rank_outages(block["items"])[:3]:
+        start = sv_date(parse_iso(item["from"]), with_time=True)
+        stop = sv_date(parse_iso(item["to"]))
+        mw = item["unavailable_mw"]
+        if item["kind"] == "production":
+            what = "Kärnkraftsblocket" if item["nuclear"] else f"Anläggningen ({item['fuel']})"
+            lines.append(
+                f"{what} {item['unit']} är ur drift med {sv_num(mw, 0)} MW "
+                f"från {start} till {stop}."
+            )
+        else:
+            share = ""
+            if item.get("installed_mw"):
+                share = f", {sv_num(100 * mw / item['installed_mw'], 0)} % av kapaciteten"
+            lines.append(
+                f"Överföringen {item['unit']} är begränsad med {sv_num(mw, 0)} MW{share} "
+                f"från {start} till {stop}."
+            )
+    return lines
+
+
+def rank_outages(items: list[dict]) -> list[dict]:
+    """Order by what a reader needs told first, not by raw megawatts."""
+    return sorted(
+        items,
+        key=lambda i: -((i.get("unavailable_mw") or 0) + (NUCLEAR_PRIORITY_MW if i.get("nuclear") else 0)),
+    )
+
+
+def outage_headline(zone: str, block: dict | None) -> str | None:
+    """A headline that cannot contradict the bullets underneath it."""
+    if not block or not block.get("items"):
+        return None
+    items = rank_outages(block["items"])
+    nuclear = [i for i in items if i.get("nuclear")]
+    if nuclear:
+        top = nuclear[0]
+        return (
+            f"{top['unit']} är ur drift med {sv_num(top['unavailable_mw'], 0)} MW "
+            f"från {sv_date(parse_iso(top['from']))} — det stramar åt {zone}."
+        )
+    transmission = [i for i in items if i["kind"] == "transmission"]
+    if transmission and (transmission[0].get("unavailable_mw") or 0) >= 1000:
+        top = transmission[0]
+        return (
+            f"Överföringen {top['unit']} är begränsad med "
+            f"{sv_num(top['unavailable_mw'], 0)} MW från {sv_date(parse_iso(top['from']))}."
+        )
+    return None
+
+
 def build_drivers(
     features: pd.DataFrame,
     ensemble_by_zone: dict[str, list[dict]],
     svk_text: str | None = None,
     now: datetime | None = None,
+    outages: dict[str, dict] | None = None,
 ) -> dict[str, dict]:
     """Driver block per zone, matching the `drivers` object in the forecast API."""
     now = now or now_local()
@@ -229,11 +309,17 @@ def build_drivers(
     for zone in ZONES:
         snap = _snapshot(features, zone, now)
         regime = classify_regime(zone, snap)
+        outage_block = (outages or {}).get(zone)
+        outage_lines = outage_bullets(outage_block)
+        headline = outage_headline(zone, outage_block)
+        if headline:
+            regime = "outage_tight"
         out[zone] = {
             "regime": regime,
             "regime_label_sv": REGIME_LABELS_SV[regime],
-            "headline_sv": HEADLINES_SV[regime].format(zone=zone),
-            "bullets_sv": _bullets(zone, regime, snap, spread, extra),
+            "headline_sv": headline or HEADLINES_SV[regime].format(zone=zone),
+            "bullets_sv": outage_lines + _bullets(zone, regime, snap, spread, extra)[: 5 - len(outage_lines)],
+            "outages": outage_block or {"items": []},
             "features": {
                 "wind_index_local": r3(snap["wind_index_local"]),
                 "wind_index_north": r3(snap["wind_index_north"]),

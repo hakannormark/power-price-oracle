@@ -130,6 +130,13 @@ SVK_DRIFTINFO_URL = (
 )
 ECB_FX_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
 
+# Nord Pool's REMIT urgent market messages: plant and cable outages, public and
+# unauthenticated, with MW and hour-precision event windows.
+UMM_API_URL = "https://ummapi.nordpoolgroup.com/messages"
+UMM_PAGE_SIZE = 500
+UMM_HISTORY_DAYS = 1460
+UMM_REFRESH_DAYS = 21  # each run tops up recent publications
+
 # Reject a EUR/SEK reading outside this band: it means the feed changed shape,
 # not that the krona moved that far.
 FX_SANITY_RANGE = (7.0, 20.0)
@@ -149,6 +156,7 @@ FORECASTS_PATH = DATA_DIR / "forecasts.jsonl"
 CLIMATOLOGY_PATH = DATA_DIR / "weather_climatology.json"
 FX_PATH = DATA_DIR / "fx_rate.json"
 RESERVOIRS_PATH = DATA_DIR / "supply" / "reservoirs.jsonl"
+UMM_DIR = DATA_DIR / "supply" / "umm"
 SVK_TEXT_PATH = RAW_DIR / "svk_driftinfo.txt"
 FIXTURE_ACTUALS_PATH = FIXTURES_DIR / "actuals_demo.jsonl"
 

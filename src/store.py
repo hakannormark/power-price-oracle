@@ -13,6 +13,7 @@ from .config import (
     ARCHIVE_DIR,
     LEGACY_ACTUALS_PATH,
     RESERVOIRS_PATH,
+    UMM_DIR,
     FORECASTS_PATH,
     FORECAST_RETAIN_DAYS,
     FORECAST_ROTATE_MB,
@@ -223,3 +224,48 @@ def rotate_forecasts() -> str | None:
     moved = sum(len(v) for v in archived.values())
     log.info("Rotated %s forecast rows into %s", moved, ARCHIVE_DIR)
     return f"rotated {moved} rows"
+
+
+# ---------------------------------------------------------------- outages
+
+
+def _umm_year_path(year: int) -> Path:
+    return UMM_DIR / f"{year}.jsonl"
+
+
+def load_umm(since=None) -> list[dict[str, Any]]:
+    """Flattened outage rows, optionally only those published from `since`."""
+    if not UMM_DIR.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    for path in sorted(UMM_DIR.glob("*.jsonl")):
+        for row in read_jsonl(path):
+            if since is not None and parse_iso(row["published_at"]) < since:
+                continue
+            rows.append(row)
+    return rows
+
+
+def upsert_umm(rows: Iterable[dict[str, Any]]) -> int:
+    """Store outage rows, partitioned by publication year.
+
+    Keyed on the message, its version and the exact event period, so a
+    republished message replaces its own row and never duplicates an outage.
+    """
+    incoming: dict[int, list[dict[str, Any]]] = {}
+    for row in rows:
+        incoming.setdefault(parse_iso(row["published_at"]).year, []).append(row)
+
+    added = 0
+    for year, year_rows in incoming.items():
+        def key(r: dict[str, Any]) -> tuple:
+            return (r["message_id"], r["version"], r.get("unit"), r["event_start"], r["event_stop"])
+
+        merged = {key(r): r for r in read_jsonl(_umm_year_path(year))}
+        for row in year_rows:
+            if key(row) not in merged:
+                added += 1
+            merged[key(row)] = row
+        ordered = sorted(merged.values(), key=lambda r: (r["published_at"], r.get("unit") or ""))
+        write_jsonl(_umm_year_path(year), ordered)
+    return added

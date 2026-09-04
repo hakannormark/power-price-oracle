@@ -13,11 +13,18 @@ import logging
 import sys
 from datetime import timedelta
 
-from .config import EVAL_WINDOW_DAYS, FIXTURE_ACTUALS_PATH, ZONES, ensure_dirs
+from .config import (
+    EVAL_WINDOW_DAYS,
+    FIXTURE_ACTUALS_PATH,
+    HORIZON_HOURS,
+    UMM_REFRESH_DAYS,
+    ZONES,
+    ensure_dirs,
+)
 from .evaluate.score import evaluate, zone_slice
 from .explain.drivers import build_drivers, global_blurb
 from .features.build import build_features
-from .fetch import ecb_fx, entsoe_fundamentals, entsoe_prices, open_meteo, svk_text
+from .fetch import ecb_fx, entsoe_fundamentals, entsoe_prices, nordpool_umm, open_meteo, svk_text
 from .models.official import actuals_index
 from .models.registry import (
     BASE_MODELS,
@@ -30,6 +37,8 @@ from .publish import api as publish_api
 from .publish import site_data as publish_site
 from .store import (
     append_forecasts,
+    load_umm,
+    upsert_umm,
     load_actuals,
     load_forecasts,
     read_jsonl,
@@ -64,6 +73,7 @@ def run(skip_fetch: bool = False) -> int:
         sources["entsoe_fundamentals"] = {"ok": False, "error": "skipped (--skip-fetch)"}
         sources["svk_text"] = {"ok": False, "error": "skipped (--skip-fetch)"}
         sources["ecb_fx"] = {"ok": False, "error": "skipped (--skip-fetch)"}
+        sources["nordpool_umm"] = {"ok": False, "error": "skipped (--skip-fetch)"}
         weather, fundamentals, svk = None, None, svk_text.load_cached_svk_text()
         fx = ecb_fx.load_cached()
         price_rows: list[dict] = []
@@ -84,6 +94,13 @@ def run(skip_fetch: bool = False) -> int:
         if svk is None:
             svk = svk_text.load_cached_svk_text()
         fx, sources["ecb_fx"] = ecb_fx.fetch_eur_sek()
+
+        # Outages published since the last run; the store keeps the history.
+        messages, sources["nordpool_umm"] = nordpool_umm.fetch_messages(
+            now - timedelta(days=UMM_REFRESH_DAYS)
+        )
+        if messages:
+            upsert_umm(nordpool_umm.to_rows(messages))
 
     # ---- 3. actuals -----------------------------------------------------
     added = upsert_actuals(price_rows) if price_rows else 0
@@ -150,7 +167,8 @@ def run(skip_fetch: bool = False) -> int:
     ensemble_by_zone: dict[str, list[dict]] = {zone: [] for zone in ZONES}
     for point in predictions.get("ensemble", []):
         ensemble_by_zone[point.zone].append({"ts": point.ts, "p50": point.p50})
-    drivers = build_drivers(features, ensemble_by_zone, svk, now)
+    outages = nordpool_umm.current_outages(load_umm(since=now - timedelta(days=400)), now)
+    drivers = build_drivers(features, ensemble_by_zone, svk, now, outages)
 
     # ---- 11-12. publish -------------------------------------------------
     meta = {
@@ -194,6 +212,8 @@ def run(skip_fetch: bool = False) -> int:
     print(f"  forecast rows   : +{written}")
     print(f"  scored points   : {accuracy['scored_points']}")
     print(f"  eur/sek         : {fx['rate'] if fx else 'unavailable'}")
+    print(f"  outages         : " + ", ".join(
+        f"{z}:{len(b['items'])}" for z, b in outages.items()))
     for name, state in sources.items():
         flag = "ok" if state.get("ok") else f"FAIL — {state.get('error', 'unknown')}"
         print(f"  {name:<16}: {flag}")
