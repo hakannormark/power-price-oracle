@@ -44,13 +44,26 @@
 
     <section class="card prose" style="max-width:none">
       <h2>Vilken används på sajten?</h2>
-      <p><b>Ensemble</b> är standardmodellen. Den är det viktade snittet av de övriga och
-        används i graferna, i tabellen över de närmaste 48 timmarna och i fältet
-        <code>default_model</code> i API:t. Vill du jämföra med de andra finns kryssrutan
-        <em>Visa övriga modeller</em> på förstasidan.</p>
+      <p><b>Väderskalad med dämpad nivå</b> är standardmodellen. Den valdes inte på
+        känsla: på 82 576 timmar ut ur urvalet hamnade den på 25,63 i medelfel mot
+        28,04 för den väderskalade och 28,40 för ensemblen. Den används i graferna,
+        i timtabellen och i fältet <code>default_model</code> i API:t. Vill du
+        jämföra finns kryssrutan <em>Visa övriga modeller</em> på förstasidan.</p>
+      <p><b>Ensemblen är inte längre standard.</b> Varje blandning av den bästa
+        modellen med de andra gav ett sämre resultat än modellen ensam. Den finns
+        kvar som mätt jämförelse — att ta bort förlorande kandidater är hur man
+        slutar märka när något blir bättre igen.</p>
       <p><b>Säsongsnaiv</b> är referensen. Alla skill-tal på
         <a href="traffsakerhet.html">träffsäkerhetssidan</a> mäts mot den. En modell som inte
         slår den tillför ingenting, hur avancerad den än är.</p>
+
+      <h2>Innan en modell får ändra vad sajten visar</h2>
+      <p>Den ska ha slagit de befintliga i <code>python -m src.research.backtest</code>,
+        som poängsätter kandidater mot fyra års utfall med varje koefficient anpassad
+        enbart på data äldre än det kvartal den tillämpas på. Riggen finns för att
+        gissningar redan varit fel flera gånger i det här projektet: en
+        fyraveckorsmedian såg självklart rätt ut och var 8,5 procent sämre, och en
+        trendjustering var 39 procent sämre.</p>
 
       <h2>Lägga till en modell</h2>
       <p>En ny modell är en fil och en rad. Pipelinen tar hand om resten: den körs,

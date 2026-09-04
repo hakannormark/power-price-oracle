@@ -15,8 +15,11 @@ class Ensemble:
     id = "ensemble"
     name_sv = "Ensemble"
     description_sv = (
-        "Viktat snitt av de andra modellerna: 35 % säsongsnaiv och 65 % väderskalad. "
-        "Bandet spänner över båda modellernas intervall. Detta är sajtens standardmodell."
+        "Viktat snitt av säsongsnaiv och väderskalad, 35/65. Var sajtens standardmodell "
+        "fram till att den mättes: på 82 576 timmar ut ur urvalet hamnade den på 28,40 "
+        "i medelfel mot 25,63 för den dämpade väderskalade modellen. Varje blandning "
+        "gjorde resultatet sämre än den bästa modellen ensam, så ensemblen finns kvar "
+        "som jämförelse i stället för som standard."
     )
     quantiles = True
     derived = True

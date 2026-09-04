@@ -22,7 +22,15 @@ DERIVED_MODELS = [
 
 MODELS = [*BASE_MODELS, *DERIVED_MODELS]
 
-DEFAULT_MODEL_ID = "ensemble"
+# Chosen by measurement, not by taste. Over 82 576 out-of-sample hours across
+# ten quarters (src/research/backtest.py):
+#   seasonal_naive          MAE 29.51    0.0 %
+#   weather_scaled          MAE 28.04   +5.0 %
+#   ensemble (0.35/0.65)    MAE 28.40   +3.8 %
+#   shrunk_scaled           MAE 25.63  +13.1 %
+# Every blend of shrunk_scaled with the others scored worse than shrunk_scaled
+# alone, so the default is the single model rather than a mixture.
+DEFAULT_MODEL_ID = "shrunk_scaled"
 REFERENCE_MODEL_ID = "seasonal_naive"  # skill is measured against this one
 
 OFFICIAL = Official()

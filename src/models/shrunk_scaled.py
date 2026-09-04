@@ -26,8 +26,15 @@ SE2 +6.5 %, SE4 +4.1 %, SE3 +3.7 %).
 Two other candidates were tested and rejected: a pure four-week median (-8.5 %)
 and scaling the lag by the recent week-over-week level trend (-39 %).
 
-This model competes with weather_scaled rather than replacing it, and is not in
-the ensemble. The accuracy page decides whether it earns promotion.
+It shipped as a competitor and has since been promoted to the site default. Over
+82 576 out-of-sample hours across ten quarters it scored MAE 25.63 against 28.04
+for weather_scaled and 28.40 for the ensemble that used to be published. Blending
+it with either of those made the result worse, so the default is this model alone.
+
+Two caveats belong with that number. The back-test scores weather from ERA5
+reanalysis, which is a perfect forecast; live weather is a forecast and degrades
+with horizon, so the weather-driven part of the advantage is optimistic. The
+shrinkage part, worth 7.9 % on its own, does not depend on weather at all.
 """
 
 from __future__ import annotations
@@ -74,8 +81,9 @@ class ShrunkScaled:
         "Samma väderskalning som den väderskalade modellen, men grundnivån är inte "
         "bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme "
         "de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras "
-        "rakt in i prognosen. På 90 dygns historik sänkte det medelfelet med 5 procent "
-        "i alla fyra elområden."
+        "rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: "
+        "medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 "
+        "för den väderskalade. Detta är sajtens standardmodell."
     )
     quantiles = True
     derived = False

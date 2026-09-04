@@ -7,6 +7,11 @@ data/raw/
 .DS_Store
 _site/
 
+# ERA5 weather history: 27 MB, needed only by src.research.backtest, never
+# changes, and rebuilt in about two minutes with
+#   python -m src.fetch_weather_archive --years 4
+data/weather/archive/
+
 # Local secret storage. The ENTSO-E token belongs in GitHub Actions secrets and
 # in the ENTSOE_TOKEN environment variable — never in the working tree.
 API key/

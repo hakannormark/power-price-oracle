@@ -125,6 +125,9 @@ FORECAST_RETAIN_DAYS = 180
 # Endpoints
 ENTSOE_API_URL = "https://web-api.tp.entsoe.eu/api"
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+# ERA5 reanalysis. The forecast endpoint reaches seven days back, which cannot
+# validate a weather coefficient; this one reaches decades.
+WEATHER_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 SVK_DRIFTINFO_URL = (
     "https://www.svk.se/om-kraftsystemet/kraftsystemdata/information-fran-driften/"
 )
@@ -157,6 +160,7 @@ CLIMATOLOGY_PATH = DATA_DIR / "weather_climatology.json"
 FX_PATH = DATA_DIR / "fx_rate.json"
 RESERVOIRS_PATH = DATA_DIR / "supply" / "reservoirs.jsonl"
 UMM_DIR = DATA_DIR / "supply" / "umm"
+WEATHER_ARCHIVE_DIR = DATA_DIR / "weather" / "archive"
 SVK_TEXT_PATH = RAW_DIR / "svk_driftinfo.txt"
 FIXTURE_ACTUALS_PATH = FIXTURES_DIR / "actuals_demo.jsonl"
 

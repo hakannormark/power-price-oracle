@@ -128,7 +128,8 @@ python -m http.server 8000 --directory site
 | 4 | Kör varje basmodell, väger ihop dem till en ensemble, och **lägger till** raderna i `data/forecasts.jsonl` — inget skrivs om i efterhand. |
 | 5 | Poängsätter de senaste 90 dygnen per elområde, modell och horisontspann. |
 | 6 | Skriver svensk drivkraftstext per elområde. |
-| 7 | Publicerar `api/v1/**`, `site/api/v1/**` och `site/data/**`. |
+| 7 | Hämtar avbrottsmeddelanden från Nord Pool och lägger de aktuella i drivkraftstexten. |
+| 8 | Publicerar `api/v1/**`, `site/api/v1/**` och `site/data/**`. |
 
 Schema: 04:30, 11:20 och 16:00 UTC. Den mellersta körningen ligger efter att
 day-ahead-auktionen publicerats runt 12:45 svensk tid.
@@ -244,12 +245,23 @@ GitHub Pages tillåter GET från webbläsare, och Home Assistant behöver inte C
 
 ## Modeller i v1
 
-| Modell | Vad den gör |
-| --- | --- |
-| `seasonal_naive` | Priset samma veckodag och timme sju dygn tidigare. Referensen alla andra mäts mot. |
-| `weather_scaled` | Den naiva nivån skalad med vindindex, temperaturavvikelse och sol, med egna vikter per elområde. Använder ENTSO-E:s residuallast när den finns. |
-| `shrunk_scaled` | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så ett avvikande dygn inte kopieras rakt in. Backtestad till 5 % lägre MAE än den naiva i alla fyra elområden. Tävlar — ingår ännu inte i ensemblen. |
-| `ensemble` | 35 % naiv + 65 % väderskalad. Sajtens och API:ts standardmodell. |
+Alla fyra körs varje gång. Talen är medelfel över **82 576 timmar ut ur urvalet**,
+tio kvartal, med varje koefficient anpassad enbart på data äldre än det kvartal
+den tillämpas på (`python -m src.research.backtest`).
+
+| Modell | MAE | Mot naiv | Vad den gör |
+| --- | --- | --- | --- |
+| `seasonal_naive` | 29,51 | 0 % | Priset samma veckodag och timme sju dygn tidigare. Referensen alla andra mäts mot. |
+| `weather_scaled` | 28,04 | +5,0 % | Den naiva nivån skalad med vindindex, temperaturavvikelse och sol, med egna vikter per elområde. |
+| `ensemble` | 28,40 | +3,8 % | 35 % naiv + 65 % väderskalad. Var standard tills den mättes. |
+| **`shrunk_scaled`** | **25,63** | **+13,1 %** | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de fyra senaste veckorna. **Sajtens standardmodell.** |
+
+Varje blandning av `shrunk_scaled` med de övriga blev sämre än modellen ensam, så
+standarden är en enskild modell och inte en sammanvägning.
+
+**Förbehåll:** backtestet använder ERA5-reanalys, alltså perfekt väder i
+efterhand. Den väderdrivna delen av försprånget är därför optimistisk.
+Dämpningen av nivån, värd 7,9 % på egen hand, beror inte på väder.
 
 Ingen tränad modell i v1 — en färsk klon ska ge en prognos direkt. Kroken för
 gradient boosting är utmärkt med `# FUTURE:` i `src/models/weather_scaled.py`.
@@ -284,11 +296,20 @@ src/
   evaluate/            score, horizon
   explain/drivers.py   svensk drivkraftstext, ingen LLM
   publish/             api.py (api/v1 + site/api/v1), site_data.py (site/data)
+  research/backtest.py poängsätter modellkandidater ut ur urvalet
+  diagnose.py          rapporterar vad varje källa faktiskt levererar
   pipeline.py          python -m src.pipeline
-  backfill.py          python -m src.backfill
+  backfill.py          python -m src.backfill  (--stage / --merge för djupa körningar)
+  fetch_umm.py         python -m src.fetch_umm  (avbrottshistorik)
+  fetch_reservoirs.py  python -m src.fetch_reservoirs
+  fetch_weather_archive.py  python -m src.fetch_weather_archive
   fixtures.py          python -m src.fixtures
 site/                  statisk sajt på svenska
-data/                  actuals.jsonl, forecasts.jsonl — publicerat tillstånd, checkas in
+data/actuals/YYYY.jsonl    officiella priser, partitionerade per år
+data/forecasts.jsonl       varje utfärdad prognos, append-only
+data/supply/umm/           avbrottsmeddelanden från Nord Pool
+data/weather/archive/      ERA5-historik för backtestet — gitignorerad,
+                           hämtas med python -m src.fetch_weather_archive
 tests/                 python -m unittest discover -s tests -t .
 ```
 
@@ -301,8 +322,14 @@ MIT, se [LICENSE](LICENSE).
 Data från:
 
 - **[ENTSO-E Transparency Platform](https://transparency.entsoe.eu/)** — officiella
-  day-ahead-priser samt prognoser för last och vind-/solproduktion.
-- **[Open-Meteo](https://open-meteo.com/)** — väderprognos och närhistorik, CC BY 4.0.
+  day-ahead-priser, prognoser för last och vind-/solproduktion, samt
+  vattenmagasinnivåer per elområde. Kräver egen kostnadsfri API-nyckel.
+- **[Open-Meteo](https://open-meteo.com/)** — väderprognos, och ERA5-arkivet för
+  historiskt väder som gör backtestet möjligt. Ingen nyckel. CC BY 4.0.
+- **[Nord Pool](https://www.nordpoolgroup.com/en/services/compliance/umm/)** —
+  REMIT-meddelanden om produktions- och överföringsbortfall. Öppet API, ingen
+  nyckel. Visas som fakta på sajten; ingår inte i någon modell.
+- **[Europeiska centralbanken](https://www.ecb.europa.eu/)** — daglig EUR/SEK-kurs.
 - **[Svenska kraftnät](https://www.svk.se/)** — driftinformation, används enbart
   extraktivt i drivkraftstexten.
 

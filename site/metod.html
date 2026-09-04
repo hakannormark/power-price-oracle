@@ -91,9 +91,12 @@
         <li>Räknar fram vindindex, temperaturavvikelse och solindex per timme och elområde.
           Normalvärdena byggs upp löpande körning för körning, eftersom väder-API:t bara
           lämnar sju dygn bakåt per anrop.</li>
-        <li>Sätter en grundnivå: priset samma veckodag och timme förra veckan.</li>
+        <li>Sätter en grundnivå: priset samma veckodag och timme förra veckan, vägt
+          70/30 mot medianen för samma timme de fyra senaste veckorna.</li>
         <li>Skalar den nivån med vädret enligt en formel med fasta vikter per elområde.</li>
-        <li>Väger ihop modellerna till en ensemble och sparar varje prognos med tidsstämpel.</li>
+        <li>Sparar varje modells prognos med tidsstämpel. Standardmodellen är den
+          som mätt sig bäst, inte en sammanvägning — varje blandning testades och
+          blev sämre.</li>
         <li>Jämför senare mot utfallet, sorterat efter hur långt i förväg prognosen gjordes.</li>
       </ol>
       <p>Skalfaktorn i <code>weather_scaled</code> är avsiktligt enkel och läsbar:
@@ -104,15 +107,71 @@
         Finns ENTSO-E:s publicerade prognoser för last och vindkraft används residuallasten
         i stället för rå vindhastighet.</p>
 
-      <p><b>Den naiva nivåns svaghet.</b> Att utgå från en enda observation — samma
-        timme för sju dygn sedan — betyder att ett avvikande dygn kopieras rakt in i
-        prognosen, åt båda hållen. En lördag som föll till nära noll blir nästa lördags
-        prognos, och en kväll som sköt i höjden blir nästa veckas kväll. Därför kör
-        sajten även en modell där grundnivån vägs 70/30 mot medianen för samma timme de
-        senaste fyra veckorna. På 90 dygns historik sänkte det medelfelet med 5 procent i
-        alla fyra elområden. Den tävlar på
-        <a href="traffsakerhet.html">träffsäkerhetssidan</a> men ingår ännu inte i
-        ensemblen — den ska visa sig bättre på riktiga prognoser först.</p>
+      <h2>Vad som faktiskt är mätt</h2>
+      <p>Sedan hösten 2026 finns fyra års prishistorik, fyra års väderarkiv och
+        fyra års avbrottsmeddelanden i projektet. Det gör att modellvalen inte
+        längre behöver motiveras med resonemang. Varje kandidat poängsätts på
+        <b>82 576 timmar ut ur urvalet</b> över tio kvartal, där varje koefficient
+        anpassas enbart på data som är äldre än kvartalet den tillämpas på.</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Kandidat</th><th>MAE EUR/MWh</th><th>Mot naiv</th></tr></thead>
+          <tbody>
+            <tr><td>Säsongsnaiv (referens)</td><td class="num">29,51</td><td class="num">0 %</td></tr>
+            <tr><td>Väderskalad</td><td class="num">28,04</td><td class="num">+5,0 %</td></tr>
+            <tr><td>Ensemble 35/65</td><td class="num">28,40</td><td class="num">+3,8 %</td></tr>
+            <tr><td>Enbart dämpad nivå, utan väder</td><td class="num">27,18</td><td class="num">+7,9 %</td></tr>
+            <tr><td><b>Dämpad nivå + väderskalning</b></td><td class="num"><b>25,63</b></td><td class="num best"><b>+13,1 %</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Nivån ska inte hämtas från en enda vecka</h3>
+      <p>Att kopiera priset samma timme sju dygn tidigare betyder att ett avvikande
+        dygn kopieras rakt in i prognosen, åt båda hållen. Att i stället väga den
+        veckan 70/30 mot medianen för samma timme de fyra senaste veckorna är värt
+        <b>7,9 procent</b> ensamt. Vikten är inte vald på känsla: optimum är platt
+        mellan 0,60 och 0,75, och alla fyra elområden förbättras.</p>
+      <p>Två närliggande idéer testades och förkastades: enbart fyraveckorsmedian
+        blev 8,5 procent sämre, och att justera veckolaggen med den senaste veckans
+        nivåtrend blev 39 procent sämre. Priser trendar, och en median släpar efter
+        nivåskiften.</p>
+
+      <h3>Väderskalningens vikter håller</h3>
+      <p>De handsatta vikterna per elområde — SE1 och SE2 mot sin egen vind, SE4
+        även mot sydlig vind och sol — skrevs ursprungligen på intuition. De har nu
+        prövats mot anpassade alternativ och står sig: en global anpassad
+        vindkoefficient gav 25,70, per elområde anpassad vind 25,83, båda strax
+        sämre än de befintliga 25,62. Att lägga till fler anpassade termer ovanpå
+        gjorde det genomgående sämre.</p>
+      <p>Slutsatsen är alltså inte fler parametrar och inte färre, utan att den
+        befintliga strukturen råkar vara välbalanserad. Ett förbehåll: anpassningen
+        gjordes girigt, en term i taget på ett grovt rutnät. En riktig
+        samoptimering kan mycket väl slå de handsatta vikterna.</p>
+
+      <h3>Avbrott hjälper inte prognosen — men visas ändå</h3>
+      <p>Kärnkraftsstopp och kabelbegränsningar hämtas från Nord Pools
+        REMIT-meddelanden och står i drivkraftstexten. De ingår <b>inte</b> i
+        någon modell, och det är ett mätresultat, inte en försummelse: varje
+        variant — rå effekt ur drift, förändring mot referensveckan, import- och
+        exportkapacitet var för sig och tillsammans — hamnade inom ±0,2
+        procentenheter från modellen utan dem.</p>
+      <p>Förklaringen är att priset redan innehåller dem. En revision är känd i
+        veckor, så förra veckans pris har redan prisat in den. Det som skulle bära
+        information är nyheten i ett oplanerat haveri, och sådana är för sällsynta
+        för att mätas på tio kvartal. Rå effekt ur drift fick dessutom fel tecken,
+        eftersom underhåll planeras till sommaren när priserna är låga.</p>
+
+      <h3>Det viktigaste förbehållet</h3>
+      <p>Backtestet använder ERA5-reanalys som väderunderlag, alltså ett perfekt
+        väder i efterhand. I drift kommer vädret från en prognos som blir sämre ju
+        längre fram man tittar. Den väderdrivna delen av försprånget är därför
+        optimistisk. Dämpningen av nivån, värd 7,9 procent, beror inte på väder
+        alls och gäller oförändrat.</p>
+      <p>Den riktiga domen står på
+        <a href="traffsakerhet.html">träffsäkerhetssidan</a>, som mäter utfärdade
+        prognoser mot verkliga utfall, med riktiga väderprognoser.</p>
 
       <h2>Vad v1 inte gör</h2>
       <ul>
@@ -121,7 +180,11 @@
         <li>Ingen tränad gradient boosting ännu. Kroken finns i koden och är utmärkt med
           <code>FUTURE:</code>, men v1 kör helt utan tränade artefakter så att en färsk
           klon fungerar direkt.</li>
-        <li>Inga vattenmagasin, ingen bränsle- eller utsläppsrättsprisdata.</li>
+        <li>Ingen bränsle- eller utsläppsrättsprisdata.</li>
+        <li>Inga vattenmagasin i modellen. Nivåerna hämtas per elområde från
+          ENTSO-E men rör sig i veckotakt, vilket ligger utanför ett
+          sjudygnsfönster där förra veckans pris redan bär samma information.</li>
+        <li>Inga avbrott i modellen — se ovan. De visas som fakta, inte som indata.</li>
         <li>Ingen AI-overlay. v1 är statistisk och väderjusterad, ingenting annat.</li>
       </ul>
 
