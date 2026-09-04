@@ -14,6 +14,7 @@ on:
         options:
           - diagnose
           - deep-backfill
+          - fetch-reservoirs
       days:
         description: Days of history for deep-backfill
         required: false
@@ -53,8 +54,14 @@ jobs:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         run: python -m src.backfill --days ${{ inputs.days }}
 
+      - name: Fetch hydro reservoir history
+        if: inputs.task == 'fetch-reservoirs'
+        env:
+          ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
+        run: python -m src.fetch_reservoirs
+
       - name: Commit new history
-        if: inputs.task == 'deep-backfill'
+        if: inputs.task == 'deep-backfill' || inputs.task == 'fetch-reservoirs'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -62,7 +69,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "Nothing changed."
           else
-            git commit -m "chore: deep backfill ${{ inputs.days }} days of day-ahead prices"
+            git commit -m "chore: ${{ inputs.task }}"
             git pull --rebase --autostash origin ${{ github.ref_name }}
             git push origin HEAD:${{ github.ref_name }}
           fi

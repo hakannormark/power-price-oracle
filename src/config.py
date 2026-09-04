@@ -148,6 +148,7 @@ LEGACY_ACTUALS_PATH = DATA_DIR / "actuals.jsonl"  # migrated on first run
 FORECASTS_PATH = DATA_DIR / "forecasts.jsonl"
 CLIMATOLOGY_PATH = DATA_DIR / "weather_climatology.json"
 FX_PATH = DATA_DIR / "fx_rate.json"
+RESERVOIRS_PATH = DATA_DIR / "supply" / "reservoirs.jsonl"
 SVK_TEXT_PATH = RAW_DIR / "svk_driftinfo.txt"
 FIXTURE_ACTUALS_PATH = FIXTURES_DIR / "actuals_demo.jsonl"
 

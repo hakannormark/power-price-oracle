@@ -12,6 +12,7 @@ from .config import (
     ACTUALS_DIR,
     ARCHIVE_DIR,
     LEGACY_ACTUALS_PATH,
+    RESERVOIRS_PATH,
     FORECASTS_PATH,
     FORECAST_RETAIN_DAYS,
     FORECAST_ROTATE_MB,
@@ -150,6 +151,29 @@ def upsert_actuals(rows: Iterable[dict[str, Any]]) -> int:
             merged[key] = row
         _write_years({year: list(merged.values())})
 
+    return added
+
+
+# ---------------------------------------------------------------- reservoirs
+
+
+def load_reservoirs() -> list[dict[str, Any]]:
+    return list(read_jsonl(RESERVOIRS_PATH))
+
+
+def upsert_reservoirs(rows: Iterable[dict[str, Any]]) -> int:
+    """Weekly readings, unique on (zone, ts). Small enough to rewrite whole."""
+    merged: dict[tuple[str, str], dict[str, Any]] = {
+        (r["zone"], r["ts"]): r for r in read_jsonl(RESERVOIRS_PATH)
+    }
+    added = 0
+    for row in rows:
+        key = (row["zone"], row["ts"])
+        if key not in merged:
+            added += 1
+        merged[key] = row
+    ordered = sorted(merged.values(), key=lambda r: (r["zone"], parse_iso(r["ts"])))
+    write_jsonl(RESERVOIRS_PATH, ordered)
     return added
 
 

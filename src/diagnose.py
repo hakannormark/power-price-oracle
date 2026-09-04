@@ -112,6 +112,43 @@ def probe_outages() -> None:
             break  # one zone is enough to learn the shape
 
 
+def probe_outages_raw() -> None:
+    """Go under entsoe-py to see what the unavailability endpoint really returns.
+
+    The library unzips the response; a BadZipFile tells us nothing about whether
+    the cause is "no data", "not entitled" or a changed payload.
+    """
+    from .config import ENTSOE_API_URL, ZONES
+    from .fetch.http import get
+
+    rule("Unavailability endpoint — raw response")
+    now = now_local()
+    window = (now - timedelta(days=30), now + timedelta(days=30))
+
+    for doc_type, label in (("A80", "generation units"), ("A77", "production units")):
+        for zone in ("SE3",):
+            params = {
+                "documentType": doc_type,
+                "biddingZone_Domain": ZONES[zone]["eic"],
+                "periodStart": window[0].strftime("%Y%m%d%H%M"),
+                "periodEnd": window[1].strftime("%Y%m%d%H%M"),
+                "securityToken": os.environ["ENTSOE_TOKEN"],
+            }
+            try:
+                response = get(ENTSOE_API_URL, params=params, retries=1)
+            except Exception as exc:  # noqa: BLE001
+                print(f"  {doc_type} {label} {zone}: HTTP FAIL {str(exc)[:100]}")
+                continue
+            body = response.content
+            kind = "ZIP" if body[:2] == b"PK" else "not a zip"
+            print(
+                f"  {doc_type} {label} {zone}: HTTP {response.status_code}, "
+                f"{len(body)} bytes, {kind}, content-type={response.headers.get('content-type')}"
+            )
+            if kind != "ZIP":
+                print("      " + response.text[:400].replace("\n", " "))
+
+
 def probe_other() -> None:
     rule("Other sources")
     from .fetch import ecb_fx, open_meteo, svk_text
@@ -141,6 +178,7 @@ def main(argv: list[str] | None = None) -> int:
         probe_prices()
     probe_reservoirs()
     probe_outages()
+    probe_outages_raw()
     if not args.supply:
         probe_other()
     return 0
