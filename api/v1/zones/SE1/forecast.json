@@ -1,8 +1,8 @@
 {
  "zone": "SE1",
  "zone_name": "Luleå",
- "generated_at": "2026-09-04T15:04:13+02:00",
- "run_id": "20260904T1304Z",
+ "generated_at": "2026-09-04T15:13:51+02:00",
+ "run_id": "20260904T1313Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
@@ -19,7 +19,7 @@
   "rate": 11.1245,
   "date": "2026-09-03",
   "source": "ECB",
-  "fetched_at": "2026-09-04T15:06:40+02:00",
+  "fetched_at": "2026-09-04T15:14:58+02:00",
   "stale": false
  },
  "series": [
@@ -5117,8 +5117,8 @@
    "Överföringen SE1 → SE2 är begränsad med 1 000 MW, 30 % av kapaciteten från 1 sep 06:00 till 28 sep.",
    "Överföringen SE1 → SE2 är begränsad med 850 MW, 26 % av kapaciteten från 24 aug 06:00 till 6 okt.",
    "Överföringen SE2 → SE1 är begränsad med 850 MW, 28 % av kapaciteten från 24 aug 06:00 till 6 okt.",
-   "Vindprognosen i SE1 ligger 1,54 gånger det normala kommande två dygn.",
-   "Temperaturen ligger 5,4 grader under normalt, vilket drar upp förbrukningen."
+   "Vattenmagasinen är fyllda till 76 %, 6 procentenheter under det normala för årstiden.",
+   "Vindprognosen i SE1 ligger 1,54 gånger det normala kommande två dygn."
   ],
   "outages": {
    "items": [
@@ -5222,6 +5222,13 @@
      "reason": "Ellevio Gridworks, Enercon maintenance and grid maintenance."
     }
    ]
+  },
+  "reservoir": {
+   "ts": "2026-08-24T00:00:00+02:00",
+   "stored_mwh": 10007000.0,
+   "fill_ratio": 0.765,
+   "week_anomaly": -0.057,
+   "change_4w": 0.078
   },
   "features": {
    "wind_index_local": 1.539,

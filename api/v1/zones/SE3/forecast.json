@@ -1,8 +1,8 @@
 {
  "zone": "SE3",
  "zone_name": "Stockholm",
- "generated_at": "2026-09-04T15:04:13+02:00",
- "run_id": "20260904T1304Z",
+ "generated_at": "2026-09-04T15:13:51+02:00",
+ "run_id": "20260904T1313Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
@@ -19,7 +19,7 @@
   "rate": 11.1245,
   "date": "2026-09-03",
   "source": "ECB",
-  "fetched_at": "2026-09-04T15:06:40+02:00",
+  "fetched_at": "2026-09-04T15:14:58+02:00",
   "stale": false
  },
  "series": [
@@ -5117,8 +5117,8 @@
    "Överföringen SE3 → SE4 är begränsad med 2 900 MW, 47 % av kapaciteten från 9 sep 06:00 till 9 okt.",
    "Överföringen SE3 → SE4 är begränsad med 2 700 MW, 44 % av kapaciteten från 24 aug 06:00 till 7 sep.",
    "Överföringen SE3 → SE4 är begränsad med 2 600 MW, 42 % av kapaciteten från 4 sep 14:00 till 15 okt.",
-   "Vinden i SE3 är nära normal, vindindex 1,05.",
-   "Temperaturen ligger 3,8 grader under normalt, vilket drar upp förbrukningen."
+   "Vattenmagasinen är fyllda till 71 %, 13 procentenheter under det normala för årstiden.",
+   "Vinden i SE3 är nära normal, vindindex 1,05."
   ],
   "outages": {
    "items": [
@@ -5277,6 +5277,13 @@
      "reason": "Foreseen maintenance"
     }
    ]
+  },
+  "reservoir": {
+   "ts": "2026-08-24T00:00:00+02:00",
+   "stored_mwh": 1846000.0,
+   "fill_ratio": 0.71,
+   "week_anomaly": -0.126,
+   "change_4w": -0.037
   },
   "features": {
    "wind_index_local": 1.046,

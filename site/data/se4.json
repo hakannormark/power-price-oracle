@@ -1,8 +1,8 @@
 {
  "zone": "SE4",
  "zone_name": "Malmö",
- "generated_at": "2026-09-04T15:04:13+02:00",
- "run_id": "20260904T1304Z",
+ "generated_at": "2026-09-04T15:13:51+02:00",
+ "run_id": "20260904T1313Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
@@ -19,7 +19,7 @@
   "rate": 11.1245,
   "date": "2026-09-03",
   "source": "ECB",
-  "fetched_at": "2026-09-04T15:06:40+02:00",
+  "fetched_at": "2026-09-04T15:14:58+02:00",
   "stale": false
  },
  "drivers": {
@@ -30,8 +30,8 @@
    "Överföringen SE3 → SE4 är begränsad med 2 900 MW, 47 % av kapaciteten från 9 sep 06:00 till 9 okt.",
    "Överföringen SE3 → SE4 är begränsad med 2 700 MW, 44 % av kapaciteten från 24 aug 06:00 till 7 sep.",
    "Överföringen SE3 → SE4 är begränsad med 2 600 MW, 42 % av kapaciteten från 4 sep 14:00 till 15 okt.",
-   "Vindprognosen i SE4 ligger 1,64 gånger det normala kommande två dygn.",
-   "Temperaturen är nära det normala för årstiden."
+   "Vattenmagasinen är fyllda till 22 %, 28 procentenheter under det normala för årstiden.",
+   "Vindprognosen i SE4 ligger 1,64 gånger det normala kommande två dygn."
   ],
   "outages": {
    "items": [
@@ -190,6 +190,13 @@
      "reason": "Renewal"
     }
    ]
+  },
+  "reservoir": {
+   "ts": "2026-08-24T00:00:00+02:00",
+   "stored_mwh": 41000.0,
+   "fill_ratio": 0.218,
+   "week_anomaly": -0.275,
+   "change_4w": -0.085
   },
   "features": {
    "wind_index_local": 1.643,
@@ -11527,7 +11534,7 @@
  "accuracy": {
   "zone": "SE4",
   "zone_name": "Malmö",
-  "generated_at": "2026-09-04T15:04:13+02:00",
+  "generated_at": "2026-09-04T15:13:51+02:00",
   "window_days": 90,
   "unit": "EUR/MWh",
   "min_samples": 24,
