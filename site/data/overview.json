@@ -1,12 +1,20 @@
 {
- "generated_at": "2026-09-04T09:06:53+02:00",
- "run_id": "20260904T0706Z",
+ "generated_at": "2026-09-04T09:20:39+02:00",
+ "run_id": "20260904T0720Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "default_model": "ensemble",
  "reference_model": "seasonal_naive",
+ "fx": {
+  "pair": "EUR/SEK",
+  "rate": 11.1245,
+  "date": "2026-09-03",
+  "source": "ECB",
+  "fetched_at": "2026-09-04T09:21:40+02:00",
+  "stale": false
+ },
  "title_sv": "Spotprognos",
  "subtitle_sv": "Veckoprognos för Nord Pool SE1–SE4",
  "blurb_sv": "Kylan driver förbrukningen uppåt och lyfter prisnivån i hela landet.",
@@ -18,7 +26,7 @@
    "current": {
     "ts": "2026-09-04T09:00:00+02:00",
     "eur_mwh": 79.377,
-    "ore_kwh": 7.938,
+    "ore_kwh": 88.303,
     "source": "official"
    },
    "spark": [
@@ -36,16 +44,16 @@
     34.977,
     31.188,
     23.89,
-    1.692,
-    1.671,
+    1.682,
+    1.657,
     1.678,
     1.651,
-    1.636,
-    1.639,
+    1.646,
+    1.654,
     1.619,
-    2.287,
-    2.732,
-    2.746
+    2.288,
+    2.754,
+    2.799
    ],
    "regime": "cold_tight",
    "regime_label_sv": "Kallt och ansträngt",
@@ -57,7 +65,7 @@
    "current": {
     "ts": "2026-09-04T09:00:00+02:00",
     "eur_mwh": 94.405,
-    "ore_kwh": 9.441,
+    "ore_kwh": 105.021,
     "source": "official"
    },
    "spark": [
@@ -75,16 +83,16 @@
     39.847,
     34.565,
     24.892,
-    2.068,
-    2.022,
-    1.995,
-    1.985,
-    2.03,
-    2.028,
-    2.154,
-    2.957,
-    3.626,
-    3.663
+    2.034,
+    1.969,
+    2.029,
+    2.018,
+    2.049,
+    2.102,
+    2.066,
+    2.983,
+    3.658,
+    3.876
    ],
    "regime": "normal",
    "regime_label_sv": "Normalläge",
@@ -96,7 +104,7 @@
    "current": {
     "ts": "2026-09-04T09:00:00+02:00",
     "eur_mwh": 110.037,
-    "ore_kwh": 11.004,
+    "ore_kwh": 122.411,
     "source": "official"
    },
    "spark": [
@@ -114,16 +122,16 @@
     81.207,
     73.73,
     46.373,
-    2.068,
-    2.047,
-    2.041,
-    1.896,
-    1.919,
-    1.922,
-    1.932,
-    2.849,
-    3.223,
-    3.08
+    1.871,
+    1.847,
+    1.918,
+    1.831,
+    1.815,
+    1.858,
+    1.843,
+    2.693,
+    3.235,
+    3.163
    ],
    "regime": "normal",
    "regime_label_sv": "Normalläge",
@@ -135,7 +143,7 @@
    "current": {
     "ts": "2026-09-04T09:00:00+02:00",
     "eur_mwh": 121.035,
-    "ore_kwh": 12.104,
+    "ore_kwh": 134.645,
     "source": "official"
    },
    "spark": [
@@ -153,16 +161,16 @@
     114.335,
     104.582,
     61.638,
-    1.586,
-    1.702,
-    1.68,
-    1.506,
-    1.44,
-    1.597,
-    1.67,
-    2.473,
-    2.609,
-    2.446
+    1.562,
+    1.661,
+    1.657,
+    1.547,
+    1.513,
+    1.602,
+    1.653,
+    2.426,
+    2.611,
+    2.443
    ],
    "regime": "windy_cheap",
    "regime_label_sv": "Blåsigt och billigt",
@@ -337,6 +345,11 @@
   "svk_text": {
    "ok": true,
    "chars": 2905
+  },
+  "ecb_fx": {
+   "ok": true,
+   "rate": 11.1245,
+   "date": "2026-09-03"
   }
  },
  "next_expected_update_utc": "2026-09-04T11:20:00Z",

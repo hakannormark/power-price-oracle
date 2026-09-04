@@ -1,9 +1,17 @@
 {
  "ok": true,
- "generated_at": "2026-09-04T09:06:53+02:00",
- "run_id": "20260904T0706Z",
+ "generated_at": "2026-09-04T09:20:39+02:00",
+ "run_id": "20260904T0720Z",
  "degraded": false,
  "demo": false,
+ "fx": {
+  "pair": "EUR/SEK",
+  "rate": 11.1245,
+  "date": "2026-09-03",
+  "source": "ECB",
+  "fetched_at": "2026-09-04T09:21:40+02:00",
+  "stale": false
+ },
  "sources": {
   "entsoe_prices": {
    "ok": true,
@@ -21,6 +29,11 @@
   "svk_text": {
    "ok": true,
    "chars": 2905
+  },
+  "ecb_fx": {
+   "ok": true,
+   "rate": 11.1245,
+   "date": "2026-09-03"
   }
  },
  "next_expected_update_utc": "2026-09-04T11:20:00Z"
