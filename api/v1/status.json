@@ -1,14 +1,13 @@
 {
- "ok": false,
- "generated_at": "2026-09-04T01:29:23+02:00",
- "run_id": "20260903T2329Z",
- "degraded": true,
- "demo": true,
+ "ok": true,
+ "generated_at": "2026-09-04T09:06:53+02:00",
+ "run_id": "20260904T0706Z",
+ "degraded": false,
+ "demo": false,
  "sources": {
   "entsoe_prices": {
-   "ok": false,
-   "rows": 0,
-   "error": "ENTSOE_TOKEN is not set"
+   "ok": true,
+   "rows": 384
   },
   "open_meteo": {
    "ok": true,
@@ -16,13 +15,13 @@
    "rows": 3672
   },
   "entsoe_fundamentals": {
-   "ok": false,
-   "error": "ENTSOE_TOKEN is not set"
+   "ok": true,
+   "rows": 288
   },
   "svk_text": {
    "ok": true,
    "chars": 2905
   }
  },
- "next_expected_update_utc": "2026-09-04T04:30:00Z"
+ "next_expected_update_utc": "2026-09-04T11:20:00Z"
 }
