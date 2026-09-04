@@ -25,7 +25,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: maintenance
+  # Serialises every run that commits to data/ — a 13-minute backfill and a
+  # scheduled run writing the same JSONL cannot be rebased together.
+  group: repo-data
   cancel-in-progress: false
 
 jobs:
