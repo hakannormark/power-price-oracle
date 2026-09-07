@@ -175,6 +175,11 @@ ARCHIVE_DIR = DATA_DIR / "archive"
 FIXTURES_DIR = DATA_DIR / "fixtures"
 ACTUALS_DIR = DATA_DIR / "actuals"          # one JSONL per delivery year
 NEIGHBOUR_DIR = DATA_DIR / "actuals_neighbours"
+# Native-resolution prices for the published window only. The market settles in
+# quarters, but forecasting quarter structure days ahead is not something this
+# model can do, so only the auction's own published window is kept.
+QUARTERS_DIR = DATA_DIR / "actuals_quarters"
+QUARTER_RETAIN_DAYS = 14
 LEGACY_ACTUALS_PATH = DATA_DIR / "actuals.jsonl"  # migrated on first run
 FORECASTS_PATH = DATA_DIR / "forecasts.jsonl"
 CLIMATOLOGY_PATH = DATA_DIR / "weather_climatology.json"

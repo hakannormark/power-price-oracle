@@ -39,6 +39,7 @@ from .publish import api as publish_api
 from .publish import site_data as publish_site
 from .store import (
     append_forecasts,
+    load_quarters,
     load_reservoirs,
     load_umm,
     upsert_umm,
@@ -79,6 +80,7 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
         sources["svk_text"] = {"ok": False, "error": "skipped (--skip-fetch)"}
         sources["ecb_fx"] = {"ok": False, "error": "skipped (--skip-fetch)"}
         sources["nordpool_umm"] = {"ok": False, "error": "skipped (--skip-fetch)"}
+        sources["entsoe_quarters"] = {"ok": False, "error": "skipped (--skip-fetch)"}
         weather, fundamentals, svk = None, None, svk_text.load_cached_svk_text()
         fx = ecb_fx.load_cached()
         price_rows: list[dict] = []
@@ -92,6 +94,15 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
                 "rows": 0,
                 "error": "ENTSOE_TOKEN is not set",
             }
+
+        # The same window again at native resolution. The market settles in
+        # quarters and within one hour they can differ by tens of EUR/MWh, so an
+        # hourly mean is a summary rather than a price anyone is billed for.
+        quarter_rows, sources["entsoe_quarters"] = entsoe_prices.fetch_prices(
+            start, end, native=True
+        )
+        if quarter_rows:
+            upsert_quarters(quarter_rows)
 
         weather, sources["open_meteo"] = open_meteo.fetch_weather()
         fundamentals, sources["entsoe_fundamentals"] = entsoe_fundamentals.fetch_fundamentals()
@@ -195,6 +206,7 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
         "now": now,
     }
     index = actuals_index(actuals)
+    quarters = load_quarters()
 
     forecast_payloads: dict[str, dict] = {}
     zone_slices: dict[str, dict] = {}
@@ -205,7 +217,7 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
         accuracy_slice = zone_slice(accuracy, zone)
         forecast_payloads[zone] = payload
         zone_slices[zone] = accuracy_slice
-        publish_site.write_zone(zone, payload, history, accuracy_slice, now)
+        publish_site.write_zone(zone, payload, history, accuracy_slice, now, quarters)
 
     publish_api.write_zones_index(forecast_payloads, meta)
     publish_api.write_models()

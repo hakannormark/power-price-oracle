@@ -310,6 +310,90 @@ function renderDrivers(zoneData) {
     </div>`;
 }
 
+/* ------------------------------------------------------------ week plan */
+
+const WEEKDAYS = ["söndag", "måndag", "tisdag", "onsdag", "torsdag", "fredag", "lördag"];
+
+function dayLabel(dateStr) {
+  const date = new Date(`${dateStr}T12:00:00`);
+  const today = new Date();
+  const diff = Math.round((date - new Date(`${today.toISOString().slice(0, 10)}T12:00:00`)) / 86400000);
+  if (diff === 0) return { name: "I dag", sub: "" };
+  if (diff === 1) return { name: "I morgon", sub: "" };
+  const name = WEEKDAYS[date.getDay()];
+  return {
+    name: name.charAt(0).toUpperCase() + name.slice(1),
+    sub: date.toLocaleDateString("sv-SE", { day: "numeric", month: "short" }),
+  };
+}
+
+// Plain language first: the whole point is answering "tonight or Tuesday?"
+// without reading a hundred and sixty-eight rows.
+function planLead(days) {
+  const ranked = days.filter((d) => d.rank);
+  if (ranked.length < 2) return "";
+  const best = ranked.reduce((a, b) => (a.rank < b.rank ? a : b));
+  const worst = ranked.reduce((a, b) => (a.rank > b.rank ? a : b));
+  const b = dayLabel(best.date);
+  const w = dayLabel(worst.date);
+  const ratio = worst.mean_ore_kwh / Math.max(best.mean_ore_kwh, 0.5);
+  const times = ratio >= 1.6 ? ` — ungefär ${fmt(ratio, 1)} gånger så dyrt` : "";
+  return (
+    `Billigast blir <b>${b.name.toLowerCase()}${b.sub ? " " + b.sub : ""}</b>, ` +
+    `omkring ${fmt(best.mean_ore_kwh, 0)} öre/kWh i snitt. ` +
+    `Dyrast blir <b class="dear">${w.name.toLowerCase()}${w.sub ? " " + w.sub : ""}</b>, ` +
+    `omkring ${fmt(worst.mean_ore_kwh, 0)} öre${times}.`
+  );
+}
+
+function renderWeekPlan(zoneData) {
+  const host = el("week-plan");
+  if (!host) return;
+  const days = (zoneData.day_plan || []).filter((d) => d.mean_ore_kwh !== null);
+  if (days.length < 2) {
+    host.innerHTML = '<p class="loading">Ingen veckoöversikt tillgänglig.</p>';
+    return;
+  }
+
+  // One scale for the whole week, so the bars can be compared to each other.
+  const low = Math.min(...days.map((d) => d.min_ore_kwh));
+  const high = Math.max(...days.map((d) => d.max_ore_kwh));
+  const span = high - low || 1;
+  const pct = (v) => ((v - low) / span) * 100;
+  const today = new Date().toISOString().slice(0, 10);
+
+  host.innerHTML = `
+    <div class="section-title">
+      <h2>Veckan framåt</h2>
+      <span class="meta">${zoneData.zone} · ${zoneData.zone_name}</span>
+    </div>
+    <p class="plan-lead">${planLead(days)}</p>
+    <div class="plan">
+      ${days
+        .map((d) => {
+          const label = dayLabel(d.date);
+          const cheap = d.cheapest_from
+            ? `billigast <b>kl ${fmtTime(d.cheapest_from)}</b> · ${fmt(d.cheapest_mean_ore_kwh, 0)} öre`
+            : "";
+          return `<div class="plan-row${d.rank === 1 ? " best" : ""}${d.date === today ? " today" : ""}">
+            <span class="plan-day">${label.name}<small>${label.sub}</small></span>
+            <span class="plan-bar" title="${fmt(d.min_ore_kwh, 0)}–${fmt(d.max_ore_kwh, 0)} öre/kWh">
+              <span class="plan-span" style="left:${pct(d.min_ore_kwh)}%;right:${100 - pct(d.max_ore_kwh)}%"></span>
+              <span class="plan-mean" style="left:${pct(d.mean_ore_kwh)}%"></span>
+            </span>
+            <span class="plan-cheap">${cheap}</span>
+          </div>`;
+        })
+        .join("")}
+    </div>
+    <div class="plan-scale"><span>${fmt(low, 0)} öre/kWh</span><span>${fmt(high, 0)} öre/kWh</span></div>
+    <p class="muted" style="margin:14px 0 0;font-size:0.88rem">
+      Stapeln visar dygnets lägsta till högsta pris, strecket är dygnets snitt.
+      Tiden är billigaste sammanhängande tre timmar — ungefär en bilddladdning.
+      Dagens och morgondagens priser är satta på börsen; längre fram är det vår prognos.
+    </p>`;
+}
+
 /* ------------------------------------------------------------ next hours */
 
 function dayKey(iso) {
@@ -482,6 +566,7 @@ async function drawZone() {
     overlay: state.overlay,
     defaultModel: zoneData.default_model,
   });
+  renderWeekPlan(zoneData);
   renderDrivers(zoneData);
   renderNextHours(zoneData);
   renderAccuracySnapshot(zoneData);

@@ -12,6 +12,8 @@ from .config import (
     ACTUALS_DIR,
     ARCHIVE_DIR,
     LEGACY_ACTUALS_PATH,
+    QUARTERS_DIR,
+    QUARTER_RETAIN_DAYS,
     RESERVOIRS_PATH,
     UMM_DIR,
     FORECASTS_PATH,
@@ -152,6 +154,46 @@ def upsert_actuals(rows: Iterable[dict[str, Any]]) -> int:
             merged[key] = row
         _write_years({year: list(merged.values())})
 
+    return added
+
+
+# ---------------------------------------------------------------- quarters
+
+
+def load_quarters() -> list[dict[str, Any]]:
+    if not QUARTERS_DIR.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    for path in sorted(QUARTERS_DIR.glob("*.jsonl")):
+        rows.extend(read_jsonl(path))
+    return rows
+
+
+def upsert_quarters(rows: Iterable[dict[str, Any]]) -> int:
+    """Native-resolution prices, kept only for a short rolling window.
+
+    Four years of quarters would be 560 000 rows rewritten on every run; the
+    published auction window is what anyone can act on, so that is what is kept.
+    """
+    cutoff = now_local() - timedelta(days=QUARTER_RETAIN_DAYS)
+    merged: dict[tuple[str, str], dict[str, Any]] = {
+        (r["zone"], r["ts"]): r for r in load_quarters() if parse_iso(r["ts"]) >= cutoff
+    }
+    added = 0
+    for row in rows:
+        if parse_iso(row["ts"]) < cutoff:
+            continue
+        key = (row["zone"], row["ts"])
+        if key not in merged:
+            added += 1
+        merged[key] = row
+
+    QUARTERS_DIR.mkdir(parents=True, exist_ok=True)
+    for path in QUARTERS_DIR.glob("*.jsonl"):
+        path.unlink()
+    ordered = sorted(merged.values(), key=lambda r: (r["zone"], parse_iso(r["ts"])))
+    if ordered:
+        write_jsonl(QUARTERS_DIR / "recent.jsonl", ordered)
     return added
 
 

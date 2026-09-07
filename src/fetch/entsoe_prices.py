@@ -162,6 +162,30 @@ def document_created_at(xml_text: str) -> datetime | None:
         return None
 
 
+def to_native_rows(
+    points: list[RawPoint], zone: str, published_at: datetime
+) -> list[dict]:
+    """Rows at the resolution the exchange actually traded.
+
+    The European day-ahead market settles in 15-minute intervals, and within one
+    hour the quarters can differ by tens of EUR/MWh. An hourly mean is a fair
+    summary but it is not the price anyone is billed for, so the native curve is
+    kept for the published window and shown where it exists.
+    """
+    rows: list[dict] = []
+    for point in sorted(points, key=lambda p: p.ts_utc):
+        rows.append(
+            {
+                "ts": iso(point.ts_utc.astimezone(TZ)),
+                "zone": zone,
+                "price_eur_mwh": r3(point.price_eur_mwh),
+                "resolution": point.resolution,
+                "published_at": iso(published_at),
+            }
+        )
+    return rows
+
+
 def to_hourly_rows(
     points: list[RawPoint], zone: str, published_at: datetime
 ) -> list[dict]:
@@ -202,7 +226,11 @@ def _save_raw(zone: str, points: list[RawPoint]) -> None:
 
 
 def fetch_zone(
-    zone: str, start: datetime, end: datetime, eic: str | None = None
+    zone: str,
+    start: datetime,
+    end: datetime,
+    eic: str | None = None,
+    native: bool = False,
 ) -> list[dict]:
     """Fetch one area's day-ahead prices for [start, end) and return hourly rows.
 
@@ -225,11 +253,15 @@ def fetch_zone(
     response = get(ENTSOE_API_URL, params=params)
     points = parse_a44(response.text)
     _save_raw(zone, points)
-    published_at = document_created_at(response.text) or now_local()
-    return to_hourly_rows(points, zone, to_local(published_at))
+    published_at = to_local(document_created_at(response.text) or now_local())
+    if native:
+        return to_native_rows(points, zone, published_at)
+    return to_hourly_rows(points, zone, published_at)
 
 
-def fetch_prices(start: datetime, end: datetime, zones: list[str] | None = None) -> tuple[list[dict], dict]:
+def fetch_prices(
+    start: datetime, end: datetime, zones: list[str] | None = None, native: bool = False
+) -> tuple[list[dict], dict]:
     """Fetch all zones. Returns (rows, status) and never raises for a single zone."""
     zones = zones or list(ZONES)
     rows: list[dict] = []
@@ -237,7 +269,7 @@ def fetch_prices(start: datetime, end: datetime, zones: list[str] | None = None)
 
     for zone in zones:
         try:
-            zone_rows = fetch_zone(zone, start, end)
+            zone_rows = fetch_zone(zone, start, end, native=native)
             rows.extend(zone_rows)
             log.info("ENTSO-E %s: %s hourly rows", zone, len(zone_rows))
         except Exception as exc:  # noqa: BLE001 - degrade per zone

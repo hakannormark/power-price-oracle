@@ -437,6 +437,78 @@ td.empty, .muted { color: var(--faint); }
 
 /* ------------------------------------------------------------ prose */
 
+/* ------------------------------------------------------------ week plan */
+
+.plan-lead {
+  font-size: 1.12rem;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+.plan-lead b { color: var(--accent); }
+.plan-lead b.dear { color: var(--warn); }
+
+.plan { display: flex; flex-direction: column; gap: 2px; }
+
+.plan-row {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr 9.5rem;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+}
+.plan-row:hover { background: rgba(255, 255, 255, 0.03); }
+.plan-row.best { background: var(--accent-dim); }
+.plan-row.today .plan-day { color: var(--text); font-weight: 650; }
+
+.plan-day { color: var(--muted); font-size: 0.92rem; }
+.plan-day small { display: block; color: var(--faint); font-size: 0.76rem; }
+
+/* The bar spans the whole week's range, so days are comparable at a glance
+   rather than each being scaled to its own extremes. */
+.plan-bar {
+  position: relative;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--bg-soft);
+  overflow: hidden;
+}
+.plan-span {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(94, 234, 212, 0.35), rgba(251, 191, 36, 0.5));
+}
+.plan-mean {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  width: 2px;
+  background: var(--text);
+  border-radius: 1px;
+}
+.plan-cheap {
+  text-align: right;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.plan-cheap b { color: var(--text); font-weight: 600; }
+.plan-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--faint);
+  font-size: 0.76rem;
+  padding: 6px 10px 0;
+}
+
+@media (max-width: 640px) {
+  .plan-row { grid-template-columns: 5.5rem 1fr; gap: 10px; row-gap: 2px; }
+  .plan-cheap { grid-column: 2; text-align: left; font-size: 0.82rem; }
+  .plan-day small { display: none; }
+}
+
 /* ------------------------------------------------------- day disclosures */
 
 .day {
