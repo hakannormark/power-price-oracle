@@ -58,6 +58,9 @@ jobs:
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         run: |
+          # pipefail: without it the exit status is tee's, so a crashing
+          # pipeline reports success and the site silently stops updating.
+          set -o pipefail
           python -m src.pipeline | tee run.log
           echo "run_id=$(grep -m1 '^run_id=' run.log | cut -d= -f2)" >> "$GITHUB_OUTPUT"
           rm -f run.log
