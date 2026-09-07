@@ -1,8 +1,8 @@
 {
  "zone": "SE4",
  "zone_name": "Malmö",
- "generated_at": "2026-09-07T16:50:07+02:00",
- "run_id": "20260907T1450Z",
+ "generated_at": "2026-09-07T17:04:23+02:00",
+ "run_id": "20260907T1504Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": true,
@@ -20,7 +20,7 @@
   "rate": 11.162,
   "date": "2026-09-07",
   "source": "ECB",
-  "fetched_at": "2026-09-07T16:52:37+02:00",
+  "fetched_at": "2026-09-07T17:08:17+02:00",
   "stale": false
  },
  "series": [
@@ -718,9 +718,9 @@
    "source": "official",
    "models": {
     "seasonal_naive": {
-     "p10": 57.162,
+     "p10": 56.739,
      "p50": 127.4,
-     "p90": 197.638
+     "p90": 198.062
     },
     "weather_scaled": {
      "p10": 15.648,
@@ -1486,27 +1486,27 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 54.752,
+     "p10": 54.328,
      "p50": 124.99,
-     "p90": 195.228
+     "p90": 195.651
     },
     "weather_scaled": {
-     "p10": 16.117,
+     "p10": 18.869,
      "p50": 131.035,
      "p90": 361.92
     },
     "shrunk_scaled": {
-     "p10": 16.476,
+     "p10": 19.289,
      "p50": 133.948,
      "p90": 369.964
     },
     "recency_scaled": {
-     "p10": 19.068,
+     "p10": 22.323,
      "p50": 155.021,
      "p90": 428.167
     },
     "ensemble": {
-     "p10": 15.795,
+     "p10": 18.492,
      "p50": 128.919,
      "p90": 369.158
     }
@@ -2254,29 +2254,29 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 5.48,
+     "p10": 5.056,
      "p50": 75.718,
-     "p90": 145.956
+     "p90": 146.38
     },
     "weather_scaled": {
      "p10": 9.849,
      "p50": 80.076,
-     "p90": 248.717
+     "p90": 221.171
     },
     "shrunk_scaled": {
      "p10": 12.26,
      "p50": 99.676,
-     "p90": 309.595
+     "p90": 275.306
     },
     "recency_scaled": {
      "p10": 12.26,
      "p50": 99.676,
-     "p90": 309.595
+     "p90": 275.306
     },
     "ensemble": {
-     "p10": 5.37,
+     "p10": 4.955,
      "p50": 78.551,
-     "p90": 253.692
+     "p90": 225.595
     }
    }
   },
@@ -3022,29 +3022,29 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 47.965,
+     "p10": 47.541,
      "p50": 118.203,
-     "p90": 188.441
+     "p90": 188.865
     },
     "weather_scaled": {
      "p10": 10.514,
      "p50": 85.48,
-     "p90": 293.369
+     "p90": 265.502
     },
     "shrunk_scaled": {
      "p10": 10.597,
      "p50": 86.152,
-     "p90": 295.673
+     "p90": 267.587
     },
     "recency_scaled": {
      "p10": 10.597,
      "p50": 86.152,
-     "p90": 295.673
+     "p90": 267.587
     },
     "ensemble": {
      "p10": 10.304,
      "p50": 96.933,
-     "p90": 299.236
+     "p90": 270.812
     }
    }
   },
@@ -3790,29 +3790,29 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": -3.856,
+     "p10": -4.279,
      "p50": 66.382,
-     "p90": 136.62
+     "p90": 137.043
     },
     "weather_scaled": {
      "p10": 7.923,
      "p50": 64.412,
-     "p90": 240.0
+     "p90": 221.063
     },
     "shrunk_scaled": {
      "p10": 8.541,
      "p50": 69.437,
-     "p90": 258.723
+     "p90": 238.309
     },
     "recency_scaled": {
      "p10": 8.541,
      "p50": 69.437,
-     "p90": 258.723
+     "p90": 238.309
     },
     "ensemble": {
-     "p10": -3.779,
+     "p10": -4.194,
      "p50": 65.102,
-     "p90": 244.8
+     "p90": 225.484
     }
    }
   },
@@ -4560,7 +4560,7 @@
     "seasonal_naive": {
      "p10": -50.0,
      "p50": 15.718,
-     "p90": 85.956
+     "p90": 86.38
     },
     "weather_scaled": {
      "p10": 1.99,
@@ -4580,7 +4580,7 @@
     "ensemble": {
      "p10": -49.0,
      "p50": 16.017,
-     "p90": 87.675
+     "p90": 88.107
     }
    }
   },
@@ -5326,9 +5326,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 29.585,
+     "p10": 29.161,
      "p50": 99.823,
-     "p90": 170.061
+     "p90": 170.484
     },
     "weather_scaled": {
      "p10": 11.57,
@@ -6055,6 +6055,38 @@
      "p90": 159.59
     }
    }
+  },
+  {
+   "ts": "2026-09-14T16:00:00+02:00",
+   "actual": null,
+   "source": "forecast",
+   "models": {
+    "seasonal_naive": {
+     "p10": 51.498,
+     "p50": 105.517,
+     "p90": 159.536
+    },
+    "weather_scaled": {
+     "p10": 11.098,
+     "p50": 90.23,
+     "p90": 336.199
+    },
+    "shrunk_scaled": {
+     "p10": 11.019,
+     "p50": 89.585,
+     "p90": 333.795
+    },
+    "recency_scaled": {
+     "p10": 11.019,
+     "p50": 89.585,
+     "p90": 333.795
+    },
+    "ensemble": {
+     "p10": 10.876,
+     "p50": 95.581,
+     "p90": 342.922
+    }
+   }
   }
  ],
  "drivers": {
@@ -6064,9 +6096,9 @@
   "bullets_sv": [
    "Överföringen SE3 → SE4 är begränsad med 2 900 MW, 47 % av kapaciteten från 14 sep 06:00 till 27 sep.",
    "Överföringen SE3 → SE4 är begränsad med 2 900 MW, 47 % av kapaciteten från 9 sep 06:00 till 9 okt.",
-   "Överföringen SE3 → SE4 är begränsad med 2 700 MW, 44 % av kapaciteten från 24 aug 06:00 till 7 sep.",
+   "Överföringen SE3 → SE4 är begränsad med 2 600 MW, 42 % av kapaciteten från 4 sep 14:00 till 15 okt.",
    "Vattenmagasinen är fyllda till 22 %, 28 procentenheter under det normala för årstiden.",
-   "Det blåser lite i SE4 — vindindex 0,79 mot normalt 1,00."
+   "Det blåser lite i SE4 — vindindex 0,78 mot normalt 1,00."
   ],
   "outages": {
    "items": [
@@ -6090,17 +6122,6 @@
      "installed_mw": 6200.0,
      "from": "2026-09-09T06:00:00+02:00",
      "to": "2026-10-09T17:00:00+02:00",
-     "reason": "Foreseen maintenance"
-    },
-    {
-     "kind": "transmission",
-     "unit": "SE3 → SE4",
-     "fuel": null,
-     "nuclear": false,
-     "unavailable_mw": 2700.0,
-     "installed_mw": 6200.0,
-     "from": "2026-08-24T06:00:00+02:00",
-     "to": "2026-09-07T17:00:00+02:00",
      "reason": "Foreseen maintenance"
     },
     {
@@ -6174,17 +6195,6 @@
      "unit": "SE3 → SE4",
      "fuel": null,
      "nuclear": false,
-     "unavailable_mw": 2200.0,
-     "installed_mw": 6200.0,
-     "from": "2026-08-22T06:00:00+02:00",
-     "to": "2026-09-07T17:00:00+02:00",
-     "reason": "Foreseen maintenance"
-    },
-    {
-     "kind": "transmission",
-     "unit": "SE3 → SE4",
-     "fuel": null,
-     "nuclear": false,
      "unavailable_mw": 2000.0,
      "installed_mw": 6200.0,
      "from": "2026-08-03T06:00:00+02:00",
@@ -6223,6 +6233,28 @@
      "from": "2026-08-03T07:00:00+02:00",
      "to": "2026-10-02T16:00:00+02:00",
      "reason": "Foreseen maintenance"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE4 → DK2",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 1300.0,
+     "installed_mw": 1300.0,
+     "from": "2026-07-29T16:00:00+02:00",
+     "to": "2026-10-17T16:00:00+02:00",
+     "reason": "Cable replacement as well as refurbishment of 400 kV station HVE"
+    },
+    {
+     "kind": "transmission",
+     "unit": "SE3 → SE4",
+     "fuel": null,
+     "nuclear": false,
+     "unavailable_mw": 1000.0,
+     "installed_mw": 6200.0,
+     "from": "2026-08-17T06:00:00+02:00",
+     "to": "2026-11-08T17:00:00+01:00",
+     "reason": "Renewal"
     }
    ]
   },
@@ -6234,13 +6266,13 @@
    "change_4w": -0.085
   },
   "features": {
-   "wind_index_local": 0.788,
-   "wind_index_north": 1.017,
-   "wind_index_south": 0.964,
-   "temp_anomaly_se4_c": 0.055,
-   "temp_local_c": 17.662,
+   "wind_index_local": 0.778,
+   "wind_index_north": 1.008,
+   "wind_index_south": 0.958,
+   "temp_anomaly_se4_c": -0.005,
+   "temp_local_c": 17.602,
    "solar_index_daytime": 0.562,
-   "spread_proxy_se4_se2": 54.936
+   "spread_proxy_se4_se2": 55.203
   }
  }
 }
