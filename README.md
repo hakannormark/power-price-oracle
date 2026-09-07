@@ -15,6 +15,11 @@ efter att auktionen stängt är en avskrift av börsen, inte en gissning, och r�
 
 ---
 
+## Innan du ändrar något
+
+Läs [CONTRIBUTING.md](CONTRIBUTING.md). Den beskriver den enda regel projektet
+vilar på, och de tre misstag som redan gjorts mot den.
+
 ## Arkitektur
 
 ```mermaid
@@ -254,8 +259,14 @@ den tillämpas på (`python -m src.research.backtest`).
 | `seasonal_naive` | 29,51 | 0 % | Priset samma veckodag och timme sju dygn tidigare. Referensen alla andra mäts mot. |
 | `weather_scaled` | 28,04 | +5,0 % | Den naiva nivån skalad med vindindex, temperaturavvikelse och sol, med egna vikter per elområde. |
 | `ensemble` | 28,40 | +3,8 % | 35 % naiv + 65 % väderskalad. Var standard tills den mättes. |
-| `shrunk_scaled` | 25,68 | +13,3 % | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de fyra senaste veckorna. |
-| **`recency_scaled`** | **24,07** | **+18,7 %** | Som ovan, men där gårdagens pris för samma timme redan publicerats vägs det in med 70 %. Dag 1 förbättras 23 %. **Sajtens standardmodell.** |
+| **`shrunk_scaled`** | **25,38** | **+13,0 %** | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de fyra senaste veckorna. **Sajtens standardmodell.** |
+| `recency_scaled` | 24,57 | +15,8 % | Som ovan, men där gårdagens pris redan publicerats vägs det in med 70 %. Ser bättre ut i backtest men förlorar på riktiga prognoser — se nedan. |
+
+**Backtest är inte facit.** `recency_scaled` var kortvarigt standard på styrkan av
+ett backtest som saknade auktionsfiltret. På skarpa prognoser, mätta på samma
+fönster för alla fem modeller, är `shrunk_scaled` bäst på alla horisonter
+(32,1 / 24,8 / 36,6 mot 34,3 / 27,1 / 39,9). Läs `CONTRIBUTING.md` innan du
+ändrar något som rör utvärdering.
 
 Varje blandning av `shrunk_scaled` med de övriga blev sämre än modellen ensam, så
 standarden är en enskild modell och inte en sammanvägning.

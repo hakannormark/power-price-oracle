@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from datetime import timedelta
 
@@ -60,8 +61,10 @@ def _load_demo_actuals() -> list[dict]:
     return rows
 
 
-def run(skip_fetch: bool = False) -> int:
+def run(skip_fetch: bool = False, record: bool | None = None) -> int:
     ensure_dirs()
+    if record is None:
+        record = bool(os.environ.get("GITHUB_ACTIONS"))
     now = now_local()
     run_id = run_id_for(now)
     log.info("Run %s starting at %s", run_id, iso(now))
@@ -148,11 +151,19 @@ def run(skip_fetch: bool = False) -> int:
             sources[f"model:{model.id}"] = {"ok": False, "error": str(exc)[:200]}
             degraded = True
 
+    # data/forecasts.jsonl is the record the accuracy page scores. A developer
+    # run must not enter it: local runs happen at odd times, on half-finished
+    # code, and sometimes on demo prices, and every one of those rows is scored
+    # as if the site had published it. Recording is therefore opt-in, and CI
+    # opts in by being CI.
     written = 0
-    for model_id, points in predictions.items():
-        rows = [p.as_row(model_id, issued_at, run_id) for p in points]
-        written += append_forecasts(rows)
-    log.info("Appended %s forecast rows", written)
+    if record:
+        for model_id, points in predictions.items():
+            rows = [p.as_row(model_id, issued_at, run_id) for p in points]
+            written += append_forecasts(rows)
+        log.info("Appended %s forecast rows", written)
+    else:
+        log.info("Not recording forecasts — local run. Use --record to override.")
 
     # ---- 8. rotation ----------------------------------------------------
     rotation = rotate_forecasts()
@@ -212,7 +223,7 @@ def run(skip_fetch: bool = False) -> int:
     print(f"run_id={run_id}")
     print(f"  status          : {'DEGRADED' if degraded else 'ok'}{' (demo data)' if demo else ''}")
     print(f"  actuals         : {len(actuals)} rows (+{added} new)")
-    print(f"  forecast rows   : +{written}")
+    print(f"  forecast rows   : +{written}" + ("" if record else "  (ej registrerade — lokal körning)"))
     print(f"  scored points   : {accuracy['scored_points']}")
     print(f"  eur/sek         : {fx['rate'] if fx else 'unavailable'}")
     print(f"  outages         : " + ", ".join(
@@ -230,6 +241,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Republish from stored state without calling any upstream API",
     )
+    parser.add_argument(
+        "--record",
+        action="store_true",
+        help="Append forecasts to the scored log. Automatic in CI, never by default locally.",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
@@ -237,7 +253,7 @@ def main(argv: list[str] | None = None) -> int:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",
     )
-    return run(skip_fetch=args.skip_fetch)
+    return run(skip_fetch=args.skip_fetch, record=True if args.record else None)
 
 
 if __name__ == "__main__":

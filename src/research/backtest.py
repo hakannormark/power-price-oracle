@@ -2,8 +2,16 @@
 
     python -m src.research.backtest
 
-The one rule that makes the numbers mean anything: a candidate issued at T may
-use only what was published before T. Prices are lagged, outages are filtered on
+The rule that makes the numbers mean anything, and that this file was written
+without: a forecast point counts only if the exchange had not already published
+that hour's price when the forecast was issued. Copying the auction is not skill,
+and src/evaluate/score.py has always enforced it on live results. Omitting it
+here scored roughly two thirds of the first day against prices that were already
+public, which flattered anything leaning on recent prices — recency_scaled was
+promoted to default on that basis and turned out to be the worst of five models
+live. The filter is applied below now.
+
+A candidate issued at T may also use only what was published before T. Prices are lagged, outages are filtered on
 their publication timestamp, and every fitted coefficient is estimated on data
 strictly older than the quarter it is applied to. A coefficient that only works
 in hindsight cannot flatter the result here.
@@ -32,7 +40,7 @@ from ..config import ALL_WEATHER_POINTS, NORTH_WIND_POINTS, SOUTH_WIND_POINTS, W
 from ..fetch.nordpool_umm import hourly_outages
 from ..store import read_jsonl
 from ..store import load_actuals, load_umm
-from ..timeutil import now_local, parse_iso
+from ..timeutil import is_official_known, now_local, parse_iso
 
 log = logging.getLogger("backtest")
 
@@ -229,6 +237,12 @@ def build_samples(
                 ts = issue + timedelta(hours=h)
                 truth = prices.get((zone, ts))
                 if truth is None:
+                    continue
+                # The same filter the live scorer applies. Without it the early
+                # horizons are dominated by hours the exchange had already
+                # settled, and a model that leans on recent prices scores for
+                # reciting them.
+                if is_official_known(issue, ts):
                     continue
                 lags = [prices.get((zone, ts - timedelta(days=7 * k))) for k in (1, 2, 3, 4)]
                 if any(v is None for v in lags):

@@ -51,11 +51,13 @@ class RecencyLevelTests(unittest.TestCase):
 
 
 class RegistryTests(unittest.TestCase):
-    def test_it_is_the_default_and_outside_the_ensemble(self):
+    def test_it_is_registered_but_not_the_default(self):
         from src.models.ensemble import WEIGHTS
         from src.models.registry import DEFAULT_MODEL_ID, model_ids
 
-        self.assertEqual(DEFAULT_MODEL_ID, RecencyScaled.id)
+        # Not the default: a back-test without the auction cutoff flattered it,
+        # and live scoring put it last. It stays registered as a competitor.
+        self.assertNotEqual(DEFAULT_MODEL_ID, RecencyScaled.id)
         self.assertIn(RecencyScaled.id, model_ids())
         self.assertNotIn(RecencyScaled.id, WEIGHTS)
 

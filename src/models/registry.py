@@ -29,11 +29,19 @@ MODELS = [*BASE_MODELS, *DERIVED_MODELS]
 #   seasonal_naive          MAE 29.51    0.0 %
 #   weather_scaled          MAE 28.04   +5.0 %
 #   ensemble (0.35/0.65)    MAE 28.40   +3.8 %
-#   shrunk_scaled           MAE 25.68  +13.3 %
-#   recency_scaled          MAE 24.07  +18.7 %
-# Every blend of the leader with the others scored worse than the leader alone,
-# so the default is a single model rather than a mixture.
-DEFAULT_MODEL_ID = "recency_scaled"
+# Chosen on live scoring, which is the only measurement that applies the auction
+# cutoff. Over 24 288 scored points, mean absolute error EUR/MWh:
+#            0-24h   24-48h   48-72h
+#   shrunk_scaled     16.8     18.9     33.8   <- default
+#   weather_scaled    18.3     20.5     35.2
+#   ensemble          18.2     21.3     36.1
+#   seasonal_naive    17.9     23.1     38.1
+#   recency_scaled    34.3     27.1     39.9
+#
+# recency_scaled was briefly the default on the strength of a back-test that did
+# not apply the cutoff, and so credited it for hours whose price the exchange had
+# already published. Live it is the worst of the five. See src/research/backtest.py.
+DEFAULT_MODEL_ID = "shrunk_scaled"
 REFERENCE_MODEL_ID = "seasonal_naive"  # skill is measured against this one
 
 OFFICIAL = Official()

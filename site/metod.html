@@ -126,8 +126,8 @@
             <tr><td>Väderskalad</td><td class="num">28,04</td><td class="num">+5,0 %</td></tr>
             <tr><td>Ensemble 35/65</td><td class="num">28,40</td><td class="num">+3,8 %</td></tr>
             <tr><td>Enbart dämpad nivå, utan väder</td><td class="num">27,18</td><td class="num">+7,9 %</td></tr>
-            <tr><td>Dämpad nivå + väderskalning</td><td class="num">25,68</td><td class="num">+13,3 %</td></tr>
-            <tr><td><b>Färsk nivå + väderskalning</b></td><td class="num"><b>24,07</b></td><td class="num best"><b>+18,7 %</b></td></tr>
+            <tr><td><b>Dämpad nivå + väderskalning</b></td><td class="num"><b>25,38</b></td><td class="num best"><b>+13,0 %</b></td></tr>
+            <tr><td>Färsk nivå + väderskalning</td><td class="num">24,57</td><td class="num">+15,8 %</td></tr>
           </tbody>
         </table>
       </div>
@@ -167,10 +167,19 @@
           </tbody>
         </table>
       </div>
-      <p>Dag ett förbättras med 23 procent och dag tre till sju rörs inte alls —
-        eftersom det är precis där laggen slutar existera. Modellen låtsas inte
-        veta mer om nästa fredag än den gjorde förut. Vikten 0,70 är robust vald:
-        optimum är platt mellan 0,60 och 0,80.</p>
+      <p>Så såg det ut i backtestet, och på den grunden gjordes modellen till
+        standard. <b>Det var ett misstag.</b> Riggen saknade filtret som utesluter
+        timmar vars pris börsen redan publicerat, och räknade därför två
+        tredjedelar av det första dygnet mot kända priser. Det gynnade just en
+        modell som lutar sig mot färska priser.</p>
+      <p>Med filtret på plats krymper försprånget, och på riktiga utfärdade
+        prognoser — mätta på samma fönster för alla fem modeller — är den näst
+        sämst på det första dygnet. Standardmodellen är återställd till den
+        dämpade nivån. Den färska nivån ligger kvar som mätt konkurrent.</p>
+      <p>Episoden står kvar här därför att den är det tydligaste exemplet på
+        projektets egen huvudregel: ett pris som börsen redan publicerat är inte
+        en prognos, och en utvärdering som glömmer det ger fel svar med stor
+        säkerhet.</p>
 
       <h3>Väderskalningens vikter håller</h3>
       <p>De handsatta vikterna per elområde — SE1 och SE2 mot sin egen vind, SE4

@@ -1,40 +1,35 @@
 {
- "generated_at": "2026-09-07T11:32:10+02:00",
- "run_id": "20260907T0932Z",
- "degraded": false,
+ "generated_at": "2026-09-07T16:49:13+02:00",
+ "run_id": "20260907T1449Z",
+ "degraded": true,
  "demo": false,
  "unit": "EUR/MWh",
  "resolution": "PT60M",
- "default_model": "recency_scaled",
+ "default_model": "shrunk_scaled",
  "reference_model": "seasonal_naive",
  "fx": {
   "pair": "EUR/SEK",
-  "rate": 11.1005,
-  "date": "2026-09-04",
+  "rate": 11.162,
+  "date": "2026-09-07",
   "source": "ECB",
-  "fetched_at": "2026-09-07T11:33:53+02:00",
+  "fetched_at": "2026-09-07T16:49:14+02:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
  "subtitle_sv": "Veckoprognos för Nord Pool SE1–SE4",
- "blurb_sv": "Lugnt läge i elsystemet — priserna följer det vanliga dygns- och veckomönstret.",
+ "blurb_sv": "Körningen är degraderad — en datakälla svarade inte. Siffrorna nedan kan vara från en tidigare körning.",
  "repo_url": "https://github.com/hakannormark/power-price-oracle",
  "zones": [
   {
    "zone": "SE1",
    "name": "Luleå",
    "current": {
-    "ts": "2026-09-07T11:00:00+02:00",
-    "eur_mwh": 31.875,
-    "ore_kwh": 35.383,
+    "ts": "2026-09-07T16:00:00+02:00",
+    "eur_mwh": 24.965,
+    "ore_kwh": 27.866,
     "source": "official"
    },
    "spark": [
-    29.15,
-    26.642,
-    24.727,
-    24.82,
-    24.965,
     25.887,
     25.628,
     19.122,
@@ -42,18 +37,23 @@
     5.897,
     4.215,
     2.788,
-    35.555,
-    35.605,
-    35.653,
-    34.65,
-    37.196,
-    42.065,
-    48.249,
-    61.296,
-    74.383,
-    77.147,
-    63.158,
-    58.411
+    31.245,
+    34.9,
+    33.149,
+    30.648,
+    32.412,
+    34.014,
+    27.609,
+    33.575,
+    52.441,
+    77.288,
+    70.924,
+    55.307,
+    58.086,
+    60.577,
+    54.998,
+    70.142,
+    83.243
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -63,17 +63,12 @@
    "zone": "SE2",
    "name": "Sundsvall",
    "current": {
-    "ts": "2026-09-07T11:00:00+02:00",
-    "eur_mwh": 33.472,
-    "ore_kwh": 37.156,
+    "ts": "2026-09-07T16:00:00+02:00",
+    "eur_mwh": 25.345,
+    "ore_kwh": 28.29,
     "source": "official"
    },
    "spark": [
-    29.812,
-    27.43,
-    24.902,
-    24.242,
-    25.345,
     27.345,
     29.055,
     20.775,
@@ -81,18 +76,23 @@
     4.29,
     2.1,
     0.625,
-    46.186,
-    47.053,
-    47.383,
-    46.49,
-    49.855,
-    55.297,
-    49.795,
-    63.545,
-    81.007,
-    90.611,
-    77.356,
-    71.791
+    31.158,
+    33.739,
+    35.8,
+    35.971,
+    35.785,
+    35.711,
+    26.761,
+    55.246,
+    102.798,
+    127.779,
+    113.115,
+    107.201,
+    101.144,
+    96.689,
+    85.713,
+    93.319,
+    87.15
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -102,17 +102,12 @@
    "zone": "SE3",
    "name": "Stockholm",
    "current": {
-    "ts": "2026-09-07T11:00:00+02:00",
-    "eur_mwh": 65.81,
-    "ore_kwh": 73.052,
+    "ts": "2026-09-07T16:00:00+02:00",
+    "eur_mwh": 71.817,
+    "ore_kwh": 80.162,
     "source": "official"
    },
    "spark": [
-    47.145,
-    35.195,
-    28.375,
-    40.513,
-    71.817,
     101.398,
     119.75,
     111.025,
@@ -120,18 +115,23 @@
     20.765,
     5.357,
     3.902,
-    100.013,
-    96.308,
-    94.194,
-    94.617,
-    99.44,
-    107.903,
-    119.075,
-    146.617,
-    140.422,
-    114.22,
-    89.024,
-    80.041
+    89.263,
+    89.552,
+    98.699,
+    96.02,
+    99.134,
+    91.004,
+    100.294,
+    128.177,
+    139.665,
+    120.321,
+    106.161,
+    89.591,
+    86.156,
+    84.439,
+    82.118,
+    90.716,
+    94.435
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -141,17 +141,12 @@
    "zone": "SE4",
    "name": "Malmö",
    "current": {
-    "ts": "2026-09-07T11:00:00+02:00",
-    "eur_mwh": 109.703,
-    "ore_kwh": 121.776,
+    "ts": "2026-09-07T16:00:00+02:00",
+    "eur_mwh": 105.517,
+    "ore_kwh": 117.778,
     "source": "official"
    },
    "spark": [
-    59.117,
-    40.26,
-    30.288,
-    51.583,
-    105.517,
     156.483,
     187.705,
     177.83,
@@ -159,18 +154,23 @@
     31.8,
     6.475,
     5.01,
-    145.559,
-    138.65,
-    135.135,
-    138.926,
-    144.449,
-    156.609,
-    189.598,
-    221.68,
-    221.11,
-    177.496,
-    140.419,
-    117.001
+    141.676,
+    135.074,
+    137.568,
+    144.151,
+    151.32,
+    141.335,
+    177.684,
+    196.908,
+    178.858,
+    133.902,
+    117.166,
+    100.784,
+    91.29,
+    85.657,
+    88.572,
+    97.425,
+    99.985
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -180,32 +180,32 @@
  "accuracy_snapshot": {
   "SE1": {
    "0-24h": {
-    "seasonal_naive": 13.369,
-    "weather_scaled": 14.095,
+    "seasonal_naive": 13.926,
+    "weather_scaled": 14.446,
     "shrunk_scaled": 11.078,
     "recency_scaled": null,
-    "ensemble": 13.834
+    "ensemble": 14.257
    },
    "24-48h": {
-    "seasonal_naive": 11.005,
-    "weather_scaled": 8.508,
+    "seasonal_naive": 10.051,
+    "weather_scaled": 8.291,
     "shrunk_scaled": 5.919,
     "recency_scaled": 10.451,
-    "ensemble": 9.344
+    "ensemble": 8.899
    },
    "48-72h": {
-    "seasonal_naive": 18.936,
-    "weather_scaled": 15.024,
+    "seasonal_naive": 19.717,
+    "weather_scaled": 16.06,
     "shrunk_scaled": 9.7,
     "recency_scaled": 14.32,
-    "ensemble": 16.371
+    "ensemble": 17.327
    },
    "72-96h": {
-    "seasonal_naive": 42.794,
-    "weather_scaled": 26.72,
+    "seasonal_naive": 58.211,
+    "weather_scaled": 36.412,
     "shrunk_scaled": 24.824,
     "recency_scaled": 31.356,
-    "ensemble": 32.286
+    "ensemble": 44.041
    },
    "96-120h": {
     "seasonal_naive": null,
@@ -231,32 +231,32 @@
   },
   "SE2": {
    "0-24h": {
-    "seasonal_naive": 13.646,
-    "weather_scaled": 15.591,
+    "seasonal_naive": 14.192,
+    "weather_scaled": 16.252,
     "shrunk_scaled": 13.256,
     "recency_scaled": null,
-    "ensemble": 14.89
+    "ensemble": 15.524
    },
    "24-48h": {
-    "seasonal_naive": 17.593,
-    "weather_scaled": 17.621,
+    "seasonal_naive": 17.91,
+    "weather_scaled": 17.808,
     "shrunk_scaled": 13.993,
     "recency_scaled": 12.919,
-    "ensemble": 17.608
+    "ensemble": 17.84
    },
    "48-72h": {
-    "seasonal_naive": 24.053,
-    "weather_scaled": 23.234,
+    "seasonal_naive": 25.711,
+    "weather_scaled": 25.25,
     "shrunk_scaled": 18.402,
     "recency_scaled": 23.476,
-    "ensemble": 23.486
+    "ensemble": 25.369
    },
    "72-96h": {
-    "seasonal_naive": 44.004,
-    "weather_scaled": 39.637,
+    "seasonal_naive": 59.808,
+    "weather_scaled": 53.426,
     "shrunk_scaled": 42.901,
     "recency_scaled": 49.955,
-    "ensemble": 40.98
+    "ensemble": 55.659
    },
    "96-120h": {
     "seasonal_naive": null,
@@ -282,32 +282,32 @@
   },
   "SE3": {
    "0-24h": {
-    "seasonal_naive": 19.144,
-    "weather_scaled": 19.468,
+    "seasonal_naive": 19.667,
+    "weather_scaled": 19.963,
     "shrunk_scaled": 18.588,
     "recency_scaled": null,
-    "ensemble": 19.355
+    "ensemble": 19.86
    },
    "24-48h": {
-    "seasonal_naive": 24.264,
-    "weather_scaled": 22.435,
+    "seasonal_naive": 22.775,
+    "weather_scaled": 21.19,
     "shrunk_scaled": 20.22,
     "recency_scaled": 31.82,
-    "ensemble": 23.059
+    "ensemble": 21.725
    },
    "48-72h": {
-    "seasonal_naive": 38.437,
-    "weather_scaled": 35.168,
+    "seasonal_naive": 38.2,
+    "weather_scaled": 34.956,
     "shrunk_scaled": 36.397,
     "recency_scaled": 42.514,
-    "ensemble": 36.249
+    "ensemble": 36.05
    },
    "72-96h": {
-    "seasonal_naive": 51.428,
-    "weather_scaled": 43.896,
+    "seasonal_naive": 56.704,
+    "weather_scaled": 45.408,
     "shrunk_scaled": 44.085,
     "recency_scaled": 60.401,
-    "ensemble": 46.376
+    "ensemble": 49.181
    },
    "96-120h": {
     "seasonal_naive": null,
@@ -333,32 +333,32 @@
   },
   "SE4": {
    "0-24h": {
-    "seasonal_naive": 25.63,
-    "weather_scaled": 24.051,
+    "seasonal_naive": 26.103,
+    "weather_scaled": 24.986,
     "shrunk_scaled": 24.333,
     "recency_scaled": null,
-    "ensemble": 24.603
+    "ensemble": 25.377
    },
    "24-48h": {
-    "seasonal_naive": 39.423,
-    "weather_scaled": 33.333,
+    "seasonal_naive": 39.694,
+    "weather_scaled": 36.75,
     "shrunk_scaled": 35.537,
     "recency_scaled": 53.011,
-    "ensemble": 35.253
+    "ensemble": 37.603
    },
    "48-72h": {
-    "seasonal_naive": 70.783,
-    "weather_scaled": 67.525,
+    "seasonal_naive": 72.634,
+    "weather_scaled": 69.875,
     "shrunk_scaled": 70.579,
     "recency_scaled": 79.283,
-    "ensemble": 68.344
+    "ensemble": 70.458
    },
    "72-96h": {
-    "seasonal_naive": 63.939,
-    "weather_scaled": 65.628,
+    "seasonal_naive": 59.273,
+    "weather_scaled": 62.326,
     "shrunk_scaled": 64.242,
     "recency_scaled": 85.936,
-    "ensemble": 63.54
+    "ensemble": 59.45
    },
    "96-120h": {
     "seasonal_naive": null,
@@ -386,8 +386,9 @@
  "accuracy_window_days": 90,
  "sources": {
   "entsoe_prices": {
-   "ok": true,
-   "rows": 384
+   "ok": false,
+   "rows": 0,
+   "error": "ENTSOE_TOKEN is not set"
   },
   "open_meteo": {
    "ok": true,
@@ -395,24 +396,24 @@
    "rows": 3672
   },
   "entsoe_fundamentals": {
-   "ok": true,
-   "rows": 384
+   "ok": false,
+   "error": "ENTSOE_TOKEN is not set"
   },
   "svk_text": {
    "ok": true,
-   "chars": 3098
+   "chars": 3210
   },
   "ecb_fx": {
    "ok": true,
-   "rate": 11.1005,
-   "date": "2026-09-04"
+   "rate": 11.162,
+   "date": "2026-09-07"
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1154
+   "messages": 1175
   }
  },
- "next_expected_update_utc": "2026-09-07T11:20:00Z",
+ "next_expected_update_utc": "2026-09-07T16:00:00Z",
  "models": [
   {
    "id": "seasonal_naive",
@@ -438,7 +439,7 @@
    "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 för den väderskalade. Slogs i sin tur av den färska nivån, se nedan.",
    "quantiles": true,
    "derived": false,
-   "is_default": false,
+   "is_default": true,
    "is_reference": false
   },
   {
@@ -447,7 +448,7 @@
    "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet och upphör därefter, vilket är just vad som skiljer i morgon från nästa fredag. Mätt på 115 396 timmar ut ur urvalet: medelfel 24,07 mot 25,68, och dag ett förbättras med 23 procent.",
    "quantiles": true,
    "derived": false,
-   "is_default": true,
+   "is_default": false,
    "is_reference": false
   },
   {
