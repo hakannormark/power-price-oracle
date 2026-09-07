@@ -202,13 +202,28 @@ function sparkline(values, color) {
   </svg>`;
 }
 
+// The reader's clock, not the runner's. overview.json is regenerated three times
+// a day, so a price resolved when it was written is stale for most of the day.
+function currentHour(tile) {
+  const hours = tile.hours || [];
+  if (!hours.length) return tile.current;
+  const now = new Date();
+  const stamp = new Date(
+    now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()
+  ).getTime();
+  const match = hours.find((h) => new Date(h.ts).getTime() === stamp);
+  return match
+    ? { ts: match.ts, eur_mwh: match.eur_mwh, ore_kwh: match.ore_kwh, source: match.source }
+    : tile.current;
+}
+
 function renderTiles(overview, onSelect) {
   const host = el("zone-tiles");
   if (!host) return;
   host.innerHTML = overview.zones
     .map((tile) => {
       const color = ZONE_COLORS[tile.zone];
-      const current = tile.current;
+      const current = currentHour(tile);
       const eur = current ? current.eur_mwh : null;
       const sourceChip = current
         ? current.source === "official"

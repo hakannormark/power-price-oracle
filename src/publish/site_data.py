@@ -41,6 +41,36 @@ def _write(name: str, payload: Any) -> None:
     )
 
 
+def _today_hours(forecast: dict, now: datetime) -> list[dict]:
+    """Timestamped hours around now, so the browser can pick the current one.
+
+    The "price right now" used to be resolved here, at generation time, and then
+    sat frozen until the next run — up to eight hours between the evening and
+    morning runs. The clock the reader cares about is theirs, not the runner's.
+    """
+    start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    end = now + timedelta(hours=36)
+    rate = (forecast.get("fx") or {}).get("rate")
+    rows = []
+    for entry in forecast["series"]:
+        ts = parse_iso(entry["ts"])
+        if not start <= ts <= end:
+            continue
+        model = entry["models"].get(DEFAULT_MODEL_ID) or {}
+        value = entry["actual"] if entry["actual"] is not None else model.get("p50")
+        if value is None:
+            continue
+        rows.append(
+            {
+                "ts": entry["ts"],
+                "eur_mwh": r3(value),
+                "ore_kwh": r3(ore_per_kwh(value, rate)) if rate else None,
+                "source": entry["source"],
+            }
+        )
+    return rows
+
+
 def _spark(forecast: dict, now: datetime) -> list[float | None]:
     """Next 24 h of the default model's p50, for the tile sparkline."""
     end = now + timedelta(hours=SPARK_HOURS)
@@ -97,6 +127,7 @@ def write_overview(
                 "zone": zone,
                 "name": ZONES[zone]["name"],
                 "current": current_point(forecast, now, rate),
+                "hours": _today_hours(forecast, now),
                 "spark": _spark(forecast, now),
                 "regime": drivers.get("regime"),
                 "regime_label_sv": drivers.get("regime_label_sv"),

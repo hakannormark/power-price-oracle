@@ -220,7 +220,12 @@ def write_zones_index(payloads: dict[str, dict], meta: dict) -> dict:
 
 
 def current_point(forecast: dict, now: datetime, eur_sek: float | None = None) -> dict | None:
-    """The price for the hour we are in: official when published, otherwise ensemble."""
+    """The price for the hour the run happened in, official where published.
+
+    This is a snapshot taken at generation time and it goes stale between runs —
+    up to eight hours overnight. Anything that needs the price *now* should read
+    `series` and pick the hour against its own clock, which is what the site does.
+    """
     if eur_sek is None:
         eur_sek = (forecast.get("fx") or {}).get("rate")
     target = iso(now.replace(minute=0, second=0, microsecond=0))
