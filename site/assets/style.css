@@ -609,15 +609,9 @@ pre code { background: none; border: 0; padding: 0; font-size: inherit; }
   .site-nav a { white-space: nowrap; }
   .brand small { display: none; }
 
-  /* Zone switcher stays reachable while scrolling the chart. */
-  .tiles-sticky {
-    position: sticky;
-    top: 56px;
-    z-index: 30;
-    background: linear-gradient(var(--bg) 78%, transparent);
-    padding: 8px 0 12px;
-    margin: -8px 0 0;
-  }
+  /* The zone tiles used to stick under the header while scrolling. In practice
+     they ate a third of a phone screen for the whole page. They scroll away
+     like everything else now. */
   .tile { padding: 12px; }
   .tile-price .big { font-size: 1.45rem; }
   .tile-spark { height: 26px; }
