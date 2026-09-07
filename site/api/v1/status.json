@@ -1,7 +1,7 @@
 {
  "ok": false,
- "generated_at": "2026-09-07T16:49:13+02:00",
- "run_id": "20260907T1449Z",
+ "generated_at": "2026-09-07T16:50:07+02:00",
+ "run_id": "20260907T1450Z",
  "degraded": true,
  "demo": false,
  "fx": {
@@ -9,14 +9,14 @@
   "rate": 11.162,
   "date": "2026-09-07",
   "source": "ECB",
-  "fetched_at": "2026-09-07T16:49:14+02:00",
+  "fetched_at": "2026-09-07T16:52:37+02:00",
   "stale": false
  },
  "sources": {
   "entsoe_prices": {
    "ok": false,
    "rows": 0,
-   "error": "ENTSOE_TOKEN is not set"
+   "error": "SE1: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A44P&out_Domain=10Y1001A1001A44P&periodStart=202609032200&periodEnd=202609082200&; SE2: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A45N&out_Domain=10Y1001A1001A45N&periodStart=202609032200&periodEnd=202609082200&; SE3: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A46L&out_Domain=10Y1001A1001A46L&periodStart=202609032200&periodEnd=202609082200&; SE4: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A47J&out_Domain=10Y1001A1001A47J&periodStart=202609032200&periodEnd=202609082200&"
   },
   "open_meteo": {
    "ok": true,
@@ -25,7 +25,7 @@
   },
   "entsoe_fundamentals": {
    "ok": false,
-   "error": "ENTSOE_TOKEN is not set"
+   "error": "SE1 load: HTTPError; SE1 generation: HTTPError; SE2 load: HTTPError; SE2 generation: HTTPError; SE3 load: HTTPError; SE3 generation: HTTPError; SE4 load: HTTPError; SE4 generation: HTTPError"
   },
   "svk_text": {
    "ok": true,
