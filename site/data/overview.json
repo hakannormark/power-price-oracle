@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-07T17:49:50+02:00",
- "run_id": "20260907T1549Z",
+ "generated_at": "2026-09-07T18:28:12+02:00",
+ "run_id": "20260907T1628Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
@@ -12,7 +12,7 @@
   "rate": 11.162,
   "date": "2026-09-07",
   "source": "ECB",
-  "fetched_at": "2026-09-07T17:54:49+02:00",
+  "fetched_at": "2026-09-07T18:35:05+02:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
@@ -24,9 +24,9 @@
    "zone": "SE1",
    "name": "Luleå",
    "current": {
-    "ts": "2026-09-07T17:00:00+02:00",
-    "eur_mwh": 25.887,
-    "ore_kwh": 28.895,
+    "ts": "2026-09-07T18:00:00+02:00",
+    "eur_mwh": 25.628,
+    "ore_kwh": 28.606,
     "source": "official"
    },
    "hours": [
@@ -353,10 +353,15 @@
      "eur_mwh": 52.792,
      "ore_kwh": 58.926,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-09-09T06:00:00+02:00",
+     "eur_mwh": 58.807,
+     "ore_kwh": 65.64,
+     "source": "forecast"
     }
    ],
    "spark": [
-    25.628,
     19.122,
     7.015,
     5.897,
@@ -379,7 +384,8 @@
     8.81,
     16.297,
     33.93,
-    56.568
+    56.568,
+    59.803
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -389,9 +395,9 @@
    "zone": "SE2",
    "name": "Sundsvall",
    "current": {
-    "ts": "2026-09-07T17:00:00+02:00",
-    "eur_mwh": 27.345,
-    "ore_kwh": 30.522,
+    "ts": "2026-09-07T18:00:00+02:00",
+    "eur_mwh": 29.055,
+    "ore_kwh": 32.431,
     "source": "official"
    },
    "hours": [
@@ -718,10 +724,15 @@
      "eur_mwh": 64.396,
      "ore_kwh": 71.879,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-09-09T06:00:00+02:00",
+     "eur_mwh": 65.25,
+     "ore_kwh": 72.832,
+     "source": "forecast"
     }
    ],
    "spark": [
-    29.055,
     20.775,
     7.7,
     4.29,
@@ -744,7 +755,8 @@
     17.81,
     33.405,
     38.515,
-    35.852
+    35.852,
+    38.242
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -754,9 +766,9 @@
    "zone": "SE3",
    "name": "Stockholm",
    "current": {
-    "ts": "2026-09-07T17:00:00+02:00",
-    "eur_mwh": 101.398,
-    "ore_kwh": 113.18,
+    "ts": "2026-09-07T18:00:00+02:00",
+    "eur_mwh": 119.75,
+    "ore_kwh": 133.665,
     "source": "official"
    },
    "hours": [
@@ -1083,10 +1095,15 @@
      "eur_mwh": 81.253,
      "ore_kwh": 90.695,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-09-09T06:00:00+02:00",
+     "eur_mwh": 114.712,
+     "ore_kwh": 128.042,
+     "source": "forecast"
     }
    ],
    "spark": [
-    119.75,
     111.025,
     99.08,
     20.765,
@@ -1109,7 +1126,8 @@
     18.497,
     34.77,
     51.413,
-    102.115
+    102.115,
+    122.322
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -1119,9 +1137,9 @@
    "zone": "SE4",
    "name": "Malmö",
    "current": {
-    "ts": "2026-09-07T17:00:00+02:00",
-    "eur_mwh": 156.483,
-    "ore_kwh": 174.666,
+    "ts": "2026-09-07T18:00:00+02:00",
+    "eur_mwh": 187.705,
+    "ore_kwh": 209.516,
     "source": "official"
    },
    "hours": [
@@ -1448,10 +1466,15 @@
      "eur_mwh": 111.425,
      "ore_kwh": 124.373,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-09-09T06:00:00+02:00",
+     "eur_mwh": 160.381,
+     "ore_kwh": 179.017,
+     "source": "forecast"
     }
    ],
    "spark": [
-    187.705,
     177.83,
     166.775,
     31.8,
@@ -1474,7 +1497,8 @@
     23.532,
     45.392,
     75.365,
-    159.27
+    159.27,
+    178.127
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -1731,10 +1755,10 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1178
+   "messages": 1180
   }
  },
- "next_expected_update_utc": "2026-09-07T16:00:00Z",
+ "next_expected_update_utc": "2026-09-08T04:30:00Z",
  "models": [
   {
    "id": "seasonal_naive",
