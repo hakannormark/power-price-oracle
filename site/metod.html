@@ -309,6 +309,11 @@
         <li><b><a href="https://open-meteo.com/">Open-Meteo</a></b> — väderprognos och
           närhistorik. Ingen nyckel behövs. Underlaget kommer från nationella
           vädertjänsters modeller, för Norden i praktiken samma data som SMHI bygger på.</li>
+        <li><b><a href="https://www.elprisetjustnu.se/">elprisetjustnu.se</a></b> —
+          reservkälla för spotpriser. ENTSO-E är den auktoritativa källan men
+          svarar tidvis 503, och då är hela sajten utan priser. Reserven kräver
+          ingen nyckel och gav exakt samma siffror vid kontroll. Fältet
+          <code>via</code> i datat säger vilken källa varje pris kom från.</li>
         <li><b><a href="https://www.svk.se/">Svenska kraftnät</a></b> — driftinformation som
           fritext. Används enbart för att citera en faktamening i drivkraftstexten, aldrig
           som modellindata.</li>

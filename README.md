@@ -366,6 +366,9 @@ Data från:
   REMIT-meddelanden om produktions- och överföringsbortfall. Öppet API, ingen
   nyckel. Visas som fakta på sajten; ingår inte i någon modell.
 - **[Europeiska centralbanken](https://www.ecb.europa.eu/)** — daglig EUR/SEK-kurs.
+- **[elprisetjustnu.se](https://www.elprisetjustnu.se/)** — reservkälla för
+  spotpriser när ENTSO-E inte svarar. Ingen nyckel, kvartsupplösning, täcker
+  SE1–SE4. Verifierad mot ENTSO-E till 0,000 EUR/MWh på timsnittet.
 - **[Svenska kraftnät](https://www.svk.se/)** — driftinformation, används enbart
   extraktivt i drivkraftstexten.
 

@@ -25,7 +25,15 @@ from .config import (
 from .evaluate.score import evaluate, zone_slice
 from .explain.drivers import build_drivers, global_blurb
 from .features.build import build_features
-from .fetch import ecb_fx, entsoe_fundamentals, entsoe_prices, nordpool_umm, open_meteo, svk_text
+from .fetch import (
+    ecb_fx,
+    elpriset,
+    entsoe_fundamentals,
+    entsoe_prices,
+    nordpool_umm,
+    open_meteo,
+    svk_text,
+)
 from .fetch.entsoe_supply import latest_reservoir_state
 from .models.official import actuals_index
 from .models.registry import (
@@ -101,6 +109,18 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
         quarter_rows, sources["entsoe_quarters"] = entsoe_prices.fetch_prices(
             start, end, native=True
         )
+
+        # ENTSO-E is authoritative but is also the single point of failure the
+        # product hangs on, and it answers 503 often enough to matter. The
+        # fallback needs no key and was verified to agree exactly.
+        if not sources["entsoe_prices"]["ok"]:
+            price_rows, sources["elpriset_prices"] = elpriset.fetch_prices(start, end)
+            log.warning("ENTSO-E prices unavailable — fell back to elprisetjustnu")
+        if not sources["entsoe_quarters"]["ok"]:
+            quarter_rows, sources["elpriset_quarters"] = elpriset.fetch_prices(
+                start, end, native=True
+            )
+
         if quarter_rows:
             upsert_quarters(quarter_rows)
 
@@ -126,7 +146,9 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
         actuals = _load_demo_actuals()
         demo = bool(actuals)
 
-    degraded = not sources["entsoe_prices"]["ok"] or not sources["open_meteo"]["ok"]
+    # A fallback that worked is not a degraded run; a missing price is.
+    have_prices = sources["entsoe_prices"]["ok"] or sources.get("elpriset_prices", {}).get("ok")
+    degraded = not have_prices or not sources["open_meteo"]["ok"]
 
     # ---- 4. features ----------------------------------------------------
     if weather is not None and not weather.empty:

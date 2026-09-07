@@ -151,6 +151,13 @@ WEATHER_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 SVK_DRIFTINFO_URL = (
     "https://www.svk.se/om-kraftsystemet/kraftsystemdata/information-fran-driften/"
 )
+# Fallback price source. No key, covers exactly SE1-SE4, serves quarter-hourly
+# values and tomorrow once the auction publishes. Verified against ENTSO-E to
+# 0.00 EUR/MWh on the hourly mean before being trusted.
+ELPRISET_URL = (
+    "https://www.elprisetjustnu.se/api/v1/prices/{year}/{month:02d}-{day:02d}_{zone}.json"
+)
+
 ECB_FX_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
 
 # Nord Pool's REMIT urgent market messages: plant and cable outages, public and
