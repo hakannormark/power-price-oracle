@@ -1,7 +1,7 @@
 {
  "ok": true,
- "generated_at": "2026-09-07T21:29:34+02:00",
- "run_id": "20260907T1929Z",
+ "generated_at": "2026-09-08T10:57:25+02:00",
+ "run_id": "20260908T0857Z",
  "degraded": false,
  "demo": false,
  "fx": {
@@ -9,31 +9,31 @@
   "rate": 11.162,
   "date": "2026-09-07",
   "source": "ECB",
-  "fetched_at": "2026-09-07T21:37:51+02:00",
+  "fetched_at": "2026-09-08T10:59:07+02:00",
   "stale": false
  },
  "sources": {
   "entsoe_prices": {
    "ok": false,
    "rows": 0,
-   "error": "SE1: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A44P&out_Domain=10Y1001A1001A44P&periodStart=202609032200&periodEnd=202609082200&; SE2: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A45N&out_Domain=10Y1001A1001A45N&periodStart=202609032200&periodEnd=202609082200&; SE3: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A46L&out_Domain=10Y1001A1001A46L&periodStart=202609032200&periodEnd=202609082200&; SE4: HTTPSConnectionPool(host='web-api.tp.entsoe.eu', port=443): Read timed out. (read timeout=45)"
+   "error": "SE1: 404 Client Error: Not Found for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A44P&out_Domain=10Y1001A1001A44P&periodStart=202609042200&periodEnd=202609092200&securityTo; SE2: 404 Client Error: Not Found for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A45N&out_Domain=10Y1001A1001A45N&periodStart=202609042200&periodEnd=202609092200&securityTo; SE3: 404 Client Error: Not Found for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A46L&out_Domain=10Y1001A1001A46L&periodStart=202609042200&periodEnd=202609092200&securityTo; SE4: 404 Client Error: Not Found for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A47J&out_Domain=10Y1001A1001A47J&periodStart=202609042200&periodEnd=202609092200&securityTo"
   },
   "entsoe_quarters": {
    "ok": false,
    "rows": 0,
-   "error": "SE1: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A44P&out_Domain=10Y1001A1001A44P&periodStart=202609032200&periodEnd=202609082200&; SE2: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A45N&out_Domain=10Y1001A1001A45N&periodStart=202609032200&periodEnd=202609082200&; SE3: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A46L&out_Domain=10Y1001A1001A46L&periodStart=202609032200&periodEnd=202609082200&; SE4: 503 Server Error: Service Unavailable for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A47J&out_Domain=10Y1001A1001A47J&periodStart=202609032200&periodEnd=202609082200&"
+   "error": "SE1: 404 Client Error: Not Found for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A44P&out_Domain=10Y1001A1001A44P&periodStart=202609042200&periodEnd=202609092200&securityTo; SE2: 404 Client Error: Not Found for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A45N&out_Domain=10Y1001A1001A45N&periodStart=202609042200&periodEnd=202609092200&securityTo; SE3: 404 Client Error: Not Found for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A46L&out_Domain=10Y1001A1001A46L&periodStart=202609042200&periodEnd=202609092200&securityTo; SE4: 404 Client Error: Not Found for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A47J&out_Domain=10Y1001A1001A47J&periodStart=202609042200&periodEnd=202609092200&securityTo"
   },
   "elpriset_prices": {
    "ok": true,
-   "rows": 480,
+   "rows": 384,
    "via": "elpriset",
-   "error": "SE1 2026-09-09: HTTPError; SE2 2026-09-09: HTTPError; SE3 2026-09-09: HTTPError; SE4 2026-09-09: HTTPError"
+   "error": "SE1 2026-09-09: HTTPError; SE1 2026-09-10: HTTPError; SE2 2026-09-09: HTTPError; SE2 2026-09-10: HTTPError"
   },
   "elpriset_quarters": {
    "ok": true,
-   "rows": 1920,
+   "rows": 1536,
    "via": "elpriset",
-   "error": "SE1 2026-09-09: HTTPError; SE2 2026-09-09: HTTPError; SE3 2026-09-09: HTTPError; SE4 2026-09-09: HTTPError"
+   "error": "SE1 2026-09-09: HTTPError; SE1 2026-09-10: HTTPError; SE2 2026-09-09: HTTPError; SE2 2026-09-10: HTTPError"
   },
   "open_meteo": {
    "ok": true,
@@ -55,8 +55,8 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1180
+   "messages": 1186
   }
  },
- "next_expected_update_utc": "2026-09-08T04:30:00Z"
+ "next_expected_update_utc": "2026-09-08T11:20:00Z"
 }
