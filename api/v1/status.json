@@ -1,7 +1,7 @@
 {
  "ok": true,
- "generated_at": "2026-09-09T17:07:46+02:00",
- "run_id": "20260909T1507Z",
+ "generated_at": "2026-09-09T20:56:43+02:00",
+ "run_id": "20260909T1856Z",
  "degraded": false,
  "demo": false,
  "fx": {
@@ -9,25 +9,17 @@
   "rate": 11.1495,
   "date": "2026-09-09",
   "source": "ECB",
-  "fetched_at": "2026-09-09T17:33:31+02:00",
+  "fetched_at": "2026-09-09T21:02:38+02:00",
   "stale": false
  },
  "sources": {
   "entsoe_prices": {
-   "ok": false,
-   "rows": 0,
-   "error": "SE1: HTTPSConnectionPool(host='web-api.tp.entsoe.eu', port=443): Read timed out. (read timeout=45); SE2: HTTPSConnectionPool(host='web-api.tp.entsoe.eu', port=443): Read timed out. (read timeout=45); SE3: HTTPSConnectionPool(host='web-api.tp.entsoe.eu', port=443): Read timed out. (read timeout=45); SE4: 599 Server Error: status code 599 for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A47J&out_Domain=10Y1001A1001A47J&periodStart=202609052200&periodEnd=202609102200&secu"
+   "ok": true,
+   "rows": 480
   },
   "entsoe_quarters": {
    "ok": true,
-   "rows": 960,
-   "error": "SE1: HTTPSConnectionPool(host='web-api.tp.entsoe.eu', port=443): Read timed out. (read timeout=45); SE2: HTTPSConnectionPool(host='web-api.tp.entsoe.eu', port=443): Read timed out. (read timeout=45)"
-  },
-  "elpriset_prices": {
-   "ok": true,
-   "rows": 480,
-   "via": "elpriset",
-   "error": "SE1 2026-09-11: HTTPError; SE2 2026-09-11: HTTPError; SE3 2026-09-11: HTTPError; SE4 2026-09-11: HTTPError"
+   "rows": 1920
   },
   "open_meteo": {
    "ok": true,
@@ -36,7 +28,8 @@
   },
   "entsoe_fundamentals": {
    "ok": true,
-   "rows": 384
+   "rows": 360,
+   "error": "SE4 load: HTTPError"
   },
   "svk_text": {
    "ok": true,
@@ -49,8 +42,8 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1196
+   "messages": 1201
   }
  },
- "next_expected_update_utc": "2026-09-09T16:00:00Z"
+ "next_expected_update_utc": "2026-09-10T04:30:00Z"
 }
