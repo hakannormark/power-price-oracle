@@ -210,6 +210,9 @@ FUELS_PATH = MARKET_DIR / "fuels.jsonl"            # daily TTF and EUA closes
 FUTURES_PATH = MARKET_DIR / "futures.jsonl"        # daily settlement snapshots
 LONGTERM_DIR = DATA_DIR / "longterm"
 LONGTERM_FORECASTS_PATH = LONGTERM_DIR / "forecasts.jsonl"  # append-only
+# Last successfully fetched ENTSO-E load and wind/solar forecasts, per cell.
+# Committed, so a run that cannot reach ENTSO-E can fill in from the last one that could.
+FUNDAMENTALS_CACHE_PATH = DATA_DIR / "fundamentals" / "latest.jsonl"
 
 API_DIR = ROOT / "api" / "v1"
 SITE_DIR = ROOT / "site"

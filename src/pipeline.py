@@ -129,7 +129,9 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
             upsert_quarters(quarter_rows)
 
         weather, sources["open_meteo"] = open_meteo.fetch_weather()
-        fundamentals, sources["entsoe_fundamentals"] = entsoe_fundamentals.fetch_fundamentals()
+        fundamentals, sources["entsoe_fundamentals"] = entsoe_fundamentals.with_cache(
+            *entsoe_fundamentals.fetch_fundamentals(), now
+        )
         svk, sources["svk_text"] = svk_text.fetch_svk_text()
         if svk is None:
             svk = svk_text.load_cached_svk_text()
