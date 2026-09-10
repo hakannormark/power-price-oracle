@@ -130,12 +130,67 @@ class HourlyTests(unittest.TestCase):
         self.assertEqual(blind["production_out_mw"].max(), 0)
 
 
+def corridor(mid, origin, destination, mw, start, stop, installed=6200):
+    return message(
+        mid, 1, "2026-09-01T06:00:00Z",
+        [{
+            "name": f"{origin} → {destination}", "inAreaName": origin,
+            "outAreaName": destination, "installedCapacity": installed,
+            "timePeriods": [{"unavailableCapacity": mw, "eventStart": start, "eventStop": stop}],
+        }],
+        kind="transmissionUnits",
+    )
+
+
 class RankingTests(unittest.TestCase):
     def test_a_reactor_outranks_a_larger_corridor(self):
         rows = to_rows([PRODUCTION, CORRIDOR])
         items = current_outages(rows, local(2026, 9, 5))["SE3"]["items"]
         self.assertGreater(len(items), 1)
         self.assertTrue(rank_outages(items)[0]["nuclear"])
+
+    def test_reactors_are_never_cut_by_corridor_volume(self):
+        # Every border of SE3, each restricted by more than the reactor produces.
+        areas = [("SE3", "SE4"), ("SE2", "SE3"), ("FI", "SE3"), ("SE3", "FI"), ("NO1", "SE3"),
+                 ("SE3", "NO1"), ("DK1", "SE3"), ("SE3", "DK1"), ("SE4", "SE3"), ("SE3", "SE2")]
+        corridors = [
+            corridor(f"c{n}", a, b, 1500 + n, "2026-09-06T10:00:00Z", "2026-09-08T10:00:00Z")
+            for n, (a, b) in enumerate(areas)
+        ]
+        rows = to_rows([PRODUCTION, *corridors])
+        items = current_outages(rows, local(2026, 9, 5))["SE3"]["items"]
+        self.assertTrue(items[0]["nuclear"])
+
+
+class MergeTests(unittest.TestCase):
+    def test_overlapping_corridor_messages_become_one_item(self):
+        rows = to_rows([
+            corridor("a", "SE3", "SE4", 2900, "2026-09-06T10:00:00Z", "2026-09-08T10:00:00Z"),
+            corridor("b", "SE3", "SE4", 2900, "2026-09-07T10:00:00Z", "2026-09-10T10:00:00Z"),
+            corridor("c", "SE3", "SE4", 2500, "2026-09-06T10:00:00Z", "2026-09-12T10:00:00Z"),
+        ])
+        items = current_outages(rows, local(2026, 9, 5))["SE4"]["items"]
+        self.assertEqual(len(items), 1)
+        item = items[0]
+        # The deepest restriction, not the sum of the three.
+        self.assertEqual(item["unavailable_mw"], 2900)
+        self.assertEqual(item["messages"], 3)
+        self.assertTrue(item["from"].startswith("2026-09-06T12:00"))
+        self.assertTrue(item["to"].startswith("2026-09-10T12:00"))
+
+    def test_internal_sub_areas_are_left_out(self):
+        rows = to_rows([
+            corridor("x", "SE3", "SE3A", 2310, "2026-09-06T10:00:00Z", "2026-09-08T10:00:00Z",
+                     installed=2810),
+        ])
+        self.assertEqual(current_outages(rows, local(2026, 9, 5))["SE3"]["items"], [])
+
+    def test_nuclear_is_listed_in_the_neighbouring_zones(self):
+        outages = current_outages(to_rows([PRODUCTION]), local(2026, 9, 5))
+        self.assertTrue(outages["SE3"]["items"][0]["local"])
+        self.assertFalse(outages["SE4"]["items"][0]["local"])
+        self.assertEqual(outages["SE4"]["items"][0]["zone"], "SE3")
+        self.assertEqual(outages["SE1"]["items"], [])
 
 
 if __name__ == "__main__":

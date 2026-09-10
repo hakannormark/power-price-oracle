@@ -294,49 +294,104 @@ def hourly_outages(
     return frame
 
 
+# Areas a corridor can end in and still mean something to a reader. The feed
+# also names internal cuts and technical sub-areas (SE3A, SE3LS, PLC,
+# DE-TenneT) where no price is set; a sentence about "SE3 → SE3A" explains
+# nothing to anyone.
+BIDDING_AREAS = set(ZONES) | {
+    "NO1", "NO2", "NO3", "NO4", "NO5", "FI", "DK1", "DK2", "DE-LU", "PL", "LT", "EE",
+}
+
+# Swedish zones sharing a border. A reactor in SE3 moves the price in SE2 and
+# SE4 as well as in its own zone, so nuclear is listed next door too.
+ADJACENT_ZONES = {"SE1": ["SE2"], "SE2": ["SE1", "SE3"], "SE3": ["SE2", "SE4"], "SE4": ["SE3"]}
+
+MAX_ITEMS_PER_ZONE = 14
+
+
+def _merge_outages(rows: list[dict]) -> list[dict]:
+    """One item per plant or corridor: its deepest restriction, and when it holds.
+
+    Several messages often describe one limit. Svenska kraftnät publishes a
+    message per grid element under maintenance, each stating the resulting
+    corridor restriction, and their periods overlap. They are not additive — a
+    corridor limited by 2 900 MW under three messages is limited by 2 900 MW,
+    not 8 700 — so the deepest figure is kept, over the span in which some
+    message states it.
+    """
+    groups: dict[tuple, list[dict]] = {}
+    for row in rows:
+        if row["kind"] == "production":
+            key = ("production", row.get("zone"), row.get("unit"))
+        else:
+            key = ("transmission", row.get("from_area"), row.get("to_area"))
+        groups.setdefault(key, []).append(row)
+
+    items: list[dict] = []
+    for (kind, first, second), group in groups.items():
+        deepest = max(float(r.get("unavailable_mw") or 0) for r in group)
+        at_max = [r for r in group if float(r.get("unavailable_mw") or 0) == deepest]
+        head = at_max[0]
+        items.append(
+            {
+                "kind": kind,
+                "unit": head.get("unit") if kind == "production" else f"{first} → {second}",
+                "zone": head.get("zone"),
+                "from_area": head.get("from_area"),
+                "to_area": head.get("to_area"),
+                "fuel": head.get("fuel"),
+                "nuclear": bool(head.get("nuclear")),
+                "unavailable_mw": r3(deepest),
+                "installed_mw": head.get("installed_mw"),
+                "from": min(at_max, key=lambda r: parse_iso(r["event_start"]))["event_start"],
+                "to": max(at_max, key=lambda r: parse_iso(r["event_stop"]))["event_stop"],
+                "reason": head["reason"],
+                "messages": len({r["message_id"] for r in group}),
+            }
+        )
+    return items
+
+
 def current_outages(rows: list[dict], now: datetime | None = None, horizon_h: int = 168) -> dict:
-    """What is out during the forecast window, per zone, for the driver text."""
+    """What is out during the forecast window, per zone, for the driver text.
+
+    Each zone gets its own plants, the corridors on its borders, and nuclear in
+    the neighbouring Swedish zones — the last marked `local: false`.
+    """
     now = now or now_local()
     window_end = now + timedelta(hours=horizon_h)
-    live = dedupe_events(known_at(rows, now))
 
-    out: dict[str, dict] = {zone: {"items": []} for zone in ZONES}
-    for row in live:
-        if row.get("outdated"):
+    live: list[dict] = []
+    for row in dedupe_events(known_at(rows, now)):
+        if row.get("outdated") or float(row.get("unavailable_mw") or 0) <= 0:
             continue
         start, stop = parse_iso(row["event_start"]), parse_iso(row["event_stop"])
         if stop <= now or start >= window_end:
             continue
-        mw = float(row.get("unavailable_mw") or 0)
-        if mw <= 0:
+        if row["kind"] == "transmission" and not (
+            {row.get("from_area"), row.get("to_area")} <= BIDDING_AREAS
+        ):
             continue
+        live.append(row)
 
-        if row["kind"] == "production":
-            zones = [row["zone"]] if row.get("zone") in ZONES else []
-            label = row["unit"]
+    out: dict[str, dict] = {zone: {"items": []} for zone in ZONES}
+    for item in _merge_outages(live):
+        if item["kind"] == "production":
+            home = item["zone"]
+            if home not in ZONES:
+                continue
+            targets = [(home, True)]
+            if item["nuclear"]:
+                targets += [(zone, False) for zone in ADJACENT_ZONES[home]]
         else:
-            zones = [z for z in (row.get("from_area"), row.get("to_area")) if z in ZONES]
-            label = f"{row.get('from_area')} → {row.get('to_area')}"
+            targets = [(z, True) for z in (item["from_area"], item["to_area"]) if z in ZONES]
+        for zone, local in targets:
+            out[zone]["items"].append({**item, "local": local})
 
-        for zone in zones:
-            out[zone]["items"].append(
-                {
-                    "kind": row["kind"],
-                    "unit": label,
-                    "fuel": row.get("fuel"),
-                    "nuclear": bool(row.get("nuclear")),
-                    "unavailable_mw": r3(mw),
-                    "installed_mw": row.get("installed_mw"),
-                    "from": row["event_start"],
-                    "to": row["event_stop"],
-                    "reason": row["reason"],
-                }
-            )
-
-    # Keep a generous slice sorted by size; the explainer re-ranks by what is
-    # worth telling first, and truncating to six here would cut a reactor block
-    # that several larger corridor restrictions outrank on megawatts alone.
+    # Nuclear first, then by size. Sorting on megawatts alone let a dozen
+    # overlapping corridor messages push every reactor off the list: in
+    # September 2026 four blocks in SE3 were out and the SE3 text named none.
     for block in out.values():
-        block["items"].sort(key=lambda i: -(i["unavailable_mw"] or 0))
-        block["items"] = block["items"][:14]
+        block["items"].sort(key=lambda i: (not i["nuclear"], -(i["unavailable_mw"] or 0)))
+        block["items"] = block["items"][:MAX_ITEMS_PER_ZONE]
     return out

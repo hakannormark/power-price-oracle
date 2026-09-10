@@ -285,16 +285,21 @@ function renderDrivers(zoneData) {
     { label: "Vindindex söder", value: features.wind_index_south, decimals: 2, pivot: 1 },
     { label: "Temp.avvikelse", value: features[anomalyKey], decimals: 1, pivot: 0, suffix: " °C" },
     { label: "Solindex dagtid", value: features.solar_index_daytime, decimals: 2, pivot: 0 },
-    { label: "SE4 − SE2", value: features.spread_proxy_se4_se2, decimals: 1, pivot: 0, suffix: " EUR/MWh" },
+    { label: "Prisskillnad SE4 − SE2", value: features.spread_proxy_se4_se2, decimals: 1, pivot: 0, suffix: " EUR/MWh" },
   ];
+  const hasOutages = ((drivers.outages || {}).items || []).length > 0;
 
   host.innerHTML = `
     <div class="section-title">
       <h2>Varför ser det ut så här?</h2>
       <span class="chip">${drivers.regime_label_sv || "–"}</span>
     </div>
-    <p style="font-size:1.05rem">${drivers.headline_sv || ""}</p>
+    <p class="drivers-headline">${drivers.headline_sv || ""}</p>
     <ul class="bullets">${(drivers.bullets_sv || []).map((b) => `<li>${b}</li>`).join("")}</ul>
+    ${hasOutages ? `<p class="drivers-note">Avbrotten är meddelanden som kraftbolagen och
+      Svenska kraftnät publicerar via Nord Pool. De visas för att förklara läget men ingår
+      inte i prognosmodellen — det har prövats, och träffsäkerheten blev inte bättre.
+      Kärnkraft i ett angränsande elområde tas med eftersom den påverkar priset även här.</p>` : ""}
     <div class="feature-chips">
       ${chips
         .map((chip) => {
@@ -307,7 +312,14 @@ function renderDrivers(zoneData) {
           </div>`;
         })
         .join("")}
-    </div>`;
+    </div>
+    <p class="drivers-note">Nyckeltalen gäller kommande 48 timmar. <b>Vindindex</b> 1,00 är
+      normal vind för årstiden — över 1 blåser det mer, och mer vind brukar ge lägre pris.
+      <b>Temperaturavvikelsen</b> jämför med det normala för årstiden. <b>Solindex</b> går
+      från 0 (mulet) till 1 (klart) mitt på dagen. <b>Prisskillnad SE4 − SE2</b> är prognosens
+      snittpris i SE4 (Malmö) minus snittpriset i SE2 (Sundsvall). Elområdena får olika pris
+      bara när ledningarna mellan dem är fullt utnyttjade, så ett stort tal betyder att el
+      från norr inte räcker hela vägen söderut.</p>`;
 }
 
 /* ------------------------------------------------------------ week plan */

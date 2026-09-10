@@ -474,12 +474,73 @@
     }
 
     const categories = points.map((point) => point.ts);
+
+    // Thirty days of hours is too dense to read whole, so the view opens on the
+    // last week and zooms. Keep the reader's window when only the lead time or
+    // unit changes.
+    const previous = (chart.getOption() || {}).dataZoom;
+    const keep = chart.__historyLength === categories.length && previous && previous[0];
+    chart.__historyLength = categories.length;
+    // The series runs on into hours with no outcome yet; open on the week that
+    // ends at the latest outcome rather than on empty future.
+    let lastActual = -1;
+    points.forEach((point, index) => {
+      if (point.actual !== null && point.actual !== undefined) lastActual = index;
+    });
+    const span = Math.max(categories.length - 1, 1);
+    const endIndex = lastActual >= 0 ? Math.min(span, lastActual + 6) : span;
+    const startIndex = Math.max(0, endIndex - 7 * 24);
+    const start = keep ? previous[0].start : (startIndex / span) * 100;
+    const end = keep ? previous[0].end : (endIndex / span) * 100;
+
+    const dayLabel = (value) =>
+      new Date(value).toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
+    const stampLabel = (value) => {
+      const date = new Date(value);
+      return `${dayLabel(value)} ${String(date.getHours()).padStart(2, "0")}:00`;
+    };
+
     chart.setOption(
       Object.assign(baseOptions(), {
         tooltip: Object.assign(baseOptions().tooltip, {
           trigger: "axis",
           valueFormatter: (value) => (value === null ? "–" : `${num(value)} ${unitLabel(unit)}`),
         }),
+        dataZoom: [
+          {
+            type: "inside",
+            xAxisIndex: 0,
+            start,
+            end,
+            // Mouse zoom and pan are handled by bindWheelZoom and bindDragPan
+            // below: ECharts' own did not respond to a mouse drag or wheel here.
+            // What is left to it is touch — a two-finger pinch on a phone.
+            zoomOnMouseWheel: false,
+            moveOnMouseWheel: false,
+            moveOnMouseMove: false,
+            minValueSpan: 12,
+          },
+          {
+            type: "slider",
+            xAxisIndex: 0,
+            start,
+            end,
+            height: 22,
+            bottom: 6,
+            minValueSpan: 12,
+            borderColor: COLORS.grid,
+            backgroundColor: "rgba(30, 42, 68, 0.35)",
+            fillerColor: "rgba(94, 234, 212, 0.14)",
+            handleStyle: { color: COLORS.accent, borderColor: COLORS.accent },
+            moveHandleStyle: { color: COLORS.accent, opacity: 0.5 },
+            dataBackground: {
+              lineStyle: { color: COLORS.faint, opacity: 0.6 },
+              areaStyle: { color: COLORS.grid, opacity: 0.4 },
+            },
+            textStyle: { color: COLORS.faint, fontSize: 10 },
+            labelFormatter: (index) => (categories[index] ? dayLabel(categories[index]) : ""),
+          },
+        ],
         legend: {
           data: ["Utfall", `Prognos ${lead} h innan`],
           top: 0,
@@ -487,18 +548,24 @@
           itemWidth: 14,
           itemHeight: 8,
         },
-        grid: { left: 8, right: 12, top: 34, bottom: 8, containLabel: true },
+        grid: { left: 8, right: 12, top: 34, bottom: 40, containLabel: true },
         xAxis: Object.assign(axisCommon(), {
           type: "category",
           data: categories,
           boundaryGap: false,
           splitLine: { show: false },
+          axisPointer: { label: { formatter: (params) => stampLabel(params.value) } },
           axisLabel: {
             color: COLORS.muted,
             fontSize: 11,
-            interval: (index) => new Date(categories[index]).getHours() === 0,
-            formatter: (value) =>
-              new Date(value).toLocaleDateString("sv-SE", { day: "numeric", month: "short" }),
+            hideOverlap: true,
+            // Dates at midnight, hours in between once zoomed in far enough.
+            formatter: (value) => {
+              const date = new Date(value);
+              return date.getHours() === 0
+                ? dayLabel(value)
+                : `${String(date.getHours()).padStart(2, "0")}:00`;
+            },
           },
         }),
         yAxis: Object.assign(axisCommon(), { type: "value", scale: true, name: unitLabel(unit),
@@ -525,7 +592,113 @@
       }),
       { notMerge: true }
     );
+    bindWheelZoom(node, chart);
+    bindDragPan(node, chart);
+    bindGestureZoom(node, chart);
     chart.resize();
+  }
+
+  // Drag inside the plot to move through time. Only the plot area: the slider
+  // underneath has its own handles. Every listener is capture-phase: ECharts
+  // stops mouse events from bubbling out of the canvas, so a bubbling listener
+  // on window never saw the drag's movement.
+  function bindDragPan(node, chart) {
+    if (node.dataset.dragPan) return;
+    node.dataset.dragPan = "1";
+    let drag = null;
+    node.addEventListener("mousedown", (event) => {
+      if (event.button !== 0) return;
+      const rect = node.getBoundingClientRect();
+      const point = [event.clientX - rect.left, event.clientY - rect.top];
+      if (!chart.containPixel({ gridIndex: 0 }, point)) return;
+      const zoom = currentZoom(chart);
+      const hours = Math.max((chart.__historyLength || 2) - 1, 1);
+      const left = chart.convertToPixel({ xAxisIndex: 0 }, Math.round((zoom.start / 100) * hours));
+      const right = chart.convertToPixel({ xAxisIndex: 0 }, Math.round((zoom.end / 100) * hours));
+      const width = Math.max(right - left, 1);
+      drag = { x: event.clientX, start: zoom.start, end: zoom.end, width };
+      node.style.cursor = "grabbing";
+      event.preventDefault();
+    }, { capture: true });
+    window.addEventListener("mousemove", (event) => {
+      if (!drag) return;
+      const shift = ((event.clientX - drag.x) / drag.width) * (drag.end - drag.start);
+      zoomHistory(chart, drag.start - shift, drag.end - shift);
+    }, { capture: true });
+    window.addEventListener("mouseup", () => {
+      if (!drag) return;
+      drag = null;
+      node.style.cursor = "";
+    }, { capture: true });
+  }
+
+  /* Zoom the history window to [start, end] percent, keeping at least twelve
+     hours in view and the window inside the data. */
+  function zoomHistory(chart, start, end) {
+    const hours = Math.max((chart.__historyLength || 2) - 1, 1);
+    const span = Math.min(100, Math.max((12 / hours) * 100, end - start));
+    let from = Math.max(0, Math.min(start, 100 - span));
+    chart.dispatchAction({ type: "dataZoom", start: from, end: from + span });
+  }
+
+  function currentZoom(chart) {
+    return ((chart.getOption() || {}).dataZoom || [])[0] || { start: 0, end: 100 };
+  }
+
+  // A trackpad pinch arrives as ctrl+wheel in Chrome, Edge and Firefox. Handled
+  // here rather than by ECharts so the zoom centres on the pointer and a plain
+  // wheel is left alone to scroll the page past the chart.
+  function bindWheelZoom(node, chart) {
+    if (node.dataset.wheelZoom) return;
+    node.dataset.wheelZoom = "1";
+    node.addEventListener(
+      "wheel",
+      (event) => {
+        if (!event.ctrlKey) return;
+        event.preventDefault();
+        const zoom = currentZoom(chart);
+        const width = zoom.end - zoom.start || 1;
+        const hours = Math.max((chart.__historyLength || 2) - 1, 1);
+        const index = chart.convertFromPixel(
+          { xAxisIndex: 0 },
+          event.clientX - node.getBoundingClientRect().left
+        );
+        const focus = Number.isFinite(index)
+          ? Math.min(100, Math.max(0, (index / hours) * 100))
+          : zoom.start + width / 2;
+        const ratio = Math.min(1, Math.max(0, (focus - zoom.start) / width));
+        // A trackpad sends many small deltas, a mouse wheel ~100 per notch;
+        // this gives a smooth pinch and about 1.6x per notch.
+        const span = width * Math.exp(event.deltaY * 0.004);
+        const start = focus - span * ratio;
+        zoomHistory(chart, start, start + span);
+      },
+      { passive: false }
+    );
+  }
+
+  // Safari reports a trackpad pinch as gesture events rather than ctrl+wheel,
+  // and would zoom the whole page instead of the chart.
+  function bindGestureZoom(node, chart) {
+    if (node.dataset.gestureZoom) return;
+    node.dataset.gestureZoom = "1";
+    let base = null;
+    node.addEventListener("gesturestart", (event) => {
+      event.preventDefault();
+      const zoom = currentZoom(chart);
+      base = { start: zoom.start, end: zoom.end };
+    });
+    node.addEventListener("gesturechange", (event) => {
+      if (!base) return;
+      event.preventDefault();
+      const centre = (base.start + base.end) / 2;
+      const span = (base.end - base.start) / event.scale;
+      zoomHistory(chart, centre - span / 2, centre + span / 2);
+    });
+    node.addEventListener("gestureend", (event) => {
+      event.preventDefault();
+      base = null;
+    });
   }
 
   window.PPOCharts = { renderMain, renderMaeBars, renderSkill, renderSnapshot, renderHistory };

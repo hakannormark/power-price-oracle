@@ -32,6 +32,24 @@ MONTHS_SV = {
 # removes generation outright, where a corridor only moves it.
 NUCLEAR_PRIORITY_MW = 5000
 
+# Foreign bidding zones by name. Swedish zones are known to readers by code.
+AREA_NAMES_SV = {
+    "FI": "Finland",
+    "PL": "Polen",
+    "LT": "Litauen",
+    "EE": "Estland",
+    "DE-LU": "Tyskland",
+    "DK1": "Västdanmark",
+    "DK2": "Östdanmark",
+    "NO1": "Sydöstra Norge",
+    "NO2": "Sydvästra Norge",
+    "NO3": "Mellersta Norge",
+    "NO4": "Norra Norge",
+    "NO5": "Västra Norge",
+}
+
+COUNT_WORDS_SV = {2: "Två", 3: "Tre", 4: "Fyra", 5: "Fem", 6: "Sex"}
+
 REGIME_LABELS_SV = {
     "outage_tight": "Bortfall i systemet",
     "windy_cheap": "Blåsigt och billigt",
@@ -180,10 +198,23 @@ def _bullets(zone: str, regime: str, snap: dict, spread: float | None, svk_bulle
         )
 
     if spread is not None:
-        bullets.append(
-            f"Prognosen ger i snitt {sv_num(spread, 1, sign=True)} EUR/MWh skillnad mellan "
-            "SE4 och SE2 kommande två dygn."
-        )
+        # A price difference between two zones exists only while the corridor
+        # between them is full, which is the one thing this number says.
+        if abs(spread) < 3:
+            bullets.append(
+                "SE4 och SE2 väntas få nästan samma pris kommande två dygn — "
+                "överföringen söderut räcker till."
+            )
+        elif spread > 0:
+            bullets.append(
+                f"SE4 väntas i snitt bli {sv_num(spread, 1)} EUR/MWh dyrare än SE2 kommande "
+                "två dygn. En sådan skillnad uppstår när överföringen söderut är fullt utnyttjad."
+            )
+        else:
+            bullets.append(
+                f"SE4 väntas i snitt bli {sv_num(abs(spread), 1)} EUR/MWh billigare än SE2 "
+                "kommande två dygn."
+            )
 
     if snap.get("has_holiday"):
         bullets.append("En röd dag ligger inom prognosfönstret — lasten blir lägre den dagen.")
@@ -231,34 +262,77 @@ def _spread_proxy(series_by_zone: dict[str, list[dict]], now: datetime) -> float
     return south - north
 
 
-def outage_bullets(block: dict | None) -> list[str]:
+def _area(code: str | None) -> str:
+    return AREA_NAMES_SV.get(code or "", code or "?")
+
+
+def _unit_name(name: str) -> str:
+    """'Ringhals Block4' and 'Forsmark block 1' read as 'Ringhals 4' and 'Forsmark 1'."""
+    return re.sub(r"\s*[Bb]lock\s*(\d+)", r" \1", name or "").strip()
+
+
+def _period(item: dict, now: datetime) -> str:
+    start, stop = parse_iso(item["from"]), parse_iso(item["to"])
+    if start <= now:
+        return f"fram till {sv_date(stop)}"
+    return f"från {sv_date(start, with_time=True)} till {sv_date(stop)}"
+
+
+def _join_sv(parts: list[str]) -> str:
+    return parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " och " + parts[-1]
+
+
+def _home(items: list[dict], zone: str) -> str:
+    """' i SE3' when every item sits in one other zone, else ''."""
+    homes = {i.get("zone") for i in items}
+    if len(homes) == 1 and zone not in homes and None not in homes:
+        return f" i {next(iter(homes))}"
+    return ""
+
+
+def outage_bullets(block: dict | None, zone: str = "", now: datetime | None = None) -> list[str]:
     """Name what is actually out. These are published facts, not model output.
 
     Deliberately placed first among the bullets: a gigawatt of nuclear leaving
     the system matters more to next week's price than any wind index, and the
-    forecast underneath does not yet know about it.
+    forecast underneath does not yet know about it. Reactors share one bullet,
+    so a corridor restriction still gets a line of its own.
     """
     if not block or not block.get("items"):
         return []
+    now = now or now_local()
+
+    items = rank_outages(block["items"])
+    nuclear = [i for i in items if i.get("nuclear")]
+    others = [i for i in items if not i.get("nuclear")]
 
     lines: list[str] = []
-    for item in rank_outages(block["items"])[:3]:
-        start = sv_date(parse_iso(item["from"]), with_time=True)
-        stop = sv_date(parse_iso(item["to"]))
+    if nuclear:
+        home = _home(nuclear, zone)
+        parts = []
+        for item in nuclear:
+            tag = f" ({item['zone']})" if not home and item.get("zone") not in (zone, None) else ""
+            parts.append(
+                f"{_unit_name(item['unit'])}{tag} ({sv_num(item['unavailable_mw'], 0)} MW, "
+                f"{_period(item, now)})"
+            )
+        lines.append(f"Kärnkraft ur drift{home}: {_join_sv(parts)}.")
+
+    for item in others[: 3 - len(lines)]:
         mw = item["unavailable_mw"]
         if item["kind"] == "production":
-            what = "Kärnkraftsblocket" if item["nuclear"] else f"Anläggningen ({item['fuel']})"
             lines.append(
-                f"{what} {item['unit']} är ur drift med {sv_num(mw, 0)} MW "
-                f"från {start} till {stop}."
+                f"Anläggningen {item['unit']} ({item['fuel']}) är ur drift med "
+                f"{sv_num(mw, 0)} MW {_period(item, now)}."
             )
         else:
             share = ""
             if item.get("installed_mw"):
                 share = f", {sv_num(100 * mw / item['installed_mw'], 0)} % av kapaciteten"
             lines.append(
-                f"Överföringen {item['unit']} är begränsad med {sv_num(mw, 0)} MW{share} "
-                f"från {start} till {stop}."
+                f"Överföringen från {_area(item.get('from_area'))} till "
+                f"{_area(item.get('to_area'))} är begränsad med {sv_num(mw, 0)} MW{share}, "
+                f"{_period(item, now)}."
             )
     return lines
 
@@ -295,23 +369,33 @@ def rank_outages(items: list[dict]) -> list[dict]:
 
 
 def outage_headline(zone: str, block: dict | None) -> str | None:
-    """A headline that cannot contradict the bullets underneath it."""
+    """A summary above the bullets: it names the situation, they give the figures.
+
+    It used to restate the first bullet almost word for word, which read as the
+    same event listed twice.
+    """
     if not block or not block.get("items"):
         return None
     items = rank_outages(block["items"])
     nuclear = [i for i in items if i.get("nuclear")]
     if nuclear:
-        top = nuclear[0]
-        return (
-            f"{top['unit']} är ur drift med {sv_num(top['unavailable_mw'], 0)} MW "
-            f"från {sv_date(parse_iso(top['from']))} — det stramar åt {zone}."
+        home = _home(nuclear, zone)
+        partly = any(
+            i.get("installed_mw") and i["unavailable_mw"] < i["installed_mw"] for i in nuclear
         )
+        state = "helt eller delvis ur drift" if partly else "ur drift"
+        if len(nuclear) == 1:
+            subject = f"Kärnkraftsblocket {_unit_name(nuclear[0]['unit'])}{home} är {state}"
+        else:
+            count = COUNT_WORDS_SV.get(len(nuclear), str(len(nuclear)))
+            subject = f"{count} kärnkraftsblock{home} är {state}"
+        return f"{subject} — det stramar åt {zone}."
     transmission = [i for i in items if i["kind"] == "transmission"]
     if transmission and (transmission[0].get("unavailable_mw") or 0) >= 1000:
         top = transmission[0]
         return (
-            f"Överföringen {top['unit']} är begränsad med "
-            f"{sv_num(top['unavailable_mw'], 0)} MW från {sv_date(parse_iso(top['from']))}."
+            f"Begränsad överföring från {_area(top.get('from_area'))} till "
+            f"{_area(top.get('to_area'))} påverkar priset i {zone}."
         )
     return None
 
@@ -334,7 +418,7 @@ def build_drivers(
         snap = _snapshot(features, zone, now)
         regime = classify_regime(zone, snap)
         outage_block = (outages or {}).get(zone)
-        outage_lines = outage_bullets(outage_block)
+        outage_lines = outage_bullets(outage_block, zone, now)
         water = reservoir_bullet((reservoirs or {}).get(zone))
         if water:
             outage_lines = outage_lines + [water]

@@ -32,9 +32,9 @@
     <div class="page-head">
       <h1>Träffsäkerhet</h1>
       <p class="lede">Varje prognos sparas med tidpunkten den utfärdades. När Nord Pool
-        publicerat utfallet jämförs de två — sorterat efter hur långt i förväg prognosen
-        gjordes. Det är den enda jämförelsen som säger något: dag 1 är lätt, dag 5–7 är
-        nivå och dygnsform, inte öre.</p>
+        publicerat det faktiska priset jämförs de två — sorterat efter hur långt i förväg
+        prognosen gjordes. En prognos för i morgon är mycket lättare än en för nästa vecka,
+        så att blanda ihop dem skulle säga ingenting.</p>
     </div>
 
     <div class="banner" id="degraded-banner" hidden></div>
@@ -47,19 +47,37 @@
             publiceras runt klockan 12:45. En prognos som utfärdats efter den tidpunkten
             för morgondagens timmar är en avskrift av börsen, inte en gissning, och
             räknas därför bort helt.</p>
-          <p><b>Horisonten avgör svårighetsgraden.</b> Varje jämförelse sorteras efter
-            antalet hela timmar mellan <code>issued_at</code> och leveranstimmen, i
-            spann om ett dygn.</p>
+          <p><b>Horisonten avgör svårighetsgraden.</b> Horisont är hur långt i förväg
+            prognosen gjordes: <em>0–24 h</em> betyder att den ställdes ut högst ett dygn
+            före leveranstimmen, <em>144–168 h</em> sex till sju dygn före. Varje rad i
+            tabellen nedan gäller ett sådant spann.</p>
+          <p><b>Allt jämförs med en naiv referens.</b> Den <em>säsongsnaiva
+            referensen</em> är den enklaste prognos som går att göra: den säger att priset
+            blir detsamma som samma veckodag och timme förra veckan. Tisdag kl. 08 i
+            morgon gissas alltså bli som tisdag kl. 08 i förra veckan. Den kostar ingenting
+            att ta fram, så en modell som inte slår den tillför inget — och den är svårare
+            att slå än man tror, eftersom elpriset har ett starkt vecko- och dygnsmönster.</p>
+          <p><b>En körning per tidslucka.</b> Prognoser utfärdas fyra gånger per dygn. Körs
+            pipelinen oftare räknas bara den första i varje lucka, så att ingen dag väger
+            tyngre än en annan.</p>
         </div>
         <div>
           <dl>
-            <dt>MAE</dt><dd>Medelvärdet av felet i absoluta tal. Lägre är bättre.</dd>
-            <dt>RMSE</dt><dd>Straffar stora missar hårdare än MAE.</dd>
-            <dt>Bias</dt><dd>Systematiskt fel. Positivt = prognosen låg för högt.</dd>
-            <dt>Täckning p10–p90</dt><dd>Andel utfall som hamnade inuti osäkerhetsbandet.
-              Ska ligga nära 80 %. Bandet kalibrerades om i september 2026 — den
-              tidigare bredden träffade 39,7 % och utgav sig för att träffa 80.</dd>
-            <dt>Skill mot naiv</dt><dd>Hur mycket lägre MAE modellen har än den säsongsnaiva referensen. 0 % = ingen nytta alls.</dd>
+            <dt>n</dt><dd>Antal jämförda timmar. Under 24 visas <em>för lite data</em>.</dd>
+            <dt>MAE — medelfel</dt><dd>Hur mycket prognosen i genomsnitt missade, uppåt
+              eller nedåt. MAE 3 öre/kWh betyder att den i snitt låg 3 öre fel per timme.
+              Lägre är bättre.</dd>
+            <dt>RMSE</dt><dd>Ett medelfel som straffar stora missar hårdare. Är den mycket
+              större än MAE beror felet mest på några få timmar med stora missar.</dd>
+            <dt>Bias — snedvridning</dt><dd>Om prognosen systematiskt ligger åt ett håll.
+              Positivt = för högt, negativt = för lågt, nära noll = felen tar ut varandra.</dd>
+            <dt>Täckning p10–p90</dt><dd>Prognosen anger ett osäkerhetsband där priset
+              ska hamna 8 gånger av 10. Täckningen är hur ofta det faktiskt gjorde det, och
+              ska ligga nära 80 %. Mycket lägre = bandet är för smalt, mycket högre = för brett.</dd>
+            <dt>Skill mot naiv</dt><dd>Hur mycket mindre modellen missar än den
+              säsongsnaiva referensen, mätt på samma timmar. 10 % betyder att medelfelet är
+              en tiondel mindre. 0 % = ingen nytta, negativt = sämre än att upprepa förra
+              veckan.</dd>
           </dl>
         </div>
       </div>
@@ -83,16 +101,16 @@
 
     <section class="card">
       <div class="section-title">
-        <h2>MAE per horisont — alla modeller</h2>
-        <span class="meta">Lägre staplar är bättre</span>
+        <h2>Medelfel per horisont — alla modeller</h2>
+        <span class="meta">Lägre staplar är bättre. Varje grupp är ett prognosdygn.</span>
       </div>
       <div class="chart small" id="mae-chart"></div>
     </section>
 
     <section class="card">
       <div class="section-title">
-        <h2>Skill mot den säsongsnaiva referensen</h2>
-        <span class="meta">Över noll = modellen tillför något</span>
+        <h2>Hur mycket bättre än den naiva referensen?</h2>
+        <span class="meta">Över noll = modellen missar mindre än att upprepa förra veckans pris</span>
       </div>
       <div class="chart small" id="skill-chart"></div>
     </section>
@@ -104,9 +122,13 @@
           <select class="field" id="hist-lead" aria-label="Ledtid"></select>
         </div>
       </div>
-      <p class="sub">Senaste 30 dygnen, timme för timme. Välj hur långt före leverans
-        prognosen ställdes ut — ju längre ledtid, desto mer skiljer sig linjerna.</p>
-      <div class="chart small" id="history-chart"></div>
+      <p class="sub">Vit linje är det faktiska priset, grön är vad standardmodellen sa i
+        förväg. Välj ledtid — hur långt före leveranstimmen prognosen ställdes ut. Ju
+        längre ledtid, desto mer brukar linjerna skilja sig.</p>
+      <p class="sub"><b>Zooma</b> genom att nypa med två fingrar på styrplattan eller
+        telefonen, eller hålla Ctrl och scrolla. Dra i diagrammet eller i reglaget under
+        det för att flytta dig i tiden. Vyn börjar på senaste veckan av 30 dygn.</p>
+      <div class="chart" id="history-chart"></div>
     </section>
 
   </div>
