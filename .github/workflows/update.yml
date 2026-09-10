@@ -16,6 +16,12 @@ on:
     - cron: "30 4 * * *"
     - cron: "20 11 * * *"
     - cron: "0 16 * * *"
+  # External wake-up: cron-job.org POSTs {"event_type":"poll"} to the dispatches
+  # endpoint every 15 minutes, because GitHub's own schedule fired once in seven
+  # hours on 10 September. Gated like the schedule, so it runs only when a slot
+  # is due.
+  repository_dispatch:
+    types: [poll]
   workflow_dispatch:
   push:
     branches: [main]
@@ -47,7 +53,7 @@ jobs:
       - id: due
         # Stdlib only; no dependencies to install.
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "repository_dispatch" ]; then
             python3 -m src.schedule api/v1/status.json >> "$GITHUB_OUTPUT"
           else
             echo "due=true" >> "$GITHUB_OUTPUT"
@@ -73,7 +79,7 @@ jobs:
         # A poll can queue behind the run that serves the same slot. Once it
         # holds the lock, ask again against the checkout it got.
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "repository_dispatch" ]; then
             python3 -m src.schedule api/v1/status.json >> "$GITHUB_OUTPUT"
           else
             echo "due=true" >> "$GITHUB_OUTPUT"
