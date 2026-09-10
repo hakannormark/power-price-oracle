@@ -199,6 +199,7 @@ Bas: `https://hakannormark.github.io/power-price-oracle/api/v1/`
 | `models.json` | Installerade modeller med id, namn och beskrivning |
 | `zones.json` | Alla fyra elområden med aktuellt pris |
 | `accuracy.json` | Träffsäkerhet per elområde, modell och horisont |
+| `longterm.json` | Månadens snittpris 1–3 månader fram per elområde: alla modeller, terminspris, backtest |
 | `zones/{SE1..SE4}/forecast.json` | Timserie från i går 00:00 till +7 dygn, alla modeller, drivkrafter |
 | `zones/{SE1..SE4}/history.json` | 30 dygn utfall + prognosen vi gav 24, 48 … 168 h innan |
 | `zones/{SE1..SE4}/accuracy.json` | Träffsäkerhet för ett elområde |
@@ -325,6 +326,37 @@ utan hemligheter.
 
 ---
 
+## Långtidsprognos
+
+`langtid.html` och `api/v1/longterm.json` ger månadens snittpris per elområde en
+till tre månader fram, bredvid terminsmarknadens pris. Timmar och dygnsform går
+inte att förutsäga så långt fram; nivån går att säga något om.
+
+| Modell | Vad den gör |
+| --- | --- |
+| `lt_persistence` | Nästa månad blir som de senaste 30 dagarna. Referensen. |
+| **`lt_damped`** | 30-dagarssnittet flyttat en bit mot det vanliga säsongssteget till målmånaden och en bit mot årssnittet. Vikterna väljs varje vecka på kända utfall. **Standard.** |
+| `lt_fundamental` | Dessutom en ridge-regression på vattenmagasin, planerade kärnkraftsstopp och gaskraftens kostnad. Förlorar mot referensen och styr inte prognosen. |
+| `lt_market` | Euronext Nord Pool-terminer: systempris plus områdets EPAD. Ingen fri historik, så den mäts bara framåt. |
+
+Backtest, en prognos varje måndag juli 2023 – juli 2026 (161 st), medelfel för
+månadens snittpris i EUR/MWh över SE1–SE4 (`python -m src.longterm.backtest`):
+
+| Månader fram | 1 | 2 | 3 |
+| --- | --- | --- | --- |
+| `lt_persistence` | 17,7 | 20,2 | 21,5 |
+| **`lt_damped`** | **17,6** | **19,3** | **19,6** |
+| `lt_fundamental` | 23,5 | 22,8 | 22,5 |
+
+Samma regel som för timprognosen: allt modellerna ser — priser, magasin,
+avbrottsmeddelanden, bränslepriser — är skuret vid utfärdandet, och varje vikt är
+anpassad bara på månader som redan tagit slut. Att lägga på hela säsongssteget
+var 49 % sämre än referensen; en fjärdedel, vald walk-forward, är det som håller.
+En prognos per dygn loggas i `data/longterm/forecasts.jsonl` och poängsätts när
+månaden är slut.
+
+---
+
 ## Projektstruktur
 
 ```
@@ -351,6 +383,8 @@ site/                  statisk sajt på svenska
 data/actuals/YYYY.jsonl    officiella priser, partitionerade per år
 data/forecasts/YYYY-Www.jsonl  varje utfärdad prognos, append-only, en fil per vecka
 data/supply/umm/           avbrottsmeddelanden från Nord Pool
+data/market/               terminer (Euronext) och bränslepriser (TTF, EUA)
+data/longterm/forecasts.jsonl  varje utfärdad långtidsprognos, append-only
 data/weather/archive/      ERA5-historik för backtestet — gitignorerad,
                            hämtas med python -m src.fetch_weather_archive
 tests/                 python -m unittest discover -s tests -t .
@@ -376,6 +410,14 @@ Data från:
 - **[elprisetjustnu.se](https://www.elprisetjustnu.se/)** — reservkälla för
   spotpriser när ENTSO-E inte svarar. Ingen nyckel, kvartsupplösning, täcker
   SE1–SE4. Verifierad mot ENTSO-E till 0,000 EUR/MWh på timsnittet.
+- **[Euronext Nord Pool Power Futures](https://live.euronext.com/en/products/commodities/power-derivatives)** —
+  avräkningspris för systempris- och EPAD-terminer, till långtidsprognosen.
+  Fördröjd data.
+- **Yahoo Finance** — dagliga stängningskurser för gas (TTF) och utsläppsrätter
+  (EUA-ETC), till långtidsprognosen. Inofficiell källa; lagrad historik bär
+  modellen om den inte svarar.
+- **[Open-Meteo Seasonal](https://open-meteo.com/en/docs/seasonal-forecast-api)** —
+  ECMWF SEAS5, månadsavvikelser för temperatur och nederbörd. Visas som bakgrund.
 - **[Svenska kraftnät](https://www.svk.se/)** — driftinformation, används enbart
   extraktivt i drivkraftstexten.
 

@@ -18,6 +18,7 @@
     <a class="brand" href="index.html"><span class="dot"></span>Spotprognos <small>Nord Pool SE1–SE4</small></a>
     <nav class="site-nav">
       <a href="index.html">Prognos</a>
+      <a href="langtid.html">Långtid</a>
       <a href="traffsakerhet.html">Träffsäkerhet</a>
       <a href="modeller.html">Modeller</a>
       <a href="metod.html">Metod</a>
@@ -57,6 +58,7 @@
             <tr><td><code>models.json</code></td><td>Installerade modeller: id, namn, beskrivning, om de ger kvantiler</td></tr>
             <tr><td><code>zones.json</code></td><td>Alla fyra elområden med aktuellt pris och länkar</td></tr>
             <tr><td><code>accuracy.json</code></td><td>Träffsäkerhet per elområde, modell och horisont</td></tr>
+            <tr><td><code>longterm.json</code></td><td>Månadens snittpris 1–3 månader fram per elområde: alla modeller med intervall, terminsmarknadens pris, drivkrafter och backtest</td></tr>
             <tr><td><code>zones/{SE1..SE4}/forecast.json</code></td><td>Timserie från i går 00:00 till +7 dygn, alla modeller, drivkrafter</td></tr>
             <tr><td><code>zones/{SE1..SE4}/history.json</code></td><td>30 dygn utfall plus prognosen vi gav 24, 48 … 168 h innan</td></tr>
             <tr><td><code>zones/{SE1..SE4}/accuracy.json</code></td><td>Träffsäkerhet för ett elområde</td></tr>

@@ -747,12 +747,147 @@ async function initStatic() {
   }
 }
 
+/* ------------------------------------------------------------ long-term page */
+
+async function initLongterm() {
+  const [overview, longterm] = await Promise.all([
+    loadJSON("data/overview.json"),
+    loadJSON("data/longterm.json"),
+  ]);
+  applyFx(overview);
+  renderBanners(overview);
+  renderFooterMeta(overview);
+
+  const select = el("lt-zone");
+  select.innerHTML = ZONES.map(
+    (zone) => `<option value="${zone}">${zone} · ${(longterm.zones[zone] || {}).name || ""}</option>`
+  ).join("");
+  select.value = ZONES.includes(state.zone) ? state.zone : "SE3";
+  const draw = () => drawLongterm(longterm, select.value);
+  select.addEventListener("change", () => {
+    state.zone = select.value;
+    writeStore(STORE.zone, state.zone);
+    draw();
+  });
+  bindUnitToggle(draw);
+  draw();
+}
+
+function longtermModelName(longterm, id) {
+  const model = (longterm.models || []).find((m) => m.id === id);
+  return model ? model.name_sv : id;
+}
+
+function drawLongterm(longterm, zone) {
+  const block = longterm.zones[zone];
+  if (!block) return;
+  const chosen = longterm.default_model;
+  const reference = longterm.reference_model;
+  const months = block.months || [];
+
+  const rows = months
+    .map((month) => {
+      const ours = month.models[chosen] || {};
+      const market = month.models.lt_market;
+      const ref = month.models[reference] || {};
+      const marketCell = market
+        ? `${fmtPrice(market.p50)}${
+            market.tenor === "month"
+              ? ""
+              : ` <span class="muted">(${market.tenor === "quarter" ? "kvartal" : "år"} ${market.delivery})</span>`
+          }`
+        : "–";
+      const band =
+        ours.p10 !== undefined && ours.p90 !== undefined
+          ? `${fmtPrice(ours.p10)} – ${fmtPrice(ours.p90)}`
+          : "–";
+      return `<tr>
+        <td>${month.label.charAt(0).toUpperCase()}${month.label.slice(1)}</td>
+        <td class="num"><b>${fmtPrice(ours.p50)}</b></td>
+        <td class="num">${band}</td>
+        <td class="num">${marketCell}</td>
+        <td class="num">${fmtPrice(month.last_year)}</td>
+        <td class="num">${fmtPrice(ref.p50)}</td>
+      </tr>`;
+    })
+    .join("");
+
+  el("lt-table").innerHTML = `<div class="table-scroll"><table>
+      <thead><tr>
+        <th>Månad</th><th>Vår prognos</th><th>Intervall p10–p90</th>
+        <th>Terminsmarknaden</th><th>Samma månad i fjol</th><th>${longtermModelName(longterm, reference)}</th>
+      </tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="sub">Månadens snittpris i <span data-unit-label>${unitLabel()}</span> — spotpris utan
+      påslag, skatt och nät. Vår prognos är modellen
+      <b>${longtermModelName(longterm, chosen).toLowerCase()}</b>; kolumnen längst till höger är
+      referensen den mäts mot.</p>`;
+
+  el("lt-drivers").innerHTML = `<ul class="bullets">${(block.drivers_sv || [])
+    .map((line) => `<li>${line}</li>`)
+    .join("")}</ul>`;
+
+  drawLongtermAccuracy(longterm, zone);
+  window.PPOCharts.renderLongterm(el("lt-chart"), months, state.unit, chosen);
+}
+
+function drawLongtermAccuracy(longterm, zone) {
+  const host = el("lt-accuracy");
+  if (!host) return;
+  const backtest = longterm.backtest || {};
+  const cells = (backtest.zones || {})[zone] || {};
+  const reference = longterm.reference_model;
+  const models = (longterm.models || []).filter((m) => cells[m.id]);
+  const horizons = Object.keys(cells[reference] || {}).sort();
+
+  const body = horizons
+    .map((h) => {
+      const refMae = ((cells[reference] || {})[h] || {}).mae;
+      const tds = models
+        .map((model) => {
+          const cell = (cells[model.id] || {})[h];
+          if (!cell) return '<td class="num">–</td>';
+          let note = "";
+          if (model.id !== reference && refMae) {
+            const skill = (1 - cell.mae / refMae) * 100;
+            note = ` <span class="${skill > 0 ? "best" : "muted"}">${fmt(Math.abs(skill), 0)} % ${
+              skill > 0 ? "bättre" : "sämre"
+            }</span>`;
+          }
+          return `<td class="num">${fmtPrice(cell.mae)}${note}</td>`;
+        })
+        .join("");
+      return `<tr><td>${h} ${h === "1" ? "månad" : "månader"} fram</td>${tds}</tr>`;
+    })
+    .join("");
+
+  const window_ = backtest.window;
+  const live = longterm.accuracy || {};
+  const liveText = live.scored
+    ? `Skarpa prognoser poängsatta hittills: ${live.scored} månadsvärden.`
+    : `Skarpa prognoser loggas en gång per dygn${
+        live.first_issue ? ` sedan ${live.first_issue}` : ""
+      } och poängsätts när månaden är slut — de första siffrorna kommer efter ${
+        live.first_scoreable_month_label || "första hela månaden"
+      }. Terminsmarknaden kan bara mätas på det sättet, framåt.`;
+
+  host.innerHTML = `<div class="table-scroll"><table>
+      <thead><tr><th>Horisont</th>${models
+        .map((m) => `<th>${m.name_sv}${m.is_default ? " ★" : ""}</th>`)
+        .join("")}</tr></thead><tbody>${body}</tbody></table></div>
+    <p class="sub">Medelfel för månadens snittpris i <span data-unit-label>${unitLabel()}</span>${
+      window_ ? `, ${window_.issues} prognoser utfärdade måndagar ${window_.first_issue} – ${window_.last_issue}` : ""
+    }. Procenten jämför med ${longtermModelName(longterm, reference).toLowerCase()} på samma månader.
+      ★ = modellen sajten visar.</p>
+    <p class="sub">${liveText}</p>`;
+}
+
 /* ------------------------------------------------------------ boot */
 
 const PAGES = {
   index: initIndex,
   accuracy: initAccuracy,
   models: initModels,
+  longterm: initLongterm,
   static: initStatic,
 };
 

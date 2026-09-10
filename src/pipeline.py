@@ -30,11 +30,15 @@ from .fetch import (
     elpriset,
     entsoe_fundamentals,
     entsoe_prices,
+    euronext_futures,
+    fuels,
     nordpool_umm,
     open_meteo,
+    seasonal,
     svk_text,
 )
 from .fetch.entsoe_supply import latest_reservoir_state
+from .longterm import publish as longterm_publish
 from .models.official import actuals_index
 from .models.registry import (
     BASE_MODELS,
@@ -211,6 +215,34 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
     outages = nordpool_umm.current_outages(load_umm(since=now - timedelta(days=400)), now)
     reservoirs = latest_reservoir_state(load_reservoirs(), now)
     drivers = build_drivers(features, ensemble_by_zone, svk, now, outages, reservoirs)
+
+    # ---- 10b. long-term -------------------------------------------------
+    # Monthly means one to three months out. Its sources are fetched here, not
+    # with the others: none of them feeds the hourly forecast, and a failure
+    # anywhere in this step must not cost the run its hourly output.
+    outlook: dict = {}
+    if not skip_fetch:
+        sources["fuels"] = fuels.refresh()
+        futures_rows, sources["euronext_futures"] = euronext_futures.fetch_futures()
+        if futures_rows:
+            euronext_futures.upsert_futures(futures_rows)
+        outlook, sources["seasonal_outlook"] = seasonal.fetch_outlook()
+    try:
+        longterm = longterm_publish.build(
+            actuals,
+            load_reservoirs(),
+            load_umm(),
+            fuels.load_fuels(),
+            euronext_futures.load_futures(),
+            outlook,
+            now,
+        )
+        logged = longterm_publish.record(longterm, now) if record and not demo else 0
+        longterm_publish.write(longterm)
+        sources["longterm"] = {"ok": True, "default": longterm["default_model"], "logged": logged}
+    except Exception as exc:  # noqa: BLE001 - the hourly forecast must still publish
+        log.exception("Long-term forecast failed: %s", exc)
+        sources["longterm"] = {"ok": False, "error": str(exc)[:200]}
 
     # ---- 11-12. publish -------------------------------------------------
     meta = {

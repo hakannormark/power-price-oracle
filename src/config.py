@@ -156,6 +156,19 @@ ELPRISET_URL = (
 
 ECB_FX_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
 
+# Gas and carbon daily closes. Yahoo's public chart endpoint needs no key but is
+# unofficial, so the fetch degrades and the stored history carries the model.
+#   TTF=F  ICE Dutch TTF front-month gas future, EUR/MWh
+#   CO2.L  SparkChange physically backed EUA ETC, EUR per allowance
+YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+FUEL_SYMBOLS = {"ttf": "TTF=F", "eua": "CO2.L"}
+
+# Seasonal outlook: ECMWF SEAS5 monthly anomalies through Open-Meteo, no key.
+SEASONAL_API_URL = "https://seasonal-api.open-meteo.com/v1/seasonal"
+
+# Long-term forecast: calendar-month mean price, this many months ahead.
+LONGTERM_HORIZON_MONTHS = 3
+
 # Nord Pool's REMIT urgent market messages: plant and cable outages, public and
 # unauthenticated, with MW and hour-precision event windows.
 UMM_API_URL = "https://ummapi.nordpoolgroup.com/messages"
@@ -192,6 +205,11 @@ UMM_DIR = DATA_DIR / "supply" / "umm"
 WEATHER_ARCHIVE_DIR = DATA_DIR / "weather" / "archive"
 SVK_TEXT_PATH = RAW_DIR / "svk_driftinfo.txt"
 FIXTURE_ACTUALS_PATH = FIXTURES_DIR / "actuals_demo.jsonl"
+MARKET_DIR = DATA_DIR / "market"
+FUELS_PATH = MARKET_DIR / "fuels.jsonl"            # daily TTF and EUA closes
+FUTURES_PATH = MARKET_DIR / "futures.jsonl"        # daily settlement snapshots
+LONGTERM_DIR = DATA_DIR / "longterm"
+LONGTERM_FORECASTS_PATH = LONGTERM_DIR / "forecasts.jsonl"  # append-only
 
 API_DIR = ROOT / "api" / "v1"
 SITE_DIR = ROOT / "site"

@@ -18,6 +18,7 @@
     <a class="brand" href="index.html"><span class="dot"></span>Spotprognos <small>Nord Pool SE1–SE4</small></a>
     <nav class="site-nav">
       <a href="index.html">Prognos</a>
+      <a href="langtid.html">Långtid</a>
       <a href="traffsakerhet.html">Träffsäkerhet</a>
       <a href="modeller.html">Modeller</a>
       <a href="metod.html" aria-current="page">Metod</a>
@@ -306,6 +307,13 @@
         tyngre än andra. Förbättringen mot den naiva referensen mäts bara på timmar som
         båda modellerna har prognosticerat.</p>
 
+      <h2>Långtidsprognosen</h2>
+      <p>Utöver veckoprognosen per timme finns en <a href="langtid.html">långtidsprognos</a>
+        för månadens snittpris en till tre månader fram. Den följer samma regel: allt modellen
+        ser är skuret vid den tidpunkt prognosen gjordes, och varje vikt är anpassad bara på
+        månader som redan tagit slut. Den visas bredvid terminsmarknadens pris från Euronext
+        Nord Pool. Hur den fungerar och hur väl den har träffat står på sidan själv.</p>
+
       <h2>Datakällor</h2>
       <ul>
         <li><b><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency Platform</a></b> —
@@ -319,6 +327,11 @@
           svarar tidvis 503, och då är hela sajten utan priser. Reserven kräver
           ingen nyckel och gav exakt samma siffror vid kontroll. Fältet
           <code>via</code> i datat säger vilken källa varje pris kom från.</li>
+        <li><b><a href="https://live.euronext.com/en/products/commodities/power-derivatives">Euronext Nord Pool</a></b> —
+          avräkningspriser för elterminer, systempris och områdesdifferenser (EPAD), till
+          långtidsprognosen. Fördröjd data.</li>
+        <li><b>Yahoo Finance</b> — dagliga kurser för gas (TTF) och utsläppsrätter, till
+          långtidsprognosen.</li>
         <li><b><a href="https://www.svk.se/">Svenska kraftnät</a></b> — driftinformation som
           fritext. Används enbart för att citera en faktamening i drivkraftstexten, aldrig
           som modellindata.</li>

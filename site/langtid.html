@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Långtidsprognos — Spotprognos</title>
+<meta name="description" content="Månadens snittpris för SE1–SE4 en till tre månader fram, bredvid terminsmarknadens pris.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="longterm">
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="dot"></span>Spotprognos <small>Nord Pool SE1–SE4</small></a>
+    <nav class="site-nav">
+      <a href="index.html">Prognos</a>
+      <a href="langtid.html" aria-current="page">Långtid</a>
+      <a href="traffsakerhet.html">Träffsäkerhet</a>
+      <a href="modeller.html">Modeller</a>
+      <a href="metod.html">Metod</a>
+      <a href="api.html">API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack">
+
+    <div class="page-head">
+      <h1>Långtidsprognos</h1>
+      <p class="lede">Månadens snittpris per elområde, en till tre månader fram. Ingen
+        timprognos — så långt fram går det bara att säga något om nivån. Bredvid vår prognos
+        står terminsmarknadens pris: vad elhandlare och industri i dag betalar för att låsa
+        priset för samma månad.</p>
+    </div>
+
+    <div class="banner" id="degraded-banner" hidden></div>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>De kommande tre månaderna</h2>
+        <div class="controls">
+          <select class="field" id="lt-zone" aria-label="Elområde"></select>
+          <div class="segmented" data-unit-toggle>
+            <button type="button" data-unit="ore" aria-pressed="true">öre/kWh</button>
+            <button type="button" data-unit="eur" aria-pressed="false">EUR/MWh</button>
+          </div>
+        </div>
+      </div>
+      <p class="sub">Stapeln är vår prognos för månadens snittpris och strecket på den
+        intervallet där utfallet hamnade åtta gånger av tio i backtestet. Rutern är
+        terminsmarknaden och det grå strecket samma månad i fjol.</p>
+      <div class="chart" id="lt-chart"></div>
+      <div id="lt-table"><p class="loading">Läser in långtidsprognosen…</p></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Vad bygger prognosen på?</h2>
+      </div>
+      <div id="lt-drivers"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Hur träffsäker är den?</h2>
+        <span class="meta">Backtest med en prognos varje måndag sedan 2023</span>
+      </div>
+      <div id="lt-accuracy"></div>
+    </section>
+
+    <section class="card prose" style="max-width:none">
+      <h2>Så fungerar det</h2>
+      <p><b>Prognosen gäller snittpriset för en hel kalendermånad.</b> Timmar och dygnsform
+        går inte att förutsäga flera månader fram, men nivån går att säga något om — och det
+        är nivån som avgör vad ett fast elavtal är värt och vad vintern kostar.</p>
+      <p><b>Vår modell</b> utgår från snittpriset de senaste 30 dagarna. Den flyttar det en
+        bit mot den skillnad som brukar finnas mellan årstiden nu och målmånaden, och en bit
+        mot det senaste årets snitt. Hur stora bitarna är väljs om varje vecka, och bara på
+        utfall som redan var kända när prognosen gjordes — samma regel som för timprognosen.
+        Den enklaste tänkbara prognosen, att priset blir oförändrat, är referensen den mäts mot.</p>
+      <p><b>Mer avancerat blev sämre.</b> En modell som dessutom räknar på vattenmagasinen,
+        planerade kärnkraftsstopp och gaskraftens kostnad missade mer än att bara anta
+        oförändrat pris, och att lägga på hela säsongsskillnaden var ännu sämre. Med tre års
+        historik lär sig en sådan modell mest slumpen. Den ligger kvar i jämförelsen men styr
+        inte prognosen. Siffrorna i den finns ändå med under <i>Vad bygger prognosen på?</i>,
+        eftersom de säger något sant om läget.</p>
+      <p><b>Terminsmarknaden</b> är Euronext Nord Pools terminer. Ett elområdes pris är
+        systempriset plus områdets prisdifferens (EPAD) för samma leveransperiod. Nästa månad
+        har ett eget kontrakt; månaderna därefter handlas oftast bara som ett kvartal, och då
+        visas kvartalets pris för varje månad i det. Det är avräkningspriser från senaste
+        handelsdag. Det finns ingen fri historik över dem, så marknadens träffsäkerhet mäts
+        framåt från september 2026, på samma sätt som vår.</p>
+      <p><b>Bakgrund, inte indata:</b> säsongsprognosen för vädret (ECMWF via Open-Meteo)
+        visas men används inte, eftersom det saknas en fri historik av gamla säsongsprognoser
+        att pröva den mot. Gaspris och utsläppsrätter hämtas från Yahoo Finance.</p>
+      <p>Siffrorna är spotpris utan påslag, elcertifikat, energiskatt, nätavgift och moms.
+        Fatta inga ekonomiska beslut på dem utan att kontrollera med din elhandlare.</p>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>Om sajten</h4>
+        <p>Spotprognos räknar ut en veckoprognos för Nord Pools day-ahead-priser i SE1–SE4,
+           sparar varje utfärdad prognos och mäter i efterhand hur väl den träffade.</p>
+      </div>
+      <div>
+        <h4>Datakällor</h4>
+        <ul>
+          <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
+          <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
+          <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Öppet</h4>
+        <ul>
+          <li><a href="api.html">JSON-API</a></li>
+          <li><a href="metod.html">Metod</a></li>
+          <li><a href="#" data-repo-url>Källkod</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="disclaimer">
+      <span>Prognosen är en modell, inte ett elavtal. Påslag, moms och nät saknas.<br><span class="muted" data-fx>–</span></span>
+      <span>Uppdaterad <b data-updated>–</b> · nästa körning <b data-next-update>–</b></span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.6.0/echarts.min.js" defer></script>
+<script src="assets/charts.js" defer></script>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

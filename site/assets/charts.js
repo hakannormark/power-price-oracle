@@ -701,5 +701,128 @@
     });
   }
 
-  window.PPOCharts = { renderMain, renderMaeBars, renderSkill, renderSnapshot, renderHistory };
+  /* ---------------------------------------------------------- long-term */
+
+  // One bar per month for our forecast, its p10–p90 as a whisker on the bar,
+  // the futures price as a diamond and last year's outcome as a grey dash.
+  function renderLongterm(node, months, unit, modelId) {
+    const chart = chartFor(node);
+    if (!chart) return;
+    const labels = months.map((m) => m.label.charAt(0).toUpperCase() + m.label.slice(1));
+    const pick = (month, id, key = "p50") => scale(((month.models || {})[id] || {})[key], unit);
+    // ECharts sizes the axis from the bar and scatter series only; the whisker
+    // is a custom series and would run off the top into the legend.
+    const values = months
+      .flatMap((m) => [pick(m, modelId), pick(m, modelId, "p90"), pick(m, "lt_market"), scale(m.last_year, unit)])
+      .filter((v) => Number.isFinite(v));
+    // A round step, and a maximum on it, so the top label never lands on a tick.
+    const top = values.length ? Math.max(...values) : null;
+    const step = top !== null ? [5, 10, 20, 25, 50, 100, 200].find((s) => s >= (top * 1.08) / 5) || 500 : null;
+    const yMax = step ? Math.ceil((top * 1.08) / step) * step : null;
+
+    chart.setOption(
+      Object.assign(baseOptions(), {
+        tooltip: Object.assign(baseOptions().tooltip, {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+          formatter: (params) => {
+            const index = params.length ? params[0].dataIndex : 0;
+            const month = months[index];
+            const line = (name, value) =>
+              `<div>${name}: <b>${value === null || value === undefined ? "–" : `${num(value)} ${unitLabel(unit)}`}</b></div>`;
+            return [
+              `<div style="margin-bottom:4px">${labels[index]}</div>`,
+              line("Vår prognos", pick(month, modelId)),
+              line("Intervall p10", pick(month, modelId, "p10")),
+              line("Intervall p90", pick(month, modelId, "p90")),
+              line("Terminsmarknaden", pick(month, "lt_market")),
+              line("Samma månad i fjol", scale(month.last_year, unit)),
+            ].join("");
+          },
+        }),
+        legend: {
+          data: ["Vår prognos", "Terminsmarknaden", "Samma månad i fjol"],
+          top: 0,
+          textStyle: { color: COLORS.muted, fontSize: 11 },
+          itemWidth: 14,
+          itemHeight: 8,
+        },
+        grid: { left: 8, right: 12, top: 48, bottom: 8, containLabel: true },
+        xAxis: Object.assign(axisCommon(), {
+          type: "category",
+          data: labels,
+          splitLine: { show: false },
+        }),
+        yAxis: Object.assign(axisCommon(), {
+          type: "value",
+          min: 0,
+          max: yMax,
+          interval: step || undefined,
+          name: unitLabel(unit),
+          nameTextStyle: { color: COLORS.faint, fontSize: 11, align: "left" },
+        }),
+        series: [
+          {
+            name: "Vår prognos",
+            type: "bar",
+            barMaxWidth: 90,
+            data: months.map((m) => pick(m, modelId)),
+            itemStyle: { color: COLORS.accent, opacity: 0.8, borderRadius: [4, 4, 0, 0] },
+          },
+          {
+            name: "Intervall",
+            type: "custom",
+            z: 5,
+            data: months.map((m, i) => [i, pick(m, modelId, "p10"), pick(m, modelId, "p90")]),
+            renderItem: (params, api) => {
+              const low = api.value(1);
+              const high = api.value(2);
+              if (!Number.isFinite(low) || !Number.isFinite(high)) return null;
+              const bottom = api.coord([api.value(0), low]);
+              const top = api.coord([api.value(0), high]);
+              const cap = api.size([1, 0])[0] * 0.1;
+              const style = { stroke: COLORS.official, lineWidth: 1.6, opacity: 0.85 };
+              return {
+                type: "group",
+                children: [
+                  { type: "line", shape: { x1: bottom[0], y1: bottom[1], x2: top[0], y2: top[1] }, style },
+                  { type: "line", shape: { x1: bottom[0] - cap, y1: bottom[1], x2: bottom[0] + cap, y2: bottom[1] }, style },
+                  { type: "line", shape: { x1: top[0] - cap, y1: top[1], x2: top[0] + cap, y2: top[1] }, style },
+                ],
+              };
+            },
+          },
+          {
+            name: "Terminsmarknaden",
+            type: "scatter",
+            z: 6,
+            symbol: "diamond",
+            symbolSize: 16,
+            data: months.map((m) => pick(m, "lt_market")),
+            itemStyle: { color: COLORS.models[2], borderColor: "#0b1220", borderWidth: 1 },
+          },
+          {
+            name: "Samma månad i fjol",
+            type: "scatter",
+            z: 4,
+            symbol: "rect",
+            symbolSize: [46, 4],
+            data: months.map((m) => scale(m.last_year, unit)),
+            itemStyle: { color: COLORS.muted, opacity: 0.9 },
+          },
+        ],
+      }),
+      { notMerge: true }
+    );
+    chart.resize();
+  }
+
+  window.PPOCharts = {
+    renderMain,
+    renderMaeBars,
+    renderSkill,
+    renderSnapshot,
+    renderHistory,
+    renderLongterm,
+  };
 })();
