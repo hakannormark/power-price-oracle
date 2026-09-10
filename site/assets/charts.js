@@ -9,7 +9,9 @@
     grid: "#1e2a44",
     muted: "#93a0b8",
     faint: "#6b7a94",
-    models: ["#60a5fa", "#c084fc", "#fbbf24", "#fb7185", "#34d399"],
+    // No greens: the published model is drawn in the accent teal, and a second
+    // green beside it was indistinguishable.
+    models: ["#60a5fa", "#c084fc", "#fbbf24", "#fb7185", "#fb923c", "#94a3b8"],
   };
 
   const instances = new WeakMap();
@@ -100,7 +102,8 @@
   function renderMain(node, zoneData, opts) {
     const chart = chartFor(node);
     if (!chart) return;
-    const { unit, overlay, defaultModel } = opts;
+    const { unit, overlay, defaultModel, names = {} } = opts;
+    const label = (id) => names[id] || id;
 
     const series = zoneData.series || [];
     const categories = series.map((point) => point.ts);
@@ -151,7 +154,7 @@
         z: 1,
       },
       {
-        name: "Prognos (ensemble)",
+        name: "Prognos",
         type: "line",
         data: p50,
         symbol: "none",
@@ -205,7 +208,7 @@
     if (overlay) {
       otherModels.forEach((id, index) => {
         chartSeries.push({
-          name: id,
+          name: label(id),
           type: "line",
           data: series.map((point) => scale((point.models[id] || {}).p50, unit)),
           symbol: "none",
@@ -258,7 +261,7 @@
                       scale(model.p90, unit)
                     )})</span>`;
               lines.push(
-                `<div><span style="color:${color}">●</span> ${id}: ${num(
+                `<div><span style="color:${color}">●</span> ${label(id)}: ${num(
                   scale(model.p50, unit)
                 )}${band}</div>`
               );
@@ -306,9 +309,16 @@
 
   /* ---------------------------------------------------------- accuracy */
 
-  function renderMaeBars(node, table, models, unit) {
+  // The model the site publishes gets the accent colour; the rest share the palette.
+  function modelColor(model, index, defaultModel) {
+    return model === defaultModel ? COLORS.accent : COLORS.models[index % COLORS.models.length];
+  }
+
+  function renderMaeBars(node, table, models, unit, options = {}) {
     const chart = chartFor(node);
     if (!chart) return;
+    const { defaultModel, names = {} } = options;
+    const label = (id) => names[id] || id;
     const buckets = Object.keys(table);
     const hasData = buckets.some((bucket) =>
       models.some((model) => table[bucket] && table[bucket][model] !== null)
@@ -336,7 +346,7 @@
       Object.assign(baseOptions(), {
         tooltip: Object.assign(baseOptions().tooltip, { trigger: "axis", axisPointer: { type: "shadow" } }),
         legend: {
-          data: models,
+          data: models.map(label),
           top: 0,
           textStyle: { color: COLORS.muted, fontSize: 11 },
           itemWidth: 12,
@@ -350,17 +360,14 @@
         }),
         yAxis: Object.assign(axisCommon(), {
           type: "value",
-          name: `MAE ${unitLabel(unit)}`,
+          name: `Medelfel ${unitLabel(unit)}`,
           nameTextStyle: { color: COLORS.faint, fontSize: 11, align: "left" },
         }),
         series: models.map((model, index) => ({
-          name: model,
+          name: label(model),
           type: "bar",
           data: buckets.map((bucket) => scale((table[bucket] || {})[model], unit)),
-          itemStyle: {
-            color: model === "ensemble" ? COLORS.accent : COLORS.models[index % COLORS.models.length],
-            borderRadius: [3, 3, 0, 0],
-          },
+          itemStyle: { color: modelColor(model, index, defaultModel), borderRadius: [3, 3, 0, 0] },
           barMaxWidth: 26,
         })),
       }),
@@ -369,9 +376,11 @@
     chart.resize();
   }
 
-  function renderSkill(node, metrics, models, referenceModel) {
+  function renderSkill(node, metrics, models, referenceModel, options = {}) {
     const chart = chartFor(node);
     if (!chart) return;
+    const { defaultModel, names = {} } = options;
+    const label = (id) => names[id] || id;
     const scored = models.filter((model) => model !== referenceModel);
     const buckets = new Set();
     scored.forEach((model) => Object.keys(metrics[model] || {}).forEach((b) => buckets.add(b)));
@@ -390,7 +399,7 @@
         Object.assign(baseOptions(), {
           title: {
             text: "För lite data ännu",
-            subtext: `Skill mäts mot ${referenceModel} när båda har utfall att jämföra.`,
+            subtext: `Jämförelsen mot ${label(referenceModel)} visas när båda har utfall att jämföra.`,
             left: "center",
             top: "middle",
             textStyle: { color: COLORS.faint, fontSize: 14, fontWeight: 500 },
@@ -406,9 +415,14 @@
       Object.assign(baseOptions(), {
         tooltip: Object.assign(baseOptions().tooltip, {
           trigger: "axis",
-          valueFormatter: (value) => (value === null ? "–" : `${num(value, 0)} %`),
+          valueFormatter: (value) =>
+            value === null || value === undefined
+              ? "–"
+              : value >= 0
+                ? `${num(value, 0)} % mindre fel`
+                : `${num(-value, 0)} % mer fel`,
         }),
-        legend: { data: scored, top: 0, textStyle: { color: COLORS.muted, fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
+        legend: { data: scored.map(label), top: 0, textStyle: { color: COLORS.muted, fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
         grid: { left: 8, right: 12, top: 34, bottom: 8, containLabel: true },
         xAxis: Object.assign(axisCommon(), {
           type: "category",
@@ -417,22 +431,30 @@
         }),
         yAxis: Object.assign(axisCommon(), {
           type: "value",
-          name: "Skill mot naiv (%)",
+          name: `Mindre fel än ${label(referenceModel).toLowerCase()}, %`,
           nameTextStyle: { color: COLORS.faint, fontSize: 11, align: "left" },
         }),
         series: scored.map((model, index) => ({
-          name: model,
+          name: label(model),
           type: "bar",
           data: labels.map((bucket) => {
             const stats = (metrics[model] || {})[bucket];
             if (!stats || !stats.enough_data || stats.skill_vs_naive === null) return null;
             return stats.skill_vs_naive * 100;
           }),
-          itemStyle: {
-            color: model === "ensemble" ? COLORS.accent : COLORS.models[index % COLORS.models.length],
-            borderRadius: [3, 3, 0, 0],
-          },
+          itemStyle: { color: modelColor(model, index, defaultModel), borderRadius: [3, 3, 0, 0] },
           barMaxWidth: 26,
+          // Zero is "no better than repeating last week"; below it, worse.
+          markLine:
+            index === 0
+              ? {
+                  silent: true,
+                  symbol: "none",
+                  data: [{ yAxis: 0 }],
+                  lineStyle: { color: COLORS.muted, type: "solid", width: 1 },
+                  label: { formatter: "som referensen", color: COLORS.faint, fontSize: 10, position: "insideEndTop" },
+                }
+              : undefined,
         })),
       }),
       { notMerge: true }
@@ -447,7 +469,9 @@
       `<a href="traffsakerhet.html">se allt</a></span></div>` +
       '<div class="chart small" id="snapshot-chart"></div>';
     const table = accuracy.table || {};
-    renderMaeBars(document.getElementById("snapshot-chart"), table, [accuracy.default_model || "ensemble"], unit);
+    const chosen = accuracy.default_model;
+    const names = (window.PPOApp && window.PPOApp.state.modelNames) || {};
+    renderMaeBars(document.getElementById("snapshot-chart"), table, [chosen], unit, { defaultModel: chosen, names });
   }
 
   /* ---------------------------------------------------------- history */

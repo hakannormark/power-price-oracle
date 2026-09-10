@@ -53,9 +53,9 @@
         norra Sverige ha nästan gratis el samtidigt som SE4 följer priset i Danmark
         och Tyskland.</p>
       <p>Sedan 2025 handlas den europeiska day-ahead-marknaden i <b>15-minutersupplösning</b>.
-        Den här sajten visar timvärden i v1: kortare intervall medelvärdesbildas till hela
-        timmar. Dataformatet har redan ett <code>resolution</code>-fält
-        (<code>PT60M</code> i dag) så att kvartsvärden kan läggas till utan att bryta API:t.</p>
+        Prognosen görs per timme, eftersom kvartarnas mönster inte går att förutsäga flera dygn
+        fram, och timmens pris är snittet av dess fyra kvartar. Där auktionen redan har
+        publicerat kvartspriser sparas de och tas med i veckoöversikten på förstasidan.</p>
 
       <h2>Vad som driver priset</h2>
       <dl>
@@ -91,7 +91,8 @@
 
       <h2>Vad v1 faktiskt gör</h2>
       <ol>
-        <li>Hämtar officiella day-ahead-priser från ENTSO-E och sparar dem som fakta.</li>
+        <li>Hämtar officiella day-ahead-priser från ENTSO-E och sparar dem som fakta. Svarar
+          ENTSO-E inte hämtas samma priser från elprisetjustnu.se.</li>
         <li>Hämtar väderprognos tio dygn framåt för nio punkter i Norden och norra Tyskland.</li>
         <li>Räknar fram vindindex, temperaturavvikelse och solindex per timme och elområde.
           Normalvärdena byggs upp löpande körning för körning, eftersom väder-API:t bara
@@ -103,6 +104,9 @@
           som mätt sig bäst, inte en sammanvägning — varje blandning testades och
           blev sämre.</li>
         <li>Jämför senare mot utfallet, sorterat efter hur långt i förväg prognosen gjordes.</li>
+        <li>Hämtar terminsmarknadens priser från Euronext Nord Pool. De används av
+          långtidsprognosen och av en provmodell som flyttar standardmodellens nivå till
+          marknadens pris för nästa vecka — se <i>Vad v1 inte gör</i> nedan.</li>
       </ol>
       <p>Skalfaktorn i <code>weather_scaled</code> är avsiktligt enkel och läsbar:
         vindindex över det normala drar ner priset, kyla drar upp det, sol mitt på dagen
@@ -115,25 +119,35 @@
       <h2>Vad som faktiskt är mätt</h2>
       <p>Sedan hösten 2026 finns fyra års prishistorik, fyra års väderarkiv och
         fyra års avbrottsmeddelanden i projektet. Det gör att modellvalen inte
-        längre behöver motiveras med resonemang. Varje kandidat poängsätts på
-        <b>82 576 timmar ut ur urvalet</b> över tio kvartal, där varje koefficient
-        anpassas enbart på data som är äldre än kvartalet den tillämpas på.</p>
+        längre behöver motiveras med resonemang. Varje kandidat poängsätts i ett
+        <b>backtest</b>: modellen får göra prognoser för gamla veckor, och de jämförs med
+        vad priset faktiskt blev. Totalt <b>82 576 timmar</b> över tio kvartal, där varje
+        vikt anpassas enbart på data som är äldre än kvartalet den prövas på — modellen
+        får alltså aldrig se facit i förväg.</p>
 
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Kandidat</th><th>MAE EUR/MWh</th><th>Mot naiv</th></tr></thead>
+          <thead><tr><th>Kandidat</th><th>Medelfel, EUR/MWh</th><th>Mindre fel än naiv</th></tr></thead>
           <tbody>
-            <tr><td>Säsongsnaiv (referens)</td><td class="num">29,51</td><td class="num">0 %</td></tr>
-            <tr><td>Väderskalad</td><td class="num">28,04</td><td class="num">+5,0 %</td></tr>
-            <tr><td>Ensemble 35/65</td><td class="num">28,40</td><td class="num">+3,8 %</td></tr>
-            <tr><td>Enbart dämpad nivå, utan väder</td><td class="num">27,18</td><td class="num">+7,9 %</td></tr>
-            <tr><td><b>Dämpad nivå + väderskalning</b></td><td class="num"><b>25,38</b></td><td class="num best"><b>+13,0 %</b></td></tr>
-            <tr><td>Färsk nivå + väderskalning</td><td class="num">24,57</td><td class="num">+15,8 %</td></tr>
+            <tr><td>Säsongsnaiv — referensen</td><td class="num">29,51</td><td class="num">–</td></tr>
+            <tr><td>Väderskalad</td><td class="num">28,04</td><td class="num">5,0 %</td></tr>
+            <tr><td>Ensemble 35/65</td><td class="num">28,40</td><td class="num">3,8 %</td></tr>
+            <tr><td>Enbart dämpad nivå, utan väder</td><td class="num">27,18</td><td class="num">7,9 %</td></tr>
+            <tr><td><b>Dämpad nivå + väderskalning — sajtens standard</b></td><td class="num"><b>25,38</b></td><td class="num best"><b>13,0 %</b></td></tr>
+            <tr><td>Färsk nivå + väderskalning — se nedan</td><td class="num">24,57</td><td class="num">15,8 %*</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="muted">Talen mäter mittlinjen p50. Osäkerhetsbandet mäts separat,
-        se nedan.</p>
+      <p><b>Så läser du tabellen.</b> <i>Medelfel</i> är hur mycket prognosen i snitt missade
+        per timme, uppåt eller nedåt, i EUR/MWh — <b>lägre är bättre</b>. <i>Mindre fel än
+        naiv</i> jämför med referensen, den enklaste tänkbara prognosen: att priset blir
+        detsamma som samma timme förra veckan. 13,0 % betyder att standardmodellen i snitt
+        missar 13 procent mindre än referensen — <b>högre procent är bättre</b>.</p>
+      <p class="muted">* Den färska nivån ser bäst ut i tabellen, men siffran är från ett
+        backtest som av misstag räknade med timmar vars pris redan var publicerat. Mätt rätt
+        är den sämre än standardmodellen — se <i>Gårdagens pris</i> nedan. Talen mäter
+        mittlinjen p50; osäkerhetsbandet mäts separat. Skarpa siffror, med riktiga
+        väderprognoser, finns på <a href="traffsakerhet.html">träffsäkerhetssidan</a>.</p>
 
       <h3>Nivån ska inte hämtas från en enda vecka</h3>
       <p>Att kopiera priset samma timme sju dygn tidigare betyder att ett avvikande
@@ -177,6 +191,12 @@
         prognoser — mätta på samma fönster för alla fem modeller — är den näst
         sämst på det första dygnet. Standardmodellen är återställd till den
         dämpade nivån. Den färska nivån ligger kvar som mätt konkurrent.</p>
+      <p>Skarpt har det bekräftats. De första veckorna i september 2026 missade den färska
+        nivån i snitt 44 EUR/MWh på det första dygnet, mot 37 för standardmodellen. Orsaken
+        syns i datan: för de timmar som går att poängsätta på det första dygnet — natten och
+        förmiddagen i morgon, prognoserade innan auktionen — är ”dagen innan” i dag, och
+        priset svängde kraftigt från dag till dag (SE3: 50, 103, 62 och 100 EUR/MWh den 8–11
+        september). En modell som säger ”som i dag” missar då åt samma håll som svängen.</p>
       <p>Episoden står kvar här därför att den är det tydligaste exemplet på
         projektets egen huvudregel: ett pris som börsen redan publicerat är inte
         en prognos, och en utvärdering som glömmer det ger fel svar med stor
@@ -283,7 +303,12 @@
         <li>Ingen tränad gradient boosting ännu. Kroken finns i koden och är utmärkt med
           <code>FUTURE:</code>, men v1 kör helt utan tränade artefakter så att en färsk
           klon fungerar direkt.</li>
-        <li>Ingen bränsle- eller utsläppsrättsprisdata.</li>
+        <li>Inga bränsle- eller utsläppspriser i timprognosen. De hämtas till
+          långtidsprognosen, där de prövades och inte förbättrade den.</li>
+        <li>Terminsmarknaden styr inte timprognosen. En provmodell som använder den,
+          <i>Dämpad nivå, marknadsjusterad</i>, mäts skarpt sedan september 2026. Den kan inte
+          backtestas — det finns ingen fri historik över terminspriser — så den får styra
+          sajten först om den visar sig bättre över flera veckor.</li>
         <li>Inga vattenmagasin i modellen — hämtade, prövade, utan effekt.</li>
         <li>Inga avbrott i modellen — se ovan. De visas som fakta, inte som indata.</li>
         <li>Ingen AI-overlay. v1 är statistisk och väderjusterad, ingenting annat.</li>
@@ -345,8 +370,9 @@
         <li>Prognosen bygger på en väderprognos. Osäkerheten i vädret dag 5–7 är större än
           osäkerheten i elmodellen, och bandet p10–p90 är brett av en anledning.</li>
         <li>Nivåskiften som inte syns i vädret — ett kärnkraftsstopp, ett kabelfel, en
-          kraftig rörelse i gaspriset — fångas inte alls förrän de hunnit sätta sig i
-          förra veckans priser.</li>
+          kraftig rörelse i gaspriset — fångas inte av standardmodellen förrän de hunnit
+          sätta sig i förra veckans priser. Det är just den svagheten den marknadsjusterade
+          provmodellen ska pröva.</li>
         <li>Normalvärdena för vind och temperatur byggs upp över tid. De första veckorna
           efter en nystart är vindindex och temperaturavvikelse mindre pålitliga.</li>
         <li>Sajten är ett öppet hobbyprojekt utan drift- eller tillgänglighetsgaranti.
@@ -371,6 +397,8 @@
           <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
           <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
           <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+          <li><a href="https://www.nordpoolgroup.com/">Nord Pool</a></li>
+          <li><a href="https://live.euronext.com/en/products/commodities/power-derivatives">Euronext</a></li>
         </ul>
       </div>
       <div>

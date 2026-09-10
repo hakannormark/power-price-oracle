@@ -57,7 +57,9 @@ class FuturesHelperTests(unittest.TestCase):
         self.assertEqual(delivery_period("Month", "Oct 2026"), ("2026-10-01", "2026-11-01"))
         self.assertEqual(delivery_period("Quarter", "Q4 2026"), ("2026-10-01", "2027-01-01"))
         self.assertEqual(delivery_period("Year", "2027"), ("2027-01-01", "2028-01-01"))
-        self.assertIsNone(delivery_period("Week", "Week 38 2026"))
+        self.assertEqual(delivery_period("Week", "Week 38 2026"), ("2026-09-14", "2026-09-21"))
+        self.assertEqual(delivery_period("Day", "12 Sep 2026"), ("2026-09-12", "2026-09-13"))
+        self.assertIsNone(delivery_period("Weekend", "WE 38 2026"))
 
     def test_products(self):
         self.assertEqual(product_for("Nordic System Price Electricity Base Load"), "SYS")

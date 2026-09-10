@@ -45,23 +45,33 @@
 
     <section class="card prose" style="max-width:none">
       <h2>Vilken används på sajten?</h2>
-      <p><b>Väderskalad med färsk nivå</b> är standardmodellen. Den valdes inte på
-        känsla: på 115 396 timmar ut ur urvalet hamnade den på 24,07 i medelfel mot
-        25,68 för närmaste konkurrent och 29,62 för den säsongsnaiva referensen.
-        Den är också den första som är märkbart bättre på dag 1 än på dag 7.
-        Den används i graferna,
-        i timtabellen och i fältet <code>default_model</code> i API:t. Vill du
-        jämföra finns kryssrutan <em>Visa övriga modeller</em> på förstasidan.</p>
+      <p><b>Väderskalad, dämpad nivå</b> (<code>shrunk_scaled</code>) är standardmodellen.
+        Den används i graferna, i timtabellen och i fältet <code>default_model</code> i API:t.
+        I backtestet på 82 576 timmar hade den 25,38 EUR/MWh i medelfel mot 29,51 för den
+        säsongsnaiva referensen — 13 procent mindre fel. Vill du jämföra finns kryssrutan
+        <em>Visa övriga modeller</em> på förstasidan.</p>
+      <p><b>Väderskalad, färsk nivå</b> (<code>recency_scaled</code>) var kortvarigt standard,
+        på styrkan av ett backtest som av misstag räknade med timmar vars pris redan var
+        publicerat. Mätt rätt är den sämre, särskilt det första dygnet — förklaringen står på
+        <a href="traffsakerhet.html">träffsäkerhetssidan</a> och i <a href="metod.html">Metod</a>.
+        Den ligger kvar som mätt konkurrent.</p>
+      <p><b>Dämpad nivå, marknadsjusterad</b> (<code>market_scaled</code>) är nyast. Den tar
+        standardmodellens dygnsform och flyttar nivån till terminsmarknadens pris för nästa
+        vecka. Det finns ingen fri historik över terminspriser att backtesta mot, så den mäts
+        skarpt från september 2026 och får styra sajten först om den visar sig bättre över
+        flera veckor.</p>
       <p><b>Ensemblen är inte längre standard.</b> Varje blandning av den bästa
         modellen med de andra gav ett sämre resultat än modellen ensam. Den finns
         kvar som mätt jämförelse — att ta bort förlorande kandidater är hur man
         slutar märka när något blir bättre igen.</p>
-      <p><b>Säsongsnaiv</b> är referensen. Alla skill-tal på
+      <p><b>Säsongsnaiv</b> är referensen: priset samma veckodag och timme förra veckan. Alla
+        procenttal för <i>mindre fel än naiv</i> på
         <a href="traffsakerhet.html">träffsäkerhetssidan</a> mäts mot den. En modell som inte
         slår den tillför ingenting, hur avancerad den än är.</p>
 
       <h2>Innan en modell får ändra vad sajten visar</h2>
-      <p>Den ska ha slagit de befintliga i <code>python -m src.research.backtest</code>,
+      <p>Den ska ha slagit de befintliga på skarpa prognoser över flera veckor, och — där
+        det går — först i <code>python -m src.research.backtest</code>,
         som poängsätter kandidater mot fyra års utfall med varje koefficient anpassad
         enbart på data äldre än det kvartal den tillämpas på. Riggen finns för att
         gissningar redan varit fel flera gånger i det här projektet: en
@@ -115,6 +125,8 @@ BASE_MODELS = [
           <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
           <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
           <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+          <li><a href="https://www.nordpoolgroup.com/">Nord Pool</a></li>
+          <li><a href="https://live.euronext.com/en/products/commodities/power-derivatives">Euronext</a></li>
         </ul>
       </div>
       <div>

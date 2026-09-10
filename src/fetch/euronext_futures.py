@@ -21,7 +21,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from datetime import date
+from datetime import date, timedelta
 from html import unescape
 
 import pandas as pd
@@ -72,8 +72,20 @@ def product_for(caption: str) -> str | None:
 
 
 def delivery_period(tenor: str, label: str) -> tuple[str, str] | None:
-    """(first day, first day after) of a month, quarter or year delivery, else None."""
+    """(first day, first day after) of a day, week, month, quarter or year delivery."""
     tenor = tenor.lower()
+    if tenor == "day":
+        match = re.fullmatch(r"(\d{1,2}) ([A-Z][a-z]{2}) (\d{4})", label)
+        if not match or match.group(2) not in MONTHS:
+            return None
+        start = date(int(match.group(3)), MONTHS[match.group(2)], int(match.group(1)))
+        return start.isoformat(), (start + timedelta(days=1)).isoformat()
+    if tenor == "week":
+        match = re.fullmatch(r"Week (\d{1,2}) (\d{4})", label)
+        if not match:
+            return None
+        start = date.fromisocalendar(int(match.group(2)), int(match.group(1)), 1)
+        return start.isoformat(), (start + timedelta(days=7)).isoformat()
     if tenor == "month":
         match = re.fullmatch(r"([A-Z][a-z]{2}) (\d{4})", label)
         if not match or match.group(1) not in MONTHS:
@@ -234,6 +246,51 @@ def implied_month_price(snapshot: list[dict], zone: str, month: pd.Period) -> di
                 "trade_date": system["trade_date"],
             }
     return None
+
+
+SYSTEM_DAY_TENORS = ("week", "month", "quarter")
+EPAD_DAY_TENORS = ("month", "quarter", "year")
+
+
+def zone_price_for_day(snapshot: list[dict], zone: str, day: date) -> dict | None:
+    """The market's price for one delivery day in a zone, or None.
+
+    The system part comes from the most specific contract covering the day:
+    week, then month, then quarter. The zone's EPAD is traded only per month
+    and the current month drops out once it is in delivery, so when no EPAD
+    covers the day the next quoted one stands in for it (`epad_proxy`).
+    """
+    first = day.isoformat()
+
+    def covering(product: str, tenors: tuple[str, ...]) -> dict | None:
+        for tenor in tenors:
+            for row in snapshot:
+                if (
+                    row["product"] == product
+                    and row["tenor"] == tenor
+                    and row["delivery_start"] <= first < row["delivery_end"]
+                ):
+                    return row
+        return None
+
+    system = covering(SYSTEM, SYSTEM_DAY_TENORS)
+    if system is None:
+        return None
+    epad, proxy = covering(zone, EPAD_DAY_TENORS), False
+    if epad is None:
+        later = sorted(
+            (r for r in snapshot if r["product"] == zone and r["tenor"] in EPAD_DAY_TENORS and r["delivery_start"] > first),
+            key=lambda r: (r["delivery_start"], EPAD_DAY_TENORS.index(r["tenor"])),
+        )
+        epad, proxy = (later[0] if later else None), True
+    if epad is None:
+        return None
+    return {
+        "price": r3(system["settlement"] + epad["settlement"]),
+        "period": (system["code"], system["delivery"], epad["code"], epad["delivery"]),
+        "system_tenor": system["tenor"],
+        "epad_proxy": proxy,
+    }
 
 
 if __name__ == "__main__":

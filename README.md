@@ -28,13 +28,14 @@ flowchart TD
         E[ENTSO-E Transparency<br/>day-ahead A44 + last/vind]
         O[Open-Meteo<br/>väder 10 dygn, 9 punkter]
         S[Svenska kraftnät<br/>driftinfo, fritext]
+        T[Euronext Nord Pool<br/>terminer]
     end
 
     subgraph "GitHub Actions (4 ggr/dygn, svensk tid)"
         F[fetch] --> A[(data/actuals.jsonl<br/>officiella priser)]
         F --> B[features.build<br/>vindindex, temp.avvikelse, sol, lagg]
-        B --> M[seasonal_naive<br/>weather_scaled]
-        M --> N[ensemble]
+        B --> M[basmodeller<br/>seasonal_naive, weather_scaled,<br/>shrunk_scaled, recency_scaled]
+        M --> N[härledda<br/>ensemble, market_scaled]
         N --> P[(data/forecasts/<br/>append-only, en fil per vecka)]
         A --> V[evaluate<br/>per horisont, elområde, modell]
         P --> V
@@ -47,6 +48,7 @@ flowchart TD
     E --> F
     O --> F
     S --> F
+    T --> F
 
     W --> API[/api/v1/**<br/>statisk JSON/]
     W --> SITE[/site/data/**<br/>sajtens data/]
@@ -130,7 +132,7 @@ python -m http.server 8000 --directory site
 | 1 | Hämtar day-ahead-priser (senaste 3 dygnen + morgondagen), väder 10 dygn framåt, ENTSO-E:s prognoser för last och vind/sol, samt SVK:s driftinfo. Varje källa får degradera för sig. |
 | 2 | Uppdaterar `data/actuals.jsonl` idempotent, unik nyckel `(zone, ts)`. |
 | 3 | Bygger feature-ramen: kalender, vindindex, temperaturavvikelse, solindex, prislagg 24/48/168 h. |
-| 4 | Kör varje basmodell, väger ihop dem till en ensemble, och **lägger till** raderna i veckans fil under `data/forecasts/` — inget skrivs om i efterhand. |
+| 4 | Kör varje basmodell och därefter de härledda — ensemblen och den marknadsjusterade — och **lägger till** raderna i veckans fil under `data/forecasts/` — inget skrivs om i efterhand. |
 | 5 | Poängsätter de senaste 90 dygnen per elområde, modell och horisontspann. |
 | 6 | Skriver svensk drivkraftstext per elområde. |
 | 7 | Hämtar avbrottsmeddelanden från Nord Pool och lägger de aktuella i drivkraftstexten. |
@@ -204,7 +206,9 @@ Bas: `https://hakannormark.github.io/power-price-oracle/api/v1/`
 | `zones/{SE1..SE4}/history.json` | 30 dygn utfall + prognosen vi gav 24, 48 … 168 h innan |
 | `zones/{SE1..SE4}/accuracy.json` | Träffsäkerhet för ett elområde |
 
-Priser i **EUR/MWh**. Öre/kWh = EUR/MWh ÷ 10. Tidsstämplar är ISO-8601 med offset i
+Priser i **EUR/MWh**. Öre/kWh = EUR/MWh × växelkursen EUR/SEK ÷ 10; kursen följer med i
+`fx` i varje fil. Att bara dela med 10 ger eurocent, inte öre. Vilken modell sajten
+visar står i `default_model`. Tidsstämplar är ISO-8601 med offset i
 `Europe/Stockholm` och avser leveranstimmens början. `resolution` är `PT60M` i v1;
 fältet finns för att kvartsvärden ska kunna läggas till utan att bryta klienter.
 
@@ -226,10 +230,12 @@ rest:
           - series
           - drivers
           - default_model
+          - fx
           - unit
 ```
 
-Aktuell timmes pris ur serien — officiellt när auktionen är klar, annars ensemblens p50:
+Aktuell timmes pris ur serien — officiellt när auktionen är klar, annars
+standardmodellens p50, omräknat till öre med växelkursen i `fx`:
 
 ```yaml
 template:
@@ -241,13 +247,16 @@ template:
         state: >
           {% set hour = now().replace(minute=0, second=0, microsecond=0).isoformat() %}
           {% set series = state_attr('sensor.spotprognos_se3', 'series') or [] %}
+          {% set model = state_attr('sensor.spotprognos_se3', 'default_model') %}
+          {% set fx = state_attr('sensor.spotprognos_se3', 'fx') %}
+          {% set rate = fx.rate if fx else none %}
           {% set match = series | selectattr('ts', 'match', hour[:13]) | list | first %}
-          {% if match is none %}
+          {% if match is none or rate is none %}
             unknown
           {% elif match.actual is not none %}
-            {{ (match.actual / 10) | round(1) }}
+            {{ (match.actual * rate / 10) | round(1) }}
           {% else %}
-            {{ (match.models.ensemble.p50 / 10) | round(1) }}
+            {{ (match.models[model].p50 * rate / 10) | round(1) }}
           {% endif %}
 ```
 
@@ -257,7 +266,7 @@ GitHub Pages tillåter GET från webbläsare, och Home Assistant behöver inte C
 
 ## Modeller i v1
 
-Alla fyra körs varje gång. Talen är medelfel över **82 576 timmar ut ur urvalet**,
+Alla körs varje gång. Talen är medelfel över **82 576 timmar ut ur urvalet**,
 tio kvartal, med varje koefficient anpassad enbart på data äldre än det kvartal
 den tillämpas på (`python -m src.research.backtest`).
 
@@ -268,6 +277,10 @@ den tillämpas på (`python -m src.research.backtest`).
 | `ensemble` | 28,40 | +3,8 % | 35 % naiv + 65 % väderskalad. Var standard tills den mättes. |
 | **`shrunk_scaled`** | **25,38** | **+13,0 %** | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de fyra senaste veckorna. **Sajtens standardmodell.** |
 | `recency_scaled` | 24,57 | +15,8 % | Som ovan, men där gårdagens pris redan publicerats vägs det in med 70 %. Ser bättre ut i backtest men förlorar på riktiga prognoser — se nedan. |
+| `market_scaled` | – | – | Standardmodellens dygnsform, flyttad så att snittet över en terminsperiod blir terminsmarknadens pris: systemprisets veckokontrakt plus områdets EPAD. Ingen fri terminshistorik finns, så den mäts bara skarpt, från september 2026, och är inte standard. |
+
+"Mot naiv" är hur mycket lägre medelfelet är än den säsongsnaiva referensens — högre
+är bättre.
 
 **Backtest är inte facit.** `recency_scaled` var kortvarigt standard på styrkan av
 ett backtest som saknade auktionsfiltret. På skarpa prognoser, mätta på samma
@@ -366,7 +379,8 @@ src/
   store.py             JSONL: upsert av utfall, append av prognoser, rotation
   fetch/               entsoe_prices, entsoe_fundamentals, open_meteo, svk_text
   features/build.py    en rad per (ts, zone)
-  models/              base, registry, official, seasonal_naive, weather_scaled, ensemble
+  models/              base, registry, official, seasonal_naive, weather_scaled,
+                       shrunk_scaled, recency_scaled, ensemble, market_scaled, band
   evaluate/            score, horizon
   explain/drivers.py   svensk drivkraftstext, ingen LLM
   publish/             api.py (api/v1 + site/api/v1), site_data.py (site/data)

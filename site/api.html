@@ -68,7 +68,12 @@
 
       <h3>Enheter och konventioner</h3>
       <ul>
-        <li>Alla priser är i <b>EUR/MWh</b>, avrundade till tre decimaler. Dela med 10 för öre/kWh.</li>
+        <li>Alla priser är i <b>EUR/MWh</b>, avrundade till tre decimaler. För öre/kWh:
+          multiplicera med växelkursen EUR/SEK och dela med 10. Kursen följer med i fältet
+          <code>fx</code> i varje fil. Att bara dela med 10 ger eurocent, inte öre.</li>
+        <li>Vilken modell sajten visar står i <code>default_model</code>. Välj modell därifrån
+          i stället för att skriva in ett namn — standardmodellen byts när en annan mätt sig
+          bättre.</li>
         <li>Tidsstämplar är ISO-8601 med offset i <code>Europe/Stockholm</code>, och avser
           <b>leveranstimmens början</b>.</li>
         <li><code>source: "official"</code> betyder publicerat day-ahead-pris.
@@ -88,10 +93,13 @@
   "source": "official",
   "models": {
     "seasonal_naive": { "p10": 40.0, "p50": 52.0, "p90": 80.0 },
-    "weather_scaled": { "p10": 41.0, "p50": 55.0, "p90": 78.0 },
-    "ensemble":       { "p10": 40.5, "p50": 53.5, "p90": 79.0 }
+    "shrunk_scaled":  { "p10": 17.3, "p50": 55.0, "p90": 142.1 },
+    "market_scaled":  { "p10": 21.6, "p50": 59.3, "p90": 146.4 }
   }
 }</code></pre>
+      <p class="muted">Förkortat: <code>models</code> har en post per modell i
+        <code>models.json</code>. Bandet är brett och asymmetriskt med avsikt — se
+        <a href="metod.html">Metod</a>.</p>
 
       <pre><code># Aktuellt pris i alla fyra elområden, i öre/kWh
 curl -s https://hakannormark.github.io/power-price-oracle/api/v1/zones.json \
@@ -111,11 +119,13 @@ curl -s https://hakannormark.github.io/power-price-oracle/api/v1/zones.json \
           - series
           - drivers
           - default_model
+          - fx
           - unit</code></pre>
 
       <p>Och plocka ut den aktuella timmens pris ur serien med en template-sensor.
         Den tar det officiella priset när auktionen är klar och faller annars tillbaka
-        på ensemblens p50:</p>
+        på standardmodellens p50. Omräkningen till öre använder växelkursen i
+        <code>fx</code>:</p>
       <pre><code>template:
   - sensor:
       - name: Spotpris SE3 nu
@@ -125,13 +135,16 @@ curl -s https://hakannormark.github.io/power-price-oracle/api/v1/zones.json \
         state: >
           {% set hour = now().replace(minute=0, second=0, microsecond=0).isoformat() %}
           {% set series = state_attr('sensor.spotprognos_se3', 'series') or [] %}
+          {% set model = state_attr('sensor.spotprognos_se3', 'default_model') %}
+          {% set fx = state_attr('sensor.spotprognos_se3', 'fx') %}
+          {% set rate = fx.rate if fx else none %}
           {% set match = series | selectattr('ts', 'match', hour[:13]) | list | first %}
-          {% if match is none %}
+          {% if match is none or rate is none %}
             unknown
           {% elif match.actual is not none %}
-            {{ (match.actual / 10) | round(1) }}
+            {{ (match.actual * rate / 10) | round(1) }}
           {% else %}
-            {{ (match.models.ensemble.p50 / 10) | round(1) }}
+            {{ (match.models[model].p50 * rate / 10) | round(1) }}
           {% endif %}
         attributes:
           källa: >
@@ -163,6 +176,8 @@ curl -s https://hakannormark.github.io/power-price-oracle/api/v1/zones.json \
           <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
           <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
           <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+          <li><a href="https://www.nordpoolgroup.com/">Nord Pool</a></li>
+          <li><a href="https://live.euronext.com/en/products/commodities/power-derivatives">Euronext</a></li>
         </ul>
       </div>
       <div>

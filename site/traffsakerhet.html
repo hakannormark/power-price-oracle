@@ -75,10 +75,11 @@
             <dt>Täckning p10–p90</dt><dd>Prognosen anger ett osäkerhetsband där priset
               ska hamna 8 gånger av 10. Täckningen är hur ofta det faktiskt gjorde det, och
               ska ligga nära 80 %. Mycket lägre = bandet är för smalt, mycket högre = för brett.</dd>
-            <dt>Skill mot naiv</dt><dd>Hur mycket mindre modellen missar än den
-              säsongsnaiva referensen, mätt på samma timmar. 10 % betyder att medelfelet är
-              en tiondel mindre. 0 % = ingen nytta, negativt = sämre än att upprepa förra
-              veckan.</dd>
+            <dt>Mindre fel än naiv</dt><dd>Hur mycket mindre modellen missar än den
+              säsongsnaiva referensen, mätt på exakt samma timmar. <b>Högre är bättre.</b>
+              10 % betyder att medelfelet är en tiondel mindre än referensens, 0 % att
+              modellen inte tillför något, och ett minustal att den är sämre än att bara
+              upprepa förra veckans pris.</dd>
           </dl>
         </div>
       </div>
@@ -111,9 +112,27 @@
     <section class="card">
       <div class="section-title">
         <h2>Hur mycket bättre än den naiva referensen?</h2>
-        <span class="meta">Över noll = modellen missar mindre än att upprepa förra veckans pris</span>
+        <span class="meta">Högre stapel är bättre</span>
       </div>
+      <p class="sub">Varje grupp är ett prognosdygn och varje stapel en modell. Höjden är hur
+        mycket mindre modellen i snitt missade än den säsongsnaiva referensen — att bara upprepa
+        priset samma timme förra veckan — mätt på exakt samma timmar. En stapel på
+        <b>+10 %</b> betyder att medelfelet var en tiondel mindre än referensens. Vid
+        <b>0</b> tillförde modellen ingenting, och <b>under noll</b> var den sämre än att bara
+        upprepa förra veckan. Den högsta stapeln i en grupp är den modell som träffat bäst på
+        det avståndet. Standardmodellen har sajtens gröna färg.</p>
       <div class="chart small" id="skill-chart"></div>
+      <p class="sub"><b>Varför är den färska nivån så mycket sämre första dygnet?</b>
+        Modellen <i>Väderskalad, färsk nivå</i> lutar sig till 70 % på priset samma timme
+        dagen innan. För de timmar som går att poängsätta på 0–24 h — natten och förmiddagen i
+        morgon, prognoserade i dag innan auktionen — är ”dagen innan” alltså i dag. I början av
+        september 2026 svängde priset kraftigt från dag till dag (SE3: 50, 103, 62 och 100
+        EUR/MWh den 8–11 september), och då missar en modell som säger ”som i dag” åt samma håll
+        som svängen. De andra modellerna utgår från en jämnare nivå — förra veckans pris dämpat
+        mot medianen av fyra veckor — och drabbas mindre. I backtestet såg den färska nivån bäst
+        ut, men det testet räknade felaktigt med timmar vars pris redan var publicerat; se
+        <a href="metod.html">Metod</a>. Underlaget här är ännu några hundra timmar, så
+        ordningen mellan modellerna kan ändras.</p>
     </section>
 
     <section class="card">
@@ -149,6 +168,8 @@
           <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
           <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
           <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+          <li><a href="https://www.nordpoolgroup.com/">Nord Pool</a></li>
+          <li><a href="https://live.euronext.com/en/products/commodities/power-derivatives">Euronext</a></li>
         </ul>
       </div>
       <div>

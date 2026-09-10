@@ -75,9 +75,10 @@ class RecencyScaled:
     description_sv = (
         "Som den dämpade väderskalade modellen, men där gårdagens pris för samma "
         "timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär "
-        "det första dygnet och upphör därefter, vilket är just vad som skiljer i "
-        "morgon från nästa fredag. Mätt på 115 396 timmar ut ur urvalet: medelfel "
-        "24,07 mot 25,68, och dag ett förbättras med 23 procent."
+        "det första dygnet. I backtestet såg den bäst ut, men testet räknade med "
+        "timmar vars pris redan var publicerat. Mätt skarpt är den sämre än "
+        "standardmodellen, mest det första dygnet: när priset svänger från dag till "
+        "dag missar en modell som säger ”som i dag” åt samma håll som svängen."
     )
     quantiles = True
     derived = False

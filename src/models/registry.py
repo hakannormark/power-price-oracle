@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .ensemble import Ensemble
+from .market_scaled import MarketScaled
 from .official import Official
 from .recency_scaled import RecencyScaled
 from .seasonal_naive import SeasonalNaive
@@ -20,6 +21,7 @@ BASE_MODELS = [
 # Derived models are built from base-model output after the base pass.
 DERIVED_MODELS = [
     Ensemble(),
+    MarketScaled(),  # measured live from 2026-09; no futures history to back-test
 ]
 
 MODELS = [*BASE_MODELS, *DERIVED_MODELS]

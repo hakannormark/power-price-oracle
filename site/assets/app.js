@@ -14,7 +14,17 @@ const state = {
   overlay: readStore(STORE.overlay, "0") === "1",
   overview: null,
   zoneData: {},
+  modelNames: {}, // id -> Swedish name, from data/models.json
 };
+
+async function loadModelNames() {
+  try {
+    const payload = await loadJSON("data/models.json");
+    state.modelNames = Object.fromEntries((payload.models || []).map((m) => [m.id, m.name_sv]));
+  } catch (err) {
+    state.modelNames = {}; // charts fall back to model ids
+  }
+}
 
 /* ------------------------------------------------------------ utilities */
 
@@ -523,7 +533,7 @@ function renderAccuracySnapshot(zoneData) {
 /* ------------------------------------------------------------ index page */
 
 async function initIndex() {
-  const overview = await loadJSON("data/overview.json");
+  const [overview] = await Promise.all([loadJSON("data/overview.json"), loadModelNames()]);
   state.overview = overview;
   if (!ZONES.includes(state.zone)) state.zone = "SE3";
 
@@ -577,6 +587,7 @@ async function drawZone() {
     unit: state.unit,
     overlay: state.overlay,
     defaultModel: zoneData.default_model,
+    names: state.modelNames,
   });
   renderWeekPlan(zoneData);
   renderDrivers(zoneData);
@@ -590,6 +601,7 @@ async function initAccuracy() {
   const [overview, accuracy] = await Promise.all([
     loadJSON("data/overview.json"),
     loadJSON("data/accuracy.json"),
+    loadModelNames(),
   ]);
   state.overview = overview;
   applyFx(overview);
@@ -611,9 +623,9 @@ async function initAccuracy() {
     ZONES.map((z) => `<option value="${z}">${z}</option>`).join("");
   zoneSelect.value = ZONES.includes(state.zone) ? state.zone : "ALL";
   modelSelect.innerHTML = accuracy.models
-    .map((m) => `<option value="${m}">${m}</option>`)
+    .map((m) => `<option value="${m}">${state.modelNames[m] || m}${m === accuracy.default_model ? " (standard)" : ""}</option>`)
     .join("");
-  modelSelect.value = accuracy.models.includes("ensemble") ? "ensemble" : accuracy.models[0];
+  modelSelect.value = accuracy.models.includes(accuracy.default_model) ? accuracy.default_model : accuracy.models[0];
 
   const draw = () => drawAccuracy(accuracy, zoneSelect.value, modelSelect.value);
   zoneSelect.addEventListener("change", draw);
@@ -657,12 +669,13 @@ function drawAccuracy(accuracy, zone, modelId) {
     host.innerHTML = `<div class="table-scroll"><table>
       <thead><tr>
         <th>Horisont</th><th>n</th><th>MAE <span data-unit-label>${unitLabel()}</span></th>
-        <th>RMSE</th><th>Bias</th><th>Täckning p10–p90</th><th>Skill vs naiv</th>
+        <th>RMSE</th><th>Bias</th><th>Täckning p10–p90</th><th>Mindre fel än naiv</th>
       </tr></thead><tbody>${body}</tbody></table></div>`;
   }
 
-  window.PPOCharts.renderMaeBars(el("mae-chart"), table, accuracy.models, state.unit);
-  window.PPOCharts.renderSkill(el("skill-chart"), metrics, accuracy.models, accuracy.reference_model);
+  const chartOptions = { defaultModel: accuracy.default_model, names: state.modelNames };
+  window.PPOCharts.renderMaeBars(el("mae-chart"), table, accuracy.models, state.unit, chartOptions);
+  window.PPOCharts.renderSkill(el("skill-chart"), metrics, accuracy.models, accuracy.reference_model, chartOptions);
 }
 
 async function drawHistory() {
