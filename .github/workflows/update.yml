@@ -136,6 +136,13 @@ jobs:
     needs: update
     if: needs.update.outputs.ran == 'true'
     runs-on: ubuntu-latest
+    # Pages accepts one deployment at a time and fails a second outright; two
+    # pushes minutes apart lost both deploys this way. Queue them instead. The
+    # newest pending deploy replaces an older pending one, which is what we
+    # want: it carries the later site.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
