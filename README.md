@@ -30,12 +30,12 @@ flowchart TD
         S[Svenska kraftnät<br/>driftinfo, fritext]
     end
 
-    subgraph "GitHub Actions (3 ggr/dygn)"
+    subgraph "GitHub Actions (4 ggr/dygn, svensk tid)"
         F[fetch] --> A[(data/actuals.jsonl<br/>officiella priser)]
         F --> B[features.build<br/>vindindex, temp.avvikelse, sol, lagg]
         B --> M[seasonal_naive<br/>weather_scaled]
         M --> N[ensemble]
-        N --> P[(data/forecasts.jsonl<br/>append-only)]
+        N --> P[(data/forecasts/<br/>append-only, en fil per vecka)]
         A --> V[evaluate<br/>per horisont, elområde, modell]
         P --> V
         B --> D[explain.drivers<br/>svensk text]
@@ -130,14 +130,20 @@ python -m http.server 8000 --directory site
 | 1 | Hämtar day-ahead-priser (senaste 3 dygnen + morgondagen), väder 10 dygn framåt, ENTSO-E:s prognoser för last och vind/sol, samt SVK:s driftinfo. Varje källa får degradera för sig. |
 | 2 | Uppdaterar `data/actuals.jsonl` idempotent, unik nyckel `(zone, ts)`. |
 | 3 | Bygger feature-ramen: kalender, vindindex, temperaturavvikelse, solindex, prislagg 24/48/168 h. |
-| 4 | Kör varje basmodell, väger ihop dem till en ensemble, och **lägger till** raderna i `data/forecasts.jsonl` — inget skrivs om i efterhand. |
+| 4 | Kör varje basmodell, väger ihop dem till en ensemble, och **lägger till** raderna i veckans fil under `data/forecasts/` — inget skrivs om i efterhand. |
 | 5 | Poängsätter de senaste 90 dygnen per elområde, modell och horisontspann. |
 | 6 | Skriver svensk drivkraftstext per elområde. |
 | 7 | Hämtar avbrottsmeddelanden från Nord Pool och lägger de aktuella i drivkraftstexten. |
 | 8 | Publicerar `api/v1/**`, `site/api/v1/**` och `site/data/**`. |
 
-Schema: 04:30, 11:20 och 16:00 UTC. Den mellersta körningen ligger efter att
-day-ahead-auktionen publicerats runt 12:45 svensk tid.
+Schema: 06:30, 10:15, 13:30 och 18:00 **svensk tid**, sommar som vinter
+(`src/schedule.py`). De två första ligger före day-ahead-auktionen 12:45 och är
+de enda som ger prognoser för morgondagen som går att poängsätta; 13:30 hämtar
+auktionens resultat.
+
+GitHubs cron kan bara UTC, och under första veckan startade varje schemalagd
+körning fyra timmar sent. Workflowet pollar därför varje halvtimme och kör bara
+när en tid passerats utan körning — en sen eller tappad poll tas igen av nästa.
 
 Om en källa fallerar publiceras körningen ändå, med `degraded: true` och felet i
 `api/v1/status.json`.
@@ -340,9 +346,10 @@ src/
   fetch_reservoirs.py  python -m src.fetch_reservoirs
   fetch_weather_archive.py  python -m src.fetch_weather_archive
   fixtures.py          python -m src.fixtures
+  schedule.py          körtiderna i svensk tid; workflowet frågar den om en körning är due
 site/                  statisk sajt på svenska
 data/actuals/YYYY.jsonl    officiella priser, partitionerade per år
-data/forecasts.jsonl       varje utfärdad prognos, append-only
+data/forecasts/YYYY-Www.jsonl  varje utfärdad prognos, append-only, en fil per vecka
 data/supply/umm/           avbrottsmeddelanden från Nord Pool
 data/weather/archive/      ERA5-historik för backtestet — gitignorerad,
                            hämtas med python -m src.fetch_weather_archive

@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 
 from ..config import ELPRISET_URL, RESOLUTION, ZONES
 from ..store import r3
-from ..timeutil import TZ, iso, now_local, parse_iso
+from ..timeutil import TZ, auction_publication_time, iso, now_local, parse_iso
 from .http import get
 
 log = logging.getLogger(__name__)
@@ -92,18 +92,28 @@ def _to_hourly(rows: list[dict]) -> list[dict]:
 
 
 def fetch_prices(
-    start: datetime, end: datetime, zones: list[str] | None = None, native: bool = False
+    start: datetime,
+    end: datetime,
+    zones: list[str] | None = None,
+    native: bool = False,
+    now: datetime | None = None,
 ) -> tuple[list[dict], dict]:
     """Same shape and contract as entsoe_prices.fetch_prices, so it can stand in.
+
+    `end` is exclusive, as in entsoe_prices.scheduled_window. A day the auction
+    has not published yet is skipped rather than requested: its 404 is certain,
+    and reporting it in every run buried the errors that mattered.
 
     Never raises: a fallback that fails loudly is worse than one that reports
     what it managed.
     """
+    now = now or now_local()
     zones = [z for z in (zones or list(ZONES)) if z in SUPPORTED]
     day = start.replace(hour=0, minute=0, second=0, microsecond=0)
     days = []
-    while day <= end:
-        days.append(day)
+    while day < end:
+        if auction_publication_time(day) <= now:
+            days.append(day)
         day += timedelta(days=1)
 
     rows: list[dict] = []
@@ -113,7 +123,7 @@ def fetch_prices(
             try:
                 rows.extend(fetch_day(target, zone))
             except Exception as exc:  # noqa: BLE001 - degrade per day
-                # A missing future day is normal before the auction publishes.
+                # Unpublished days were skipped above, so this is a real failure.
                 errors.append(f"{zone} {target:%Y-%m-%d}: {type(exc).__name__}")
 
     result = rows if native else _to_hourly(rows)

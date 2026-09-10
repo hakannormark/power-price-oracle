@@ -4,24 +4,23 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
 from .config import (
     ACTUALS_DIR,
-    ARCHIVE_DIR,
+    FORECASTS_DIR,
+    HORIZON_HOURS,
     LEGACY_ACTUALS_PATH,
+    LEGACY_FORECASTS_PATH,
     QUARTERS_DIR,
     QUARTER_RETAIN_DAYS,
     RESERVOIRS_PATH,
     UMM_DIR,
-    FORECASTS_PATH,
-    FORECAST_RETAIN_DAYS,
-    FORECAST_ROTATE_MB,
     ROUND_DECIMALS,
 )
-from .timeutil import now_local, parse_iso
+from .timeutil import TZ, now_local, parse_iso, to_local
 
 log = logging.getLogger(__name__)
 
@@ -221,51 +220,80 @@ def upsert_reservoirs(rows: Iterable[dict[str, Any]]) -> int:
 
 
 # ---------------------------------------------------------------- forecasts
+#
+# Partitioned one file per ISO week of issue, in Stockholm time. A single log
+# grew 0.8 MiB a run and would have passed GitHub's 100 MiB push limit about a
+# month after launch, and the old size-triggered rotation could not help: it
+# only moved rows older than 180 days. A week stays near 20 MiB however long the
+# site runs, and a run only ever appends to the current one.
+
+
+def _forecast_week_path(issued: datetime) -> Path:
+    year, week, _ = to_local(issued).isocalendar()
+    return FORECASTS_DIR / f"{year}-W{week:02d}.jsonl"
+
+
+def _forecast_week_start(path: Path) -> datetime | None:
+    year, _, week = path.stem.partition("-W")
+    try:
+        day = date.fromisocalendar(int(year), int(week), 1)
+    except ValueError:
+        return None
+    return datetime(day.year, day.month, day.day, tzinfo=TZ)
+
+
+def _forecast_key(row: dict[str, Any]) -> tuple:
+    return (row["issued_at"], row["model_id"], row["zone"], row["ts"])
+
+
+def _migrate_legacy_forecasts() -> None:
+    """Split a pre-partition data/forecasts.jsonl into weekly files, once.
+
+    Keyed on (issued_at, model_id, zone, ts), so a migration interrupted
+    halfway can run again without duplicating a row.
+    """
+    if not LEGACY_FORECASTS_PATH.exists():
+        return
+    grouped: dict[Path, list[dict[str, Any]]] = {}
+    for row in read_jsonl(LEGACY_FORECASTS_PATH):
+        grouped.setdefault(_forecast_week_path(parse_iso(row["issued_at"])), []).append(row)
+    moved = 0
+    for path, rows in grouped.items():
+        present = {_forecast_key(r) for r in read_jsonl(path)}
+        moved += append_jsonl(path, (r for r in rows if _forecast_key(r) not in present))
+    LEGACY_FORECASTS_PATH.unlink()
+    log.info("Migrated %s rows from forecasts.jsonl into %s", moved, FORECASTS_DIR)
 
 
 def load_forecasts(since=None) -> list[dict[str, Any]]:
+    """Issued forecasts, or only those for delivery hours from `since` onward."""
+    _migrate_legacy_forecasts()
+    if not FORECASTS_DIR.exists():
+        return []
     rows = []
-    for row in read_jsonl(FORECASTS_PATH):
-        if since is not None and parse_iso(row["ts"]) < since:
+    for path in sorted(FORECASTS_DIR.glob("*.jsonl")):
+        week_start = _forecast_week_start(path)
+        # Nothing issued in a week targets an hour beyond its end plus the horizon.
+        if (
+            since is not None
+            and week_start is not None
+            and week_start + timedelta(days=7, hours=HORIZON_HOURS) < since
+        ):
             continue
-        rows.append(row)
+        for row in read_jsonl(path):
+            if since is not None and parse_iso(row["ts"]) < since:
+                continue
+            rows.append(row)
     return rows
 
 
 def append_forecasts(rows: Iterable[dict[str, Any]]) -> int:
-    """Append issued forecasts. Existing rows are never rewritten."""
-    return append_jsonl(FORECASTS_PATH, rows)
-
-
-def rotate_forecasts() -> str | None:
-    """Move forecasts older than the retention window into a yearly archive."""
-    if not FORECASTS_PATH.exists():
-        return None
-    size_mb = FORECASTS_PATH.stat().st_size / (1024 * 1024)
-    if size_mb < FORECAST_ROTATE_MB:
-        return None
-
-    cutoff = now_local() - timedelta(days=FORECAST_RETAIN_DAYS)
-    keep: list[dict[str, Any]] = []
-    archived: dict[int, list[dict[str, Any]]] = {}
-    for row in read_jsonl(FORECASTS_PATH):
-        issued = parse_iso(row["issued_at"])
-        if issued < cutoff:
-            archived.setdefault(issued.year, []).append(row)
-        else:
-            keep.append(row)
-
-    if not archived:
-        return None
-
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-    for year, rows in archived.items():
-        target = ARCHIVE_DIR / f"forecasts-{year}.jsonl"
-        append_jsonl(target, rows)
-    write_jsonl(FORECASTS_PATH, keep)
-    moved = sum(len(v) for v in archived.values())
-    log.info("Rotated %s forecast rows into %s", moved, ARCHIVE_DIR)
-    return f"rotated {moved} rows"
+    """Append issued forecasts to their week's file. Existing rows are never rewritten."""
+    _migrate_legacy_forecasts()
+    grouped: dict[Path, list[dict[str, Any]]] = {}
+    for row in rows:
+        grouped.setdefault(_forecast_week_path(parse_iso(row["issued_at"])), []).append(row)
+    return sum(append_jsonl(path, part) for path, part in grouped.items())
 
 
 # ---------------------------------------------------------------- outages

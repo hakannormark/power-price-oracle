@@ -300,6 +300,11 @@
         per elområde och modell på <a href="traffsakerhet.html">träffsäkerhetssidan</a>.
         En horisont med färre än 24 utfall visas som <em>för lite data</em> i stället för
         ett osäkert medelvärde.</p>
+      <p>Prognoser utfärdas fyra gånger per dygn, 06:30, 10:15, 13:30 och 18:00 svensk
+        tid. Körs pipelinen oftare än så — vid en kodändring till exempel — räknas bara
+        den första prognosen per tidslucka, så att en dag med många körningar inte väger
+        tyngre än andra. Förbättringen mot den naiva referensen mäts bara på timmar som
+        båda modellerna har prognosticerat.</p>
 
       <h2>Datakällor</h2>
       <ul>

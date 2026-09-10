@@ -38,8 +38,9 @@ att filtret finns med.**
 
 ## Prognosloggen är produktionsdata
 
-`data/forecasts.jsonl` är protokollet som träffsäkerhetssidan poängsätter. Varje
-rad där behandlas som något sajten faktiskt har publicerat.
+`data/forecasts/` — en fil per ISO-vecka — är protokollet som
+träffsäkerhetssidan poängsätter. Varje rad där behandlas som något sajten
+faktiskt har publicerat.
 
 Därför skriver `python -m src.pipeline` **inte** till den lokalt. Registrering
 sker bara när `GITHUB_ACTIONS` är satt, eller om du uttryckligen ger `--record`.
@@ -47,7 +48,7 @@ sker bara när `GITHUB_ACTIONS` är satt, eller om du uttryckligen ger `--record
 Det skyddet finns för att det saknades: 7 % av loggen visade sig vara lokala
 testkörningar, varav flera på demodata och trasiga mellanlägen, och de
 poängsattes som riktiga prognoser. Det gav en falsk modelljämförelse som ledde
-till fel beslut. Rör inte den filen för hand.
+till fel beslut. Rör inte de filerna för hand.
 
 ## Jämför bara modeller på samma fönster
 
@@ -57,6 +58,12 @@ olika väder.
 
 Filtrera till det gemensamma fönstret innan du drar slutsatser. Att inte göra det
 gav vid ett tillfälle en modell som såg dubbelt så dålig ut som den var.
+
+`evaluate/score.py` gör två sådana saker själv. `skill_vs_naive` räknas bara på
+timmar som både modellen och referensen prognosticerat. Och bara den första
+körningen per modell och schemalucka poängsätts — varje push till `main` kör
+pipelinen, och utvecklingsdagarna i september hade upp till nitton körningar mot
+normalt tre. MAE-kolumnerna är fortfarande var modells hela historik.
 
 ## Hur ett modellval avgörs
 

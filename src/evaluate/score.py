@@ -3,6 +3,10 @@
 The one rule that makes these numbers honest: an hour whose day-ahead price was
 already published when the forecast was issued is not scored. Copying the
 exchange is not skill.
+
+Two further rules keep one period from outweighing another. Only the first run
+per model and schedule slot is scored, and skill against the reference is
+measured on the hours both models forecast.
 """
 
 from __future__ import annotations
@@ -21,6 +25,7 @@ from ..config import (
     MIN_SAMPLES_FOR_STATS,
     ZONES,
 )
+from ..schedule import slot_start
 from ..store import r3
 from ..timeutil import auction_publication_time, iso, now_local, to_utc
 from .horizon import BUCKET_LABELS, bucket_for_horizon
@@ -67,6 +72,23 @@ def _publication_map(timestamps: pd.Series) -> dict:
     return out
 
 
+def _first_run_per_slot(frame: pd.DataFrame) -> pd.DataFrame:
+    """Keep one issue per model and schedule slot: the first.
+
+    The schedule issues one forecast per slot, but every push to main runs the
+    pipeline too. On development days that meant nineteen runs against a normal
+    day's three, and scoring each one weighted those days six times over — one
+    badly missed delivery day then dominated whole horizon buckets.
+    """
+    slots: dict[pd.Timestamp, pd.Timestamp] = {}
+    for value in pd.unique(frame["issued_at"]):
+        stamp = pd.Timestamp(value)
+        slots[stamp] = pd.Timestamp(to_utc(slot_start(stamp.to_pydatetime())))
+    slot = frame["issued_at"].map(slots).rename("slot")
+    first = frame.groupby([frame["model_id"], slot])["issued_at"].transform("min")
+    return frame[frame["issued_at"] == first]
+
+
 def scored_rows(forecasts: list[dict], actuals: list[dict], now: datetime | None = None) -> pd.DataFrame:
     """Forecast rows joined to outcomes, filtered to genuine predictions."""
     now = now or now_local()
@@ -79,6 +101,7 @@ def scored_rows(forecasts: list[dict], actuals: list[dict], now: datetime | None
     frame = frame[(frame["horizon_h"] >= 0) & (frame["horizon_h"] < HORIZON_HOURS)]
     if frame.empty:
         return frame.assign(actual=[], bucket=[])
+    frame = _first_run_per_slot(frame)
 
     outcomes = _actuals_frame(actuals)
     frame = frame.merge(outcomes, on=["zone", "ts"], how="inner")
@@ -140,16 +163,35 @@ def _bucketed(frame: pd.DataFrame, model_ids: list[str]) -> dict:
     return out
 
 
-def _add_skill(per_model: dict, reference_id: str) -> None:
-    """skill = 1 - mae_model / mae_reference, per bucket. Reference scores 0."""
-    reference = per_model.get(reference_id, {})
+def _add_skill(per_model: dict, frame: pd.DataFrame, reference_id: str) -> None:
+    """skill = 1 - mae_model / mae_reference, per bucket, on paired hours.
+
+    A model added last week has a shorter record than the reference. Dividing
+    its MAE by the reference's full-window MAE compares two different stretches
+    of weather, so both are measured on the forecasts they share: same issue,
+    zone and delivery hour. The reference scores 0.
+    """
+    if not per_model:
+        return
+    keys = ["issued_at", "zone", "ts"]
+    reference = frame[frame["model_id"] == reference_id][keys + ["p50"]].rename(
+        columns={"p50": "p50_reference"}
+    )
     for model_id, buckets in per_model.items():
+        if model_id == reference_id:
+            for stats in buckets.values():
+                stats["skill_vs_naive"] = 0.0 if stats.get("mae") else None
+            continue
+        paired = frame[frame["model_id"] == model_id].merge(reference, on=keys, how="inner")
         for bucket, stats in buckets.items():
-            baseline = reference.get(bucket, {}).get("mae")
-            if baseline and baseline > 0 and stats.get("mae") is not None:
-                stats["skill_vs_naive"] = r3(1.0 - stats["mae"] / baseline)
-            else:
-                stats["skill_vs_naive"] = None
+            group = paired[paired["bucket"] == bucket]
+            stats["skill_vs_naive"] = None
+            if len(group) < MIN_SAMPLES_FOR_STATS:
+                continue
+            baseline = float((group["p50_reference"] - group["actual"]).abs().mean())
+            if baseline > 0:
+                mae = float((group["p50"] - group["actual"]).abs().mean())
+                stats["skill_vs_naive"] = r3(1.0 - mae / baseline)
 
 
 def evaluate(
@@ -168,11 +210,11 @@ def evaluate(
     for zone in ZONES:
         subset = frame[frame["zone"] == zone] if not frame.empty else frame
         per_model = _bucketed(subset, model_ids) if not subset.empty else {}
-        _add_skill(per_model, reference_id)
+        _add_skill(per_model, subset, reference_id)
         zones[zone] = per_model
 
     overall = _bucketed(frame, model_ids) if not frame.empty else {}
-    _add_skill(overall, reference_id)
+    _add_skill(overall, frame, reference_id)
 
     table = {"ALL": _mae_table(overall, model_ids)}
     for zone, per_model in zones.items():

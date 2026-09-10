@@ -1,10 +1,14 @@
 name: Update forecast
 
+# When to run is decided in Stockholm time by src/schedule.py, not here. GitHub
+# cron speaks only UTC — an entry that catches the 12:45 auction in summer fires
+# before it in winter — and in the first week every scheduled run started four
+# to four and a half hours late. So cron only polls; the gate job asks whether a
+# slot has passed without a run, and a late or dropped poll is caught up by the
+# next one.
 on:
   schedule:
-    - cron: "30 4 * * *"    # 06:30 CEST / 05:30 CET — morning refresh
-    - cron: "20 11 * * *"   # ~13:20 CEST — catch the day-ahead auction result
-    - cron: "0 16 * * *"    # evening weather refresh
+    - cron: "13,43 * * * *"
   workflow_dispatch:
   push:
     branches: [main]
@@ -14,39 +18,78 @@ on:
       - "requirements.txt"
       - ".github/workflows/update.yml"
 
-concurrency:
-  # Serialises every run that commits to data/ — a 13-minute backfill and a
-  # scheduled run writing the same JSONL cannot be rebased together.
-  group: repo-data
-  cancel-in-progress: false
-
 permissions:
   contents: write
   pages: write
   id-token: write
 
 jobs:
-  update:
+  gate:
     runs-on: ubuntu-latest
     outputs:
+      due: ${{ steps.due.outputs.due }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Only what the check reads, so a poll with nothing to do costs seconds.
+          sparse-checkout: |
+            src/
+            api/v1/status.json
+          sparse-checkout-cone-mode: false
+
+      - id: due
+        # Stdlib only; no dependencies to install.
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python3 -m src.schedule api/v1/status.json >> "$GITHUB_OUTPUT"
+          else
+            echo "due=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  update:
+    needs: gate
+    if: needs.gate.outputs.due == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      # Serialises every run that commits to data/ — a 13-minute backfill and a
+      # scheduled run writing the same JSONL cannot be rebased together.
+      group: repo-data
+      cancel-in-progress: false
+    outputs:
       run_id: ${{ steps.pipeline.outputs.run_id }}
+      ran: ${{ steps.due.outputs.due }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Still due
+        id: due
+        # A poll can queue behind the run that serves the same slot. Once it
+        # holds the lock, ask again against the checkout it got.
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python3 -m src.schedule api/v1/status.json >> "$GITHUB_OUTPUT"
+          else
+            echo "due=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-python@v5
+        if: steps.due.outputs.due == 'true'
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
+        if: steps.due.outputs.due == 'true'
         run: pip install -r requirements.txt
 
       - name: Backfill history if thin
+        if: steps.due.outputs.due == 'true'
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         run: python -m src.backfill --if-needed
 
       - name: Ensure demo fixtures exist
+        if: steps.due.outputs.due == 'true'
         # Only used when ENTSOE_TOKEN is unset, so the site still renders.
         run: |
           if [ ! -f data/fixtures/actuals_demo.jsonl ]; then
@@ -55,6 +98,7 @@ jobs:
 
       - name: Run pipeline
         id: pipeline
+        if: steps.due.outputs.due == 'true'
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         run: |
@@ -66,6 +110,7 @@ jobs:
           rm -f run.log
 
       - name: Commit updated state
+        if: steps.due.outputs.due == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -80,13 +125,16 @@ jobs:
           fi
 
       - uses: actions/configure-pages@v5
+        if: steps.due.outputs.due == 'true'
 
       - uses: actions/upload-pages-artifact@v3
+        if: steps.due.outputs.due == 'true'
         with:
           path: site
 
   deploy:
     needs: update
+    if: needs.update.outputs.ran == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

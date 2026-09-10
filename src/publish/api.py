@@ -21,13 +21,11 @@ from ..config import (
 )
 from ..models.official import SOURCE_DEMO, SOURCE_FORECAST, SOURCE_OFFICIAL
 from ..models.registry import DEFAULT_MODEL_ID, describe_models
+from ..schedule import next_slot
 from ..store import r3
 from ..timeutil import hour_range, iso, now_local, parse_iso, start_of_day, to_utc
 
 log = logging.getLogger(__name__)
-
-# UTC hours the workflow's cron entries fire at.
-SCHEDULE_UTC = [(4, 30), (11, 20), (16, 0)]
 
 # History is published at one lead time per forecast day, so the site can ask
 # "what did we say N days ahead?" instead of only the day-ahead case.
@@ -266,14 +264,8 @@ def write_accuracy(accuracy: dict, zone_slices: dict[str, dict]) -> None:
 
 
 def next_scheduled_update(now: datetime | None = None) -> str:
-    now_utc = to_utc(now or now_local())
-    candidates = []
-    for day_offset in (0, 1):
-        day = (now_utc + timedelta(days=day_offset)).replace(minute=0, second=0, microsecond=0)
-        for hour, minute in SCHEDULE_UTC:
-            candidates.append(day.replace(hour=hour, minute=minute))
-    upcoming = sorted(c for c in candidates if c > now_utc)
-    return upcoming[0].strftime("%Y-%m-%dT%H:%M:%SZ")
+    """The next schedule slot; the half-hourly poll starts a run within ~30 min of it."""
+    return to_utc(next_slot(now or now_local())).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def write_status(

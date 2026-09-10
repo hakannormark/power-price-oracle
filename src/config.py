@@ -138,10 +138,6 @@ DEEP_BACKFILL_DAYS = 1095
 # Workflow trigger: run the backfill when actuals hold fewer than 30 days x 4 zones.
 BACKFILL_MIN_ROWS = 24 * 30 * 4
 
-# Storage rotation
-FORECAST_ROTATE_MB = 80
-FORECAST_RETAIN_DAYS = 180
-
 # Endpoints
 ENTSOE_API_URL = "https://web-api.tp.entsoe.eu/api"
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
@@ -178,7 +174,6 @@ HTTP_RETRIES = 3
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
-ARCHIVE_DIR = DATA_DIR / "archive"
 FIXTURES_DIR = DATA_DIR / "fixtures"
 ACTUALS_DIR = DATA_DIR / "actuals"          # one JSONL per delivery year
 NEIGHBOUR_DIR = DATA_DIR / "actuals_neighbours"
@@ -188,7 +183,8 @@ NEIGHBOUR_DIR = DATA_DIR / "actuals_neighbours"
 QUARTERS_DIR = DATA_DIR / "actuals_quarters"
 QUARTER_RETAIN_DAYS = 14
 LEGACY_ACTUALS_PATH = DATA_DIR / "actuals.jsonl"  # migrated on first run
-FORECASTS_PATH = DATA_DIR / "forecasts.jsonl"
+FORECASTS_DIR = DATA_DIR / "forecasts"      # one JSONL per ISO week of issue
+LEGACY_FORECASTS_PATH = DATA_DIR / "forecasts.jsonl"  # migrated on first run
 CLIMATOLOGY_PATH = DATA_DIR / "weather_climatology.json"
 FX_PATH = DATA_DIR / "fx_rate.json"
 RESERVOIRS_PATH = DATA_DIR / "supply" / "reservoirs.jsonl"

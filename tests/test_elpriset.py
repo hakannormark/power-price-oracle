@@ -48,7 +48,7 @@ class UnitTests(unittest.TestCase):
         # through the ECB rate and mixing two would make a figure unreproducible.
         with patch.object(elpriset, "get", return_value=Response(SAMPLE)):
             rows, status = elpriset.fetch_prices(
-                datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 7, tzinfo=TZ), ["SE3"]
+                datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 8, tzinfo=TZ), ["SE3"]
             )
         self.assertTrue(status["ok"])
         self.assertEqual(len(rows), 1)
@@ -59,10 +59,44 @@ class UnitTests(unittest.TestCase):
     def test_native_keeps_every_quarter(self):
         with patch.object(elpriset, "get", return_value=Response(SAMPLE)):
             rows, _ = elpriset.fetch_prices(
-                datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 7, tzinfo=TZ),
+                datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 8, tzinfo=TZ),
                 ["SE3"], native=True,
             )
         self.assertEqual(len(rows), 4)
+
+
+class WindowTests(unittest.TestCase):
+    def requested_days(self, start, end, now):
+        urls = []
+
+        def fake_get(url, **_):
+            urls.append(url)
+            return Response(SAMPLE)
+
+        with patch.object(elpriset, "get", side_effect=fake_get):
+            elpriset.fetch_prices(start, end, ["SE3"], now=now)
+        return [url.rsplit("/", 1)[1][:5] for url in urls]
+
+    def test_end_is_exclusive(self):
+        days = self.requested_days(
+            datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 9, tzinfo=TZ),
+            datetime(2026, 9, 9, 15, tzinfo=TZ),
+        )
+        self.assertEqual(days, ["09-07", "09-08"])
+
+    def test_tomorrow_is_not_requested_before_the_auction(self):
+        days = self.requested_days(
+            datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 10, tzinfo=TZ),
+            datetime(2026, 9, 8, 10, tzinfo=TZ),
+        )
+        self.assertEqual(days, ["09-07", "09-08"])
+
+    def test_tomorrow_is_requested_once_published(self):
+        days = self.requested_days(
+            datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 10, tzinfo=TZ),
+            datetime(2026, 9, 8, 13, tzinfo=TZ),
+        )
+        self.assertEqual(days, ["09-07", "09-08", "09-09"])
 
 
 class FailureTests(unittest.TestCase):
@@ -70,7 +104,7 @@ class FailureTests(unittest.TestCase):
         # A fallback that fails loudly is worse than one that reports what it got.
         with patch.object(elpriset, "get", side_effect=RuntimeError("503")):
             rows, status = elpriset.fetch_prices(
-                datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 7, tzinfo=TZ), ["SE3"]
+                datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 8, tzinfo=TZ), ["SE3"]
             )
         self.assertEqual(rows, [])
         self.assertFalse(status["ok"])
@@ -78,7 +112,7 @@ class FailureTests(unittest.TestCase):
 
     def test_zones_outside_sweden_are_ignored(self):
         rows, status = elpriset.fetch_prices(
-            datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 7, tzinfo=TZ), ["DE_LU"]
+            datetime(2026, 9, 7, tzinfo=TZ), datetime(2026, 9, 8, tzinfo=TZ), ["DE_LU"]
         )
         self.assertEqual(rows, [])
 
