@@ -1,7 +1,7 @@
 {
  "zone": "SE1",
  "zone_name": "Luleå",
- "generated_at": "2026-09-10T14:31:33+02:00",
+ "generated_at": "2026-09-10T14:56:59+02:00",
  "window_days": 90,
  "unit": "EUR/MWh",
  "min_samples": 24,
@@ -19,7 +19,8 @@
   "weather_scaled",
   "shrunk_scaled",
   "recency_scaled",
-  "ensemble"
+  "ensemble",
+  "market_scaled"
  ],
  "reference_model": "seasonal_naive",
  "default_model": "shrunk_scaled",
@@ -426,49 +427,56 @@
    "weather_scaled": 24.697,
    "shrunk_scaled": 22.448,
    "recency_scaled": 28.0,
-   "ensemble": 22.905
+   "ensemble": 22.905,
+   "market_scaled": null
   },
   "24-48h": {
    "seasonal_naive": 21.895,
    "weather_scaled": 21.333,
    "shrunk_scaled": 19.323,
    "recency_scaled": 20.662,
-   "ensemble": 21.405
+   "ensemble": 21.405,
+   "market_scaled": null
   },
   "48-72h": {
    "seasonal_naive": 25.577,
    "weather_scaled": 23.144,
    "shrunk_scaled": 20.767,
    "recency_scaled": 21.555,
-   "ensemble": 23.876
+   "ensemble": 23.876,
+   "market_scaled": null
   },
   "72-96h": {
    "seasonal_naive": 28.781,
    "weather_scaled": 26.253,
    "shrunk_scaled": 22.748,
    "recency_scaled": 22.214,
-   "ensemble": 26.818
+   "ensemble": 26.818,
+   "market_scaled": null
   },
   "96-120h": {
    "seasonal_naive": 18.959,
    "weather_scaled": 17.827,
    "shrunk_scaled": 16.992,
    "recency_scaled": 16.426,
-   "ensemble": 17.74
+   "ensemble": 17.74,
+   "market_scaled": null
   },
   "120-144h": {
    "seasonal_naive": 13.586,
    "weather_scaled": 14.396,
    "shrunk_scaled": 14.261,
    "recency_scaled": 11.334,
-   "ensemble": 13.891
+   "ensemble": 13.891,
+   "market_scaled": null
   },
   "144-168h": {
    "seasonal_naive": 7.327,
    "weather_scaled": 9.345,
    "shrunk_scaled": 9.029,
    "recency_scaled": 9.224,
-   "ensemble": 8.068
+   "ensemble": 8.068,
+   "market_scaled": null
   }
  }
 }

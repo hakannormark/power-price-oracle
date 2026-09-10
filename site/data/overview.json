@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-10T14:31:33+02:00",
- "run_id": "20260910T1231Z",
+ "generated_at": "2026-09-10T14:56:59+02:00",
+ "run_id": "20260910T1256Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
@@ -12,7 +12,7 @@
   "rate": 11.1495,
   "date": "2026-09-09",
   "source": "ECB",
-  "fetched_at": "2026-09-10T14:32:17+02:00",
+  "fetched_at": "2026-09-10T14:57:13+02:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
@@ -320,20 +320,20 @@
     },
     {
      "ts": "2026-09-12T00:00:00+02:00",
-     "eur_mwh": 24.965,
-     "ore_kwh": 27.835,
+     "eur_mwh": 24.93,
+     "ore_kwh": 27.796,
      "source": "forecast"
     },
     {
      "ts": "2026-09-12T01:00:00+02:00",
-     "eur_mwh": 23.197,
-     "ore_kwh": 25.863,
+     "eur_mwh": 23.013,
+     "ore_kwh": 25.658,
      "source": "forecast"
     },
     {
      "ts": "2026-09-12T02:00:00+02:00",
-     "eur_mwh": 19.878,
-     "ore_kwh": 22.163,
+     "eur_mwh": 20.217,
+     "ore_kwh": 22.541,
      "source": "forecast"
     }
    ],
@@ -667,20 +667,20 @@
     },
     {
      "ts": "2026-09-12T00:00:00+02:00",
-     "eur_mwh": 25.861,
-     "ore_kwh": 28.834,
+     "eur_mwh": 25.455,
+     "ore_kwh": 28.381,
      "source": "forecast"
     },
     {
      "ts": "2026-09-12T01:00:00+02:00",
-     "eur_mwh": 22.632,
-     "ore_kwh": 25.234,
+     "eur_mwh": 22.267,
+     "ore_kwh": 24.827,
      "source": "forecast"
     },
     {
      "ts": "2026-09-12T02:00:00+02:00",
-     "eur_mwh": 18.85,
-     "ore_kwh": 21.017,
+     "eur_mwh": 18.835,
+     "ore_kwh": 21.0,
      "source": "forecast"
     }
    ],
@@ -1014,20 +1014,20 @@
     },
     {
      "ts": "2026-09-12T00:00:00+02:00",
-     "eur_mwh": 27.038,
-     "ore_kwh": 30.146,
+     "eur_mwh": 26.906,
+     "ore_kwh": 29.999,
      "source": "forecast"
     },
     {
      "ts": "2026-09-12T01:00:00+02:00",
-     "eur_mwh": 26.284,
-     "ore_kwh": 29.305,
+     "eur_mwh": 26.46,
+     "ore_kwh": 29.502,
      "source": "forecast"
     },
     {
      "ts": "2026-09-12T02:00:00+02:00",
-     "eur_mwh": 23.161,
-     "ore_kwh": 25.823,
+     "eur_mwh": 23.635,
+     "ore_kwh": 26.352,
      "source": "forecast"
     }
    ],
@@ -1361,20 +1361,20 @@
     },
     {
      "ts": "2026-09-12T00:00:00+02:00",
-     "eur_mwh": 34.811,
-     "ore_kwh": 38.813,
+     "eur_mwh": 34.252,
+     "ore_kwh": 38.189,
      "source": "forecast"
     },
     {
      "ts": "2026-09-12T01:00:00+02:00",
-     "eur_mwh": 34.057,
-     "ore_kwh": 37.972,
+     "eur_mwh": 33.555,
+     "ore_kwh": 37.412,
      "source": "forecast"
     },
     {
      "ts": "2026-09-12T02:00:00+02:00",
-     "eur_mwh": 29.004,
-     "ore_kwh": 32.338,
+     "eur_mwh": 29.436,
+     "ore_kwh": 32.82,
      "source": "forecast"
     }
    ],
@@ -1416,49 +1416,56 @@
     "weather_scaled": 24.697,
     "shrunk_scaled": 22.448,
     "recency_scaled": 28.0,
-    "ensemble": 22.905
+    "ensemble": 22.905,
+    "market_scaled": null
    },
    "24-48h": {
     "seasonal_naive": 21.895,
     "weather_scaled": 21.333,
     "shrunk_scaled": 19.323,
     "recency_scaled": 20.662,
-    "ensemble": 21.405
+    "ensemble": 21.405,
+    "market_scaled": null
    },
    "48-72h": {
     "seasonal_naive": 25.577,
     "weather_scaled": 23.144,
     "shrunk_scaled": 20.767,
     "recency_scaled": 21.555,
-    "ensemble": 23.876
+    "ensemble": 23.876,
+    "market_scaled": null
    },
    "72-96h": {
     "seasonal_naive": 28.781,
     "weather_scaled": 26.253,
     "shrunk_scaled": 22.748,
     "recency_scaled": 22.214,
-    "ensemble": 26.818
+    "ensemble": 26.818,
+    "market_scaled": null
    },
    "96-120h": {
     "seasonal_naive": 18.959,
     "weather_scaled": 17.827,
     "shrunk_scaled": 16.992,
     "recency_scaled": 16.426,
-    "ensemble": 17.74
+    "ensemble": 17.74,
+    "market_scaled": null
    },
    "120-144h": {
     "seasonal_naive": 13.586,
     "weather_scaled": 14.396,
     "shrunk_scaled": 14.261,
     "recency_scaled": 11.334,
-    "ensemble": 13.891
+    "ensemble": 13.891,
+    "market_scaled": null
    },
    "144-168h": {
     "seasonal_naive": 7.327,
     "weather_scaled": 9.345,
     "shrunk_scaled": 9.029,
     "recency_scaled": 9.224,
-    "ensemble": 8.068
+    "ensemble": 8.068,
+    "market_scaled": null
    }
   },
   "SE2": {
@@ -1467,49 +1474,56 @@
     "weather_scaled": 32.573,
     "shrunk_scaled": 29.542,
     "recency_scaled": 23.584,
-    "ensemble": 28.497
+    "ensemble": 28.497,
+    "market_scaled": null
    },
    "24-48h": {
     "seasonal_naive": 24.399,
     "weather_scaled": 27.942,
     "shrunk_scaled": 24.717,
     "recency_scaled": 21.027,
-    "ensemble": 26.401
+    "ensemble": 26.401,
+    "market_scaled": null
    },
    "48-72h": {
     "seasonal_naive": 26.9,
     "weather_scaled": 27.925,
     "shrunk_scaled": 24.713,
     "recency_scaled": 24.973,
-    "ensemble": 27.299
+    "ensemble": 27.299,
+    "market_scaled": null
    },
    "72-96h": {
     "seasonal_naive": 28.667,
     "weather_scaled": 28.904,
     "shrunk_scaled": 24.911,
     "recency_scaled": 23.962,
-    "ensemble": 28.632
+    "ensemble": 28.632,
+    "market_scaled": null
    },
    "96-120h": {
     "seasonal_naive": 19.915,
     "weather_scaled": 18.632,
     "shrunk_scaled": 17.34,
     "recency_scaled": 15.563,
-    "ensemble": 18.808
+    "ensemble": 18.808,
+    "market_scaled": null
    },
    "120-144h": {
     "seasonal_naive": 13.378,
     "weather_scaled": 13.389,
     "shrunk_scaled": 14.898,
     "recency_scaled": 12.319,
-    "ensemble": 12.919
+    "ensemble": 12.919,
+    "market_scaled": null
    },
    "144-168h": {
     "seasonal_naive": 8.009,
     "weather_scaled": 10.991,
     "shrunk_scaled": 11.952,
     "recency_scaled": 11.403,
-    "ensemble": 9.185
+    "ensemble": 9.185,
+    "market_scaled": null
    }
   },
   "SE3": {
@@ -1518,49 +1532,56 @@
     "weather_scaled": 34.213,
     "shrunk_scaled": 35.631,
     "recency_scaled": 54.814,
-    "ensemble": 34.222
+    "ensemble": 34.222,
+    "market_scaled": null
    },
    "24-48h": {
     "seasonal_naive": 34.851,
     "weather_scaled": 34.634,
     "shrunk_scaled": 34.906,
     "recency_scaled": 40.137,
-    "ensemble": 34.575
+    "ensemble": 34.575,
+    "market_scaled": null
    },
    "48-72h": {
     "seasonal_naive": 39.067,
     "weather_scaled": 38.112,
     "shrunk_scaled": 37.298,
     "recency_scaled": 38.289,
-    "ensemble": 38.304
+    "ensemble": 38.304,
+    "market_scaled": null
    },
    "72-96h": {
     "seasonal_naive": 40.851,
     "weather_scaled": 37.702,
     "shrunk_scaled": 35.129,
     "recency_scaled": 33.83,
-    "ensemble": 38.7
+    "ensemble": 38.7,
+    "market_scaled": null
    },
    "96-120h": {
     "seasonal_naive": 30.361,
     "weather_scaled": 30.348,
     "shrunk_scaled": 30.048,
     "recency_scaled": 30.171,
-    "ensemble": 30.263
+    "ensemble": 30.263,
+    "market_scaled": null
    },
    "120-144h": {
     "seasonal_naive": 27.935,
     "weather_scaled": 29.832,
     "shrunk_scaled": 32.81,
     "recency_scaled": 31.768,
-    "ensemble": 29.119
+    "ensemble": 29.119,
+    "market_scaled": null
    },
    "144-168h": {
     "seasonal_naive": 26.347,
     "weather_scaled": 31.766,
     "shrunk_scaled": 28.265,
     "recency_scaled": 32.623,
-    "ensemble": 29.645
+    "ensemble": 29.645,
+    "market_scaled": null
    }
   },
   "SE4": {
@@ -1569,49 +1590,56 @@
     "weather_scaled": 45.038,
     "shrunk_scaled": 46.715,
     "recency_scaled": 71.343,
-    "ensemble": 47.115
+    "ensemble": 47.115,
+    "market_scaled": null
    },
    "24-48h": {
     "seasonal_naive": 51.789,
     "weather_scaled": 49.566,
     "shrunk_scaled": 49.32,
     "recency_scaled": 57.842,
-    "ensemble": 49.98
+    "ensemble": 49.98,
+    "market_scaled": null
    },
    "48-72h": {
     "seasonal_naive": 56.962,
     "weather_scaled": 56.956,
     "shrunk_scaled": 55.131,
     "recency_scaled": 56.879,
-    "ensemble": 56.517
+    "ensemble": 56.517,
+    "market_scaled": null
    },
    "72-96h": {
     "seasonal_naive": 54.771,
     "weather_scaled": 56.194,
     "shrunk_scaled": 53.334,
     "recency_scaled": 51.52,
-    "ensemble": 55.209
+    "ensemble": 55.209,
+    "market_scaled": null
    },
    "96-120h": {
     "seasonal_naive": 45.244,
     "weather_scaled": 46.745,
     "shrunk_scaled": 43.241,
     "recency_scaled": 43.002,
-    "ensemble": 45.877
+    "ensemble": 45.877,
+    "market_scaled": null
    },
    "120-144h": {
     "seasonal_naive": 46.221,
     "weather_scaled": 50.992,
     "shrunk_scaled": 52.725,
     "recency_scaled": 54.201,
-    "ensemble": 49.036
+    "ensemble": 49.036,
+    "market_scaled": null
    },
    "144-168h": {
     "seasonal_naive": 50.996,
     "weather_scaled": 57.961,
     "shrunk_scaled": 52.589,
     "recency_scaled": 54.934,
-    "ensemble": 55.072
+    "ensemble": 55.072,
+    "market_scaled": null
    }
   }
  },
@@ -1645,16 +1673,16 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1168
+   "messages": 1169
   },
   "fuels": {
    "ok": true,
    "rows": 129,
-   "added": 1
+   "added": 0
   },
   "euronext_futures": {
    "ok": true,
-   "rows": 15
+   "rows": 17
   },
   "seasonal_outlook": {
    "ok": true,
@@ -1689,7 +1717,7 @@
   {
    "id": "shrunk_scaled",
    "name_sv": "Väderskalad, dämpad nivå",
-   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 för den väderskalade. Slogs i sin tur av den färska nivån, se nedan.",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 för den väderskalade. Sajtens standardmodell. Den färska nivån såg bättre ut i backtestet men är sämre på skarpa prognoser.",
    "quantiles": true,
    "derived": false,
    "is_default": true,
@@ -1698,7 +1726,7 @@
   {
    "id": "recency_scaled",
    "name_sv": "Väderskalad, färsk nivå",
-   "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet och upphör därefter, vilket är just vad som skiljer i morgon från nästa fredag. Mätt på 115 396 timmar ut ur urvalet: medelfel 24,07 mot 25,68, och dag ett förbättras med 23 procent.",
+   "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet. I backtestet såg den bäst ut, men testet räknade med timmar vars pris redan var publicerat. Mätt skarpt är den sämre än standardmodellen, mest det första dygnet: när priset svänger från dag till dag missar en modell som säger ”som i dag” åt samma håll som svängen.",
    "quantiles": true,
    "derived": false,
    "is_default": false,
@@ -1708,6 +1736,15 @@
    "id": "ensemble",
    "name_sv": "Ensemble",
    "description_sv": "Viktat snitt av säsongsnaiv och väderskalad, 35/65. Var sajtens standardmodell fram till att den mättes: på 82 576 timmar ut ur urvalet hamnade den på 28,40 i medelfel mot 25,63 för den dämpade väderskalade modellen. Varje blandning gjorde resultatet sämre än den bästa modellen ensam, så ensemblen finns kvar som jämförelse i stället för som standard.",
+   "quantiles": true,
+   "derived": true,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "market_scaled",
+   "name_sv": "Dämpad nivå, marknadsjusterad",
+   "description_sv": "Standardmodellens dygnsform, flyttad så att snittet över varje terminsperiod blir terminsmarknadens pris för elområdet: systemprisets veckokontrakt plus områdets prisdifferens (EPAD). Terminspriset väger in sådant marknaden redan känner till — kärnkraftsstopp, magasin, gaspris — som förra veckans pris inte gör. Det finns ingen fri historik att backtesta mot, så den mäts skarpt sedan september 2026 och styr inte sajten förrän den har visat sig bättre.",
    "quantiles": true,
    "derived": true,
    "is_default": false,
