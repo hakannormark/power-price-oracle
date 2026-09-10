@@ -463,10 +463,17 @@
   }
 
   function renderSnapshot(host, accuracy, unit) {
+    const day = (iso) => new Date(iso).toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
+    const range = accuracy.scored_from
+      ? `prognoser för ${day(accuracy.scored_from)} – ${day(accuracy.scored_to)}`
+      : `högst ${accuracy.window_days} dygn bakåt`;
     host.innerHTML =
       '<div class="section-title"><h2>Träffsäkerhet just nu</h2>' +
-      `<span class="meta">MAE per horisont · ${accuracy.window_days} dygn · ` +
+      `<span class="meta">Medelfel per horisont · ${range} · ` +
       `<a href="traffsakerhet.html">se allt</a></span></div>` +
+      '<p class="sub">Medelfel är hur mycket prognosen i snitt missade det faktiska priset per ' +
+      "timme, oavsett om den låg för högt eller för lågt. Lägre stapel är bättre. Varje stapel " +
+      "är ett avstånd: 0–24 h betyder prognoser gjorda högst ett dygn innan.</p>" +
       '<div class="chart small" id="snapshot-chart"></div>';
     const table = accuracy.table || {};
     const chosen = accuracy.default_model;

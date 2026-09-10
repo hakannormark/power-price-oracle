@@ -230,6 +230,10 @@ def evaluate(
         "reference_model": reference_id,
         "default_model": default_id,
         "scored_points": int(len(frame)),
+        # The window is a ceiling; what was actually scored starts where the
+        # log does. Readers took "90 dygn" to mean ninety days of data.
+        "scored_from": iso(frame["ts"].min().to_pydatetime()) if not frame.empty else None,
+        "scored_to": iso(frame["ts"].max().to_pydatetime()) if not frame.empty else None,
         "zones": zones,
         "overall": overall,
     }
@@ -257,6 +261,8 @@ def zone_slice(accuracy: dict, zone: str) -> dict:
         "zone_name": ZONES[zone]["name"],
         "generated_at": accuracy["generated_at"],
         "window_days": accuracy["window_days"],
+        "scored_from": accuracy.get("scored_from"),
+        "scored_to": accuracy.get("scored_to"),
         "unit": accuracy["unit"],
         "min_samples": accuracy["min_samples"],
         "buckets": accuracy["buckets"],

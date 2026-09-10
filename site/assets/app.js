@@ -384,6 +384,22 @@ function renderWeekPlan(zoneData) {
   const pct = (v) => ((v - low) / span) * 100;
   const today = new Date().toISOString().slice(0, 10);
 
+  // Five evenly spaced ticks over the week's own range, so every bar is read
+  // against the same ruler — and the ruler sits above the bars, where the eye
+  // starts, rather than under the last row.
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => low + span * t);
+  const axis = `<div class="plan-row plan-axis" aria-hidden="true">
+      <span class="plan-day">öre/kWh</span>
+      <span class="plan-ticks">${ticks
+        .map((value, index) => {
+          const edge = index === 0 ? " first" : index === ticks.length - 1 ? " last" : "";
+          const note = index === 0 ? "<small>veckans lägsta</small>" : index === ticks.length - 1 ? "<small>veckans högsta</small>" : "";
+          return `<span class="plan-tick${edge}" style="left:${pct(value)}%">${fmt(value, 0)}${note}</span>`;
+        })
+        .join("")}</span>
+      <span class="plan-cheap"></span>
+    </div>`;
+
   host.innerHTML = `
     <div class="section-title">
       <h2>Veckan framåt</h2>
@@ -391,15 +407,25 @@ function renderWeekPlan(zoneData) {
     </div>
     <p class="plan-lead">${planLead(days)}</p>
     <div class="plan">
+      ${axis}
       ${days
         .map((d) => {
           const label = dayLabel(d.date);
           const cheap = d.cheapest_from
             ? `billigast <b>kl ${fmtTime(d.cheapest_from)}</b> · ${fmt(d.cheapest_mean_ore_kwh, 0)} öre`
             : "";
+          const tip = [
+            `${label.name}${label.sub ? " " + label.sub : ""}`,
+            `Lägsta timpris: ${fmt(d.min_ore_kwh, 1)} öre/kWh`,
+            `Snittpris: ${fmt(d.mean_ore_kwh, 1)} öre/kWh`,
+            `Högsta timpris: ${fmt(d.max_ore_kwh, 1)} öre/kWh`,
+            "",
+            "Stapeln går från dygnets billigaste till dygnets dyraste timme.",
+            "Det vita strecket är dygnets snittpris.",
+          ].join("&#10;");
           return `<div class="plan-row${d.rank === 1 ? " best" : ""}${d.date === today ? " today" : ""}">
             <span class="plan-day">${label.name}<small>${label.sub}</small></span>
-            <span class="plan-bar" title="${fmt(d.min_ore_kwh, 0)}–${fmt(d.max_ore_kwh, 0)} öre/kWh">
+            <span class="plan-bar" title="${tip}">
               <span class="plan-span" style="left:${pct(d.min_ore_kwh)}%;right:${100 - pct(d.max_ore_kwh)}%"></span>
               <span class="plan-mean" style="left:${pct(d.mean_ore_kwh)}%"></span>
             </span>
@@ -408,11 +434,12 @@ function renderWeekPlan(zoneData) {
         })
         .join("")}
     </div>
-    <div class="plan-scale"><span>${fmt(low, 0)} öre/kWh</span><span>${fmt(high, 0)} öre/kWh</span></div>
     <p class="muted" style="margin:14px 0 0;font-size:0.88rem">
-      Stapeln visar dygnets lägsta till högsta pris, strecket är dygnets snitt.
-      Tiden är billigaste sammanhängande tre timmar — ungefär en bilddladdning.
-      Dagens och morgondagens priser är satta på börsen; längre fram är det vår prognos.
+      Skalan överst gäller alla staplar: från veckans lägsta till veckans högsta timpris.
+      Varje stapel går från dygnets billigaste till dyraste timme, och det vita strecket är
+      dygnets snittpris. Håll musen över en stapel för exakta siffror. Tiden till höger är
+      dygnets billigaste sammanhängande tre timmar — ungefär en billaddning. Dagens och
+      morgondagens priser är satta på börsen; längre fram är det vår prognos.
     </p>`;
 }
 
@@ -508,6 +535,24 @@ function renderNextHours(zoneData) {
 }
 
 /* ------------------------------------------------------------ accuracy */
+
+function fmtDay(iso) {
+  return new Date(iso).toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
+}
+
+// What "90 dygn" actually covers. The window is a ceiling; the log began on a
+// given day, so early on the measured period is far shorter than the window.
+function scoredRangeText(accuracy) {
+  const points = (accuracy.scored_points || 0).toLocaleString("sv-SE");
+  if (!accuracy.scored_from) {
+    return `Inga prognoser har kunnat jämföras ännu. Fönstret är de senaste ${accuracy.window_days} dygnen.`;
+  }
+  return `Mätt på prognoser för leveranstimmar <b>${fmtDay(accuracy.scored_from)} – ${fmtDay(
+    accuracy.scored_to
+  )}</b>, ${points} jämförda prognostimmar. Fönstret är högst de senaste ${
+    accuracy.window_days
+  } dygnen; prognoserna har loggats sedan 4 september 2026, så perioden växer tills den når 90 dygn.`;
+}
 
 function accuracyRows(metrics, modelId) {
   const buckets = Object.keys(metrics || {});
@@ -610,11 +655,7 @@ async function initAccuracy() {
   renderFooterMeta(overview);
 
   const windowNote = el("accuracy-window");
-  if (windowNote) {
-    windowNote.textContent = `${accuracy.window_days} dygn · ${accuracy.scored_points.toLocaleString(
-      "sv-SE"
-    )} bedömda prognospunkter`;
-  }
+  if (windowNote) windowNote.innerHTML = scoredRangeText(accuracy);
 
   const zoneSelect = el("acc-zone");
   const modelSelect = el("acc-model");
@@ -828,12 +869,16 @@ function drawLongterm(longterm, zone) {
   el("lt-table").innerHTML = `<div class="table-scroll"><table>
       <thead><tr>
         <th>Månad</th><th>Vår prognos</th><th>Intervall p10–p90</th>
-        <th>Terminsmarknaden</th><th>Samma månad i fjol</th><th>${longtermModelName(longterm, reference)}</th>
+        <th>Terminsmarknaden</th><th>Samma månad i fjol</th>
+        <th>${longtermModelName(longterm, reference)}<br><small class="muted">snittet senaste 30 dagarna</small></th>
       </tr></thead><tbody>${rows}</tbody></table></div>
     <p class="sub">Månadens snittpris i <span data-unit-label>${unitLabel()}</span> — spotpris utan
       påslag, skatt och nät. Vår prognos är modellen
-      <b>${longtermModelName(longterm, chosen).toLowerCase()}</b>; kolumnen längst till höger är
-      referensen den mäts mot.</p>`;
+      <b>${longtermModelName(longterm, chosen).toLowerCase()}</b>.</p>
+    <p class="sub"><b>${longtermModelName(longterm, reference)}</b> är vad priset blir om de kommande
+      månaderna kostar exakt lika mycket som snittet de senaste 30 dagarna. Därför är det samma
+      siffra för alla tre månaderna. Det är den enklaste prognos som finns, och den vi mäter vår
+      modell mot: slår vår modell inte den, tillför den ingenting.</p>`;
 
   el("lt-drivers").innerHTML = `<ul class="bullets">${(block.drivers_sv || [])
     .map((line) => `<li>${line}</li>`)
@@ -859,14 +904,14 @@ function drawLongtermAccuracy(longterm, zone) {
         .map((model) => {
           const cell = (cells[model.id] || {})[h];
           if (!cell) return '<td class="num">–</td>';
-          let note = "";
+          let note = '<span class="lt-delta">referens</span>';
           if (model.id !== reference && refMae) {
             const skill = (1 - cell.mae / refMae) * 100;
-            note = ` <span class="${skill > 0 ? "best" : "muted"}">${fmt(Math.abs(skill), 0)} % ${
+            note = `<span class="lt-delta ${skill > 0 ? "better" : "worse"}">${fmt(Math.abs(skill), 0)} % ${
               skill > 0 ? "bättre" : "sämre"
             }</span>`;
           }
-          return `<td class="num">${fmtPrice(cell.mae)}${note}</td>`;
+          return `<td class="num"><span class="lt-mae">${fmtPrice(cell.mae)}</span>${note}</td>`;
         })
         .join("");
       return `<tr><td>${h} ${h === "1" ? "månad" : "månader"} fram</td>${tds}</tr>`;
@@ -883,14 +928,20 @@ function drawLongtermAccuracy(longterm, zone) {
         live.first_scoreable_month_label || "första hela månaden"
       }. Terminsmarknaden kan bara mätas på det sättet, framåt.`;
 
-  host.innerHTML = `<div class="table-scroll"><table>
-      <thead><tr><th>Horisont</th>${models
+  const refName = longtermModelName(longterm, reference).toLowerCase();
+  host.innerHTML = `<p class="sub">Varje siffra är ett <b>medelfel</b>: hur mycket modellens
+      prognos för en månads snittpris i snitt missade det snittpris som månaden faktiskt fick,
+      i <span data-unit-label>${unitLabel()}</span>. Lägre är bättre. Under siffran står hur det
+      står sig mot <b>${refName}</b> — att anta att månaden kostar som de senaste 30 dagarna —
+      på exakt samma månader: <i>10 % bättre</i> betyder att modellen missade en tiondel mindre
+      än det antagandet.</p>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Hur långt fram</th>${models
         .map((m) => `<th>${m.name_sv}${m.is_default ? " ★" : ""}</th>`)
         .join("")}</tr></thead><tbody>${body}</tbody></table></div>
-    <p class="sub">Medelfel för månadens snittpris i <span data-unit-label>${unitLabel()}</span>${
-      window_ ? `, ${window_.issues} prognoser utfärdade måndagar ${window_.first_issue} – ${window_.last_issue}` : ""
-    }. Procenten jämför med ${longtermModelName(longterm, reference).toLowerCase()} på samma månader.
-      ★ = modellen sajten visar.</p>
+    <p class="sub">Backtest${
+      window_ ? `: ${window_.issues} prognoser, gjorda varje måndag ${window_.first_issue} – ${window_.last_issue}` : ""
+    }, var och en bara med det som var känt den dagen. ★ = modellen sajten visar.</p>
     <p class="sub">${liveText}</p>`;
 }
 

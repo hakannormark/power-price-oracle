@@ -495,18 +495,65 @@ td.empty, .muted { color: var(--faint); }
   color: var(--muted);
 }
 .plan-cheap b { color: var(--text); font-weight: 600; }
-.plan-scale {
-  display: flex;
-  justify-content: space-between;
-  color: var(--faint);
-  font-size: 0.76rem;
-  padding: 6px 10px 0;
+/* The ruler above the bars: the week's lowest and highest hour and three ticks
+   between, in the same coordinates as every bar below it. It used to be a pair
+   of numbers under the last row, where nobody read it as a scale. */
+.plan-axis { padding-top: 2px; padding-bottom: 12px; }
+.plan-axis:hover { background: none; }
+.plan-axis .plan-day { font-size: 0.76rem; color: var(--faint); align-self: end; }
+.plan-ticks {
+  position: relative;
+  height: 34px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
+.plan-tick {
+  position: absolute;
+  bottom: 6px;
+  transform: translateX(-50%);
+  font-size: 0.8rem;
+  line-height: 1.15;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: center;
+}
+.plan-tick::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 1px;
+  height: 6px;
+  background: var(--faint);
+}
+.plan-tick.first { transform: none; text-align: left; }
+.plan-tick.first::after { left: 0; }
+.plan-tick.last { transform: translateX(-100%); text-align: right; }
+.plan-tick.last::after { left: auto; right: 0; }
+.plan-tick.first, .plan-tick.last { color: var(--text); font-weight: 600; }
+.plan-tick small { display: block; font-size: 0.68rem; font-weight: 400; color: var(--faint); }
+
+/* Long-term accuracy cells: the error on one line, the comparison under it. */
+.lt-mae { display: block; font-variant-numeric: tabular-nums; }
+.lt-delta { display: block; margin-top: 2px; font-size: 0.78rem; color: var(--faint); }
+.lt-delta.better { color: var(--accent); }
+.lt-delta.worse { color: var(--warn); }
+
+/* Reference tables on the API page: prose in every column, so no right-aligned
+   numbers and no single-line cells running off the edge. */
+table.doc-table th,
+table.doc-table td {
+  text-align: left;
+  white-space: normal;
+  vertical-align: top;
+}
+table.doc-table td:first-child { white-space: nowrap; }
 
 @media (max-width: 640px) {
   .plan-row { grid-template-columns: 5.5rem 1fr; gap: 10px; row-gap: 2px; }
   .plan-cheap { grid-column: 2; text-align: left; font-size: 0.82rem; }
   .plan-day small { display: none; }
+  .plan-tick:not(.first):not(.last) { display: none; }
 }
 
 /* ------------------------------------------------------- day disclosures */

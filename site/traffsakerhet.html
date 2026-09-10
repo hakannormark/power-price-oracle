@@ -65,9 +65,11 @@
         <div>
           <dl>
             <dt>n</dt><dd>Antal jämförda timmar. Under 24 visas <em>för lite data</em>.</dd>
-            <dt>MAE — medelfel</dt><dd>Hur mycket prognosen i genomsnitt missade, uppåt
-              eller nedåt. MAE 3 öre/kWh betyder att den i snitt låg 3 öre fel per timme.
-              Lägre är bättre.</dd>
+            <dt>MAE — medelfel</dt><dd>Hur mycket prognosen i genomsnitt missade det
+              faktiska priset per timme. Varje miss räknas som ett positivt tal oavsett håll:
+              en timme 5 öre för högt och en 5 öre för lågt ger medelfel 5 öre, inte 0. Felen
+              kan alltså inte ta ut varandra. MAE 3 öre/kWh betyder att prognosen i snitt låg
+              3 öre fel. Lägre är bättre. Åt vilket håll den brukar missa visar <i>Bias</i>.</dd>
             <dt>RMSE</dt><dd>Ett medelfel som straffar stora missar hårdare. Är den mycket
               större än MAE beror felet mest på några få timmar med stora missar.</dd>
             <dt>Bias — snedvridning</dt><dd>Om prognosen systematiskt ligger åt ett håll.
@@ -104,8 +106,13 @@
     <section class="card">
       <div class="section-title">
         <h2>Medelfel per horisont — alla modeller</h2>
-        <span class="meta">Lägre staplar är bättre. Varje grupp är ett prognosdygn.</span>
+        <span class="meta">Lägre stapel är bättre</span>
       </div>
+      <p class="sub">Varje grupp är ett avstånd — hur långt före leveranstimmen prognosen
+        gjordes — och varje stapel en modell. Höjden är medelfelet: hur mycket modellen i snitt
+        missade det faktiska priset, där en miss uppåt och en nedåt båda räknas som fel. En
+        stapel på 3 öre/kWh betyder att prognosen i snitt låg 3 öre fel per timme. Standardmodellen
+        har sajtens gröna färg.</p>
       <div class="chart small" id="mae-chart"></div>
     </section>
 

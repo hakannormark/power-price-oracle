@@ -146,6 +146,8 @@ auktionens resultat.
 GitHubs cron kan bara UTC, och under första veckan startade varje schemalagd
 körning fyra timmar sent. Workflowet pollar därför varje halvtimme och kör bara
 när en tid passerats utan körning — en sen eller tappad poll tas igen av nästa.
+Som reserv finns de tre tidigare fasta tiderna kvar (04:30, 11:20 och 16:00 UTC);
+kontrollen gör en start utan något att göra till en tom körning.
 
 Om en källa fallerar publiceras körningen ändå, med `degraded: true` och felet i
 `api/v1/status.json`.

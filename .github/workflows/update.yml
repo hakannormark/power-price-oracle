@@ -9,6 +9,13 @@ name: Update forecast
 on:
   schedule:
     - cron: "13,43 * * * *"
+    # Backup: the three fixed entries the site ran on before the poll. They did
+    # fire, if hours late; the half-hourly poll had not fired at all four hours
+    # after it was added. The gate makes a fire with nothing due a no-op, so
+    # these cost nothing once the poll works.
+    - cron: "30 4 * * *"
+    - cron: "20 11 * * *"
+    - cron: "0 16 * * *"
   workflow_dispatch:
   push:
     branches: [main]

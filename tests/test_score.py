@@ -106,6 +106,9 @@ class MetricsTests(unittest.TestCase):
         self.assertAlmostEqual(bucket["mae"], 5.0, places=3)
         self.assertAlmostEqual(bucket["bias"], -5.0, places=3)
         self.assertAlmostEqual(bucket["skill_vs_naive"], 0.5, places=3)
+        # The measured period, not the window: the first and last scored hour.
+        self.assertTrue(result["scored_from"].startswith("2026-09-05T11:00"))
+        self.assertTrue(result["scored_to"].startswith("2026-09-06T10:00"))
         # 55 is outside 40-60? No: p10=40, p90=60 -> inside.
         self.assertAlmostEqual(bucket["coverage80"], 1.0, places=3)
 
@@ -130,6 +133,7 @@ class MetricsTests(unittest.TestCase):
     def test_no_data_yields_an_empty_but_valid_payload(self):
         result = evaluate([], [], ["seasonal_naive"], now=local(2026, 9, 10))
         self.assertEqual(result["scored_points"], 0)
+        self.assertIsNone(result["scored_from"])
         self.assertEqual(result["zones"]["SE3"], {})
         self.assertIn("0-24h", result["table"]["SE3"])
         self.assertIsNone(result["table"]["SE3"]["0-24h"]["seasonal_naive"])
