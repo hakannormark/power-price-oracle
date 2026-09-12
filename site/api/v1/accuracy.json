@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-12T06:31:29+02:00",
+ "generated_at": "2026-09-12T10:04:41+02:00",
  "window_days": 90,
  "unit": "EUR/MWh",
  "min_samples": 24,
@@ -2476,6 +2476,301 @@
     "recency_scaled": 43.941,
     "ensemble": 47.386,
     "market_scaled": null
+   }
+  }
+ },
+ "comparable": {
+  "hours": 100,
+  "table": {
+   "ALL": {
+    "0-24h": {
+     "seasonal_naive": 30.885,
+     "weather_scaled": 32.956,
+     "shrunk_scaled": 33.402,
+     "recency_scaled": 25.432,
+     "ensemble": 32.046,
+     "market_scaled": null
+    },
+    "24-48h": {
+     "seasonal_naive": 35.163,
+     "weather_scaled": 33.874,
+     "shrunk_scaled": 34.322,
+     "recency_scaled": 32.121,
+     "ensemble": 34.109,
+     "market_scaled": null
+    },
+    "48-72h": {
+     "seasonal_naive": 31.764,
+     "weather_scaled": 31.021,
+     "shrunk_scaled": 31.085,
+     "recency_scaled": 32.677,
+     "ensemble": 31.027,
+     "market_scaled": null
+    },
+    "72-96h": {
+     "seasonal_naive": 32.623,
+     "weather_scaled": 31.59,
+     "shrunk_scaled": 32.351,
+     "recency_scaled": 33.145,
+     "ensemble": 31.731,
+     "market_scaled": null
+    },
+    "96-120h": {
+     "seasonal_naive": 32.162,
+     "weather_scaled": 31.743,
+     "shrunk_scaled": 32.475,
+     "recency_scaled": 33.591,
+     "ensemble": 31.729,
+     "market_scaled": null
+    },
+    "120-144h": {
+     "seasonal_naive": 32.193,
+     "weather_scaled": 33.169,
+     "shrunk_scaled": 33.503,
+     "recency_scaled": 34.507,
+     "ensemble": 32.686,
+     "market_scaled": null
+    },
+    "144-168h": {
+     "seasonal_naive": 31.917,
+     "weather_scaled": 33.364,
+     "shrunk_scaled": 32.894,
+     "recency_scaled": 35.531,
+     "ensemble": 32.467,
+     "market_scaled": null
+    }
+   },
+   "SE1": {
+    "0-24h": {
+     "seasonal_naive": 22.67,
+     "weather_scaled": 26.26,
+     "shrunk_scaled": 26.559,
+     "recency_scaled": 12.746,
+     "ensemble": 24.887,
+     "market_scaled": null
+    },
+    "24-48h": {
+     "seasonal_naive": 25.198,
+     "weather_scaled": 22.879,
+     "shrunk_scaled": 22.964,
+     "recency_scaled": 16.94,
+     "ensemble": 23.626,
+     "market_scaled": null
+    },
+    "48-72h": {
+     "seasonal_naive": 22.323,
+     "weather_scaled": 19.817,
+     "shrunk_scaled": 19.745,
+     "recency_scaled": 20.875,
+     "ensemble": 20.53,
+     "market_scaled": null
+    },
+    "72-96h": {
+     "seasonal_naive": 22.7,
+     "weather_scaled": 23.566,
+     "shrunk_scaled": 23.77,
+     "recency_scaled": 24.382,
+     "ensemble": 23.182,
+     "market_scaled": null
+    },
+    "96-120h": {
+     "seasonal_naive": 22.59,
+     "weather_scaled": 22.541,
+     "shrunk_scaled": 22.908,
+     "recency_scaled": 23.695,
+     "ensemble": 22.515,
+     "market_scaled": null
+    },
+    "120-144h": {
+     "seasonal_naive": 22.512,
+     "weather_scaled": 24.083,
+     "shrunk_scaled": 24.172,
+     "recency_scaled": 25.046,
+     "ensemble": 23.388,
+     "market_scaled": null
+    },
+    "144-168h": {
+     "seasonal_naive": 21.353,
+     "weather_scaled": 22.36,
+     "shrunk_scaled": 22.61,
+     "recency_scaled": 25.882,
+     "ensemble": 21.423,
+     "market_scaled": null
+    }
+   },
+   "SE2": {
+    "0-24h": {
+     "seasonal_naive": 28.896,
+     "weather_scaled": 38.02,
+     "shrunk_scaled": 38.138,
+     "recency_scaled": 16.008,
+     "ensemble": 34.574,
+     "market_scaled": null
+    },
+    "24-48h": {
+     "seasonal_naive": 32.061,
+     "weather_scaled": 31.032,
+     "shrunk_scaled": 30.495,
+     "recency_scaled": 25.098,
+     "ensemble": 31.022,
+     "market_scaled": null
+    },
+    "48-72h": {
+     "seasonal_naive": 28.464,
+     "weather_scaled": 27.083,
+     "shrunk_scaled": 26.318,
+     "recency_scaled": 27.407,
+     "ensemble": 27.051,
+     "market_scaled": null
+    },
+    "72-96h": {
+     "seasonal_naive": 28.937,
+     "weather_scaled": 30.037,
+     "shrunk_scaled": 29.49,
+     "recency_scaled": 30.033,
+     "ensemble": 29.418,
+     "market_scaled": null
+    },
+    "96-120h": {
+     "seasonal_naive": 28.805,
+     "weather_scaled": 28.575,
+     "shrunk_scaled": 28.287,
+     "recency_scaled": 29.492,
+     "ensemble": 28.347,
+     "market_scaled": null
+    },
+    "120-144h": {
+     "seasonal_naive": 28.7,
+     "weather_scaled": 26.175,
+     "shrunk_scaled": 26.118,
+     "recency_scaled": 26.695,
+     "ensemble": 26.766,
+     "market_scaled": null
+    },
+    "144-168h": {
+     "seasonal_naive": 27.196,
+     "weather_scaled": 29.403,
+     "shrunk_scaled": 30.477,
+     "recency_scaled": 34.22,
+     "ensemble": 27.79,
+     "market_scaled": null
+    }
+   },
+   "SE3": {
+    "0-24h": {
+     "seasonal_naive": 30.735,
+     "weather_scaled": 31.269,
+     "shrunk_scaled": 31.661,
+     "recency_scaled": 27.385,
+     "ensemble": 30.963,
+     "market_scaled": null
+    },
+    "24-48h": {
+     "seasonal_naive": 35.123,
+     "weather_scaled": 37.121,
+     "shrunk_scaled": 38.082,
+     "recency_scaled": 32.41,
+     "ensemble": 36.299,
+     "market_scaled": null
+    },
+    "48-72h": {
+     "seasonal_naive": 31.584,
+     "weather_scaled": 33.416,
+     "shrunk_scaled": 33.722,
+     "recency_scaled": 35.566,
+     "ensemble": 32.606,
+     "market_scaled": null
+    },
+    "72-96h": {
+     "seasonal_naive": 32.321,
+     "weather_scaled": 31.372,
+     "shrunk_scaled": 32.998,
+     "recency_scaled": 33.798,
+     "ensemble": 31.57,
+     "market_scaled": null
+    },
+    "96-120h": {
+     "seasonal_naive": 31.983,
+     "weather_scaled": 32.305,
+     "shrunk_scaled": 34.195,
+     "recency_scaled": 35.227,
+     "ensemble": 32.165,
+     "market_scaled": null
+    },
+    "120-144h": {
+     "seasonal_naive": 31.952,
+     "weather_scaled": 34.816,
+     "shrunk_scaled": 35.92,
+     "recency_scaled": 37.082,
+     "ensemble": 33.803,
+     "market_scaled": null
+    },
+    "144-168h": {
+     "seasonal_naive": 31.718,
+     "weather_scaled": 35.467,
+     "shrunk_scaled": 34.815,
+     "recency_scaled": 37.42,
+     "ensemble": 34.091,
+     "market_scaled": null
+    }
+   },
+   "SE4": {
+    "0-24h": {
+     "seasonal_naive": 41.237,
+     "weather_scaled": 36.276,
+     "shrunk_scaled": 37.248,
+     "recency_scaled": 45.587,
+     "ensemble": 37.758,
+     "market_scaled": null
+    },
+    "24-48h": {
+     "seasonal_naive": 48.273,
+     "weather_scaled": 44.463,
+     "shrunk_scaled": 45.745,
+     "recency_scaled": 54.037,
+     "ensemble": 45.491,
+     "market_scaled": null
+    },
+    "48-72h": {
+     "seasonal_naive": 44.686,
+     "weather_scaled": 43.767,
+     "shrunk_scaled": 44.556,
+     "recency_scaled": 46.861,
+     "ensemble": 43.921,
+     "market_scaled": null
+    },
+    "72-96h": {
+     "seasonal_naive": 46.533,
+     "weather_scaled": 41.387,
+     "shrunk_scaled": 43.146,
+     "recency_scaled": 44.367,
+     "ensemble": 42.754,
+     "market_scaled": null
+    },
+    "96-120h": {
+     "seasonal_naive": 45.27,
+     "weather_scaled": 43.553,
+     "shrunk_scaled": 44.51,
+     "recency_scaled": 45.951,
+     "ensemble": 43.887,
+     "market_scaled": null
+    },
+    "120-144h": {
+     "seasonal_naive": 45.609,
+     "weather_scaled": 47.601,
+     "shrunk_scaled": 47.803,
+     "recency_scaled": 49.205,
+     "ensemble": 46.788,
+     "market_scaled": null
+    },
+    "144-168h": {
+     "seasonal_naive": 47.401,
+     "weather_scaled": 46.226,
+     "shrunk_scaled": 43.673,
+     "recency_scaled": 44.602,
+     "ensemble": 46.563,
+     "market_scaled": null
+    }
    }
   }
  }

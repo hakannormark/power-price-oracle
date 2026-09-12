@@ -1,7 +1,7 @@
 {
  "zone": "SE3",
  "zone_name": "Stockholm",
- "generated_at": "2026-09-12T06:31:29+02:00",
+ "generated_at": "2026-09-12T10:04:41+02:00",
  "window_days": 90,
  "scored_from": "2026-09-05T00:00:00+02:00",
  "scored_to": "2026-09-12T23:00:00+02:00",
@@ -514,6 +514,67 @@
    "recency_scaled": 33.053,
    "ensemble": 31.602,
    "market_scaled": null
+  }
+ },
+ "comparable": {
+  "hours": 100,
+  "table": {
+   "0-24h": {
+    "seasonal_naive": 30.735,
+    "weather_scaled": 31.269,
+    "shrunk_scaled": 31.661,
+    "recency_scaled": 27.385,
+    "ensemble": 30.963,
+    "market_scaled": null
+   },
+   "24-48h": {
+    "seasonal_naive": 35.123,
+    "weather_scaled": 37.121,
+    "shrunk_scaled": 38.082,
+    "recency_scaled": 32.41,
+    "ensemble": 36.299,
+    "market_scaled": null
+   },
+   "48-72h": {
+    "seasonal_naive": 31.584,
+    "weather_scaled": 33.416,
+    "shrunk_scaled": 33.722,
+    "recency_scaled": 35.566,
+    "ensemble": 32.606,
+    "market_scaled": null
+   },
+   "72-96h": {
+    "seasonal_naive": 32.321,
+    "weather_scaled": 31.372,
+    "shrunk_scaled": 32.998,
+    "recency_scaled": 33.798,
+    "ensemble": 31.57,
+    "market_scaled": null
+   },
+   "96-120h": {
+    "seasonal_naive": 31.983,
+    "weather_scaled": 32.305,
+    "shrunk_scaled": 34.195,
+    "recency_scaled": 35.227,
+    "ensemble": 32.165,
+    "market_scaled": null
+   },
+   "120-144h": {
+    "seasonal_naive": 31.952,
+    "weather_scaled": 34.816,
+    "shrunk_scaled": 35.92,
+    "recency_scaled": 37.082,
+    "ensemble": 33.803,
+    "market_scaled": null
+   },
+   "144-168h": {
+    "seasonal_naive": 31.718,
+    "weather_scaled": 35.467,
+    "shrunk_scaled": 34.815,
+    "recency_scaled": 37.42,
+    "ensemble": 34.091,
+    "market_scaled": null
+   }
   }
  }
 }
