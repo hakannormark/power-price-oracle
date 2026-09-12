@@ -106,13 +106,27 @@
     <section class="card">
       <div class="section-title">
         <h2>Medelfel per horisont — alla modeller</h2>
-        <span class="meta">Lägre stapel är bättre</span>
+        <div class="controls">
+          <label class="toggle">
+            <input type="checkbox" id="acc-comparable">
+            Bara jämförbara timmar
+          </label>
+        </div>
       </div>
       <p class="sub">Varje grupp är ett avstånd — hur långt före leveranstimmen prognosen
         gjordes — och varje stapel en modell. Höjden är medelfelet: hur mycket modellen i snitt
         missade det faktiska priset, där en miss uppåt och en nedåt båda räknas som fel. En
         stapel på 3 öre/kWh betyder att prognosen i snitt låg 3 öre fel per timme. Standardmodellen
         har sajtens gröna färg.</p>
+      <p class="sub"><b>Staplarna mäter inte samma timmar.</b> Spannet <em>0–24 h</em> kan bara
+        innehålla natten och förmiddagen i morgon. Morgondagens eftermiddagspriser publiceras
+        redan klockan 12:45, och en prognos som ställs ut efter det räknas inte — den vore en
+        avskrift av börsen. Kvällstopparna kring klockan 19, som är dygnets dyraste och svåraste
+        timmar, finns därför i alla spann utom det första. Att läsa av en kurva över spannen
+        jämför alltså olika timmar, inte olika horisonter. Kryssa i <b>Bara jämförbara timmar</b>
+        för att räkna om allt på de leveranstimmar som varenda horisont har prognosticerat. Den
+        jämförelsen är rättvis, men bygger på färre timmar.</p>
+      <p class="sub" id="mae-note"></p>
       <div class="chart small" id="mae-chart"></div>
     </section>
 

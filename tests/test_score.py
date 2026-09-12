@@ -85,6 +85,48 @@ class OneRunPerSlotTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
 
 
+class ComparableHoursTests(unittest.TestCase):
+    """0-24h can only hold the small hours of tomorrow; the fair table cuts every
+    bucket to the delivery hours all of them forecast."""
+
+    def setUp(self):
+        self.now = local(2026, 9, 20, 9)
+        forecasts, actuals, self.covered = [], [], []
+        # Three delivery days, and the hours a forecast issued at 10:00 the
+        # morning before still reaches inside 24 hours: 00 through 09.
+        for day in (12, 13, 14):
+            for hour in range(10):
+                target = local(2026, 9, day, hour)
+                actuals.append(actual_row(target, 55.0))
+                self.covered.append(target)
+                # One issue per horizon bucket, each a morning further back.
+                for days_before in range(1, 8):
+                    issued = local(2026, 9, day - days_before, 10)
+                    forecasts.append(forecast_row(issued, target, "seasonal_naive", 45.0))
+        # An evening hour no one-day-ahead forecast can reach: not comparable.
+        evening = local(2026, 9, 13, 19)
+        actuals.append(actual_row(evening, 200.0))
+        forecasts.append(forecast_row(local(2026, 9, 12, 10), evening, "seasonal_naive", 45.0))
+
+        self.result = evaluate(forecasts, actuals, ["seasonal_naive"], now=self.now)
+
+    def test_only_hours_every_horizon_reached_are_counted(self):
+        self.assertEqual(self.result["comparable"]["hours"], len(self.covered))
+
+    def test_every_bucket_is_filled_and_equal_on_those_hours(self):
+        table = self.result["comparable"]["table"]["SE3"]
+        values = [table[bucket]["seasonal_naive"] for bucket in table]
+        self.assertEqual(len(values), 7)
+        self.assertTrue(all(v is not None for v in values), values)
+        # Same hours, same forecast, so the horizon curve is flat by construction.
+        self.assertEqual(len(set(values)), 1)
+
+    def test_the_full_table_still_holds_the_extra_hour(self):
+        full = self.result["table"]["SE3"]["24-48h"]["seasonal_naive"]
+        fair = self.result["comparable"]["table"]["SE3"]["24-48h"]["seasonal_naive"]
+        self.assertGreater(full, fair)  # the 200 EUR/MWh evening drags it up
+
+
 class MetricsTests(unittest.TestCase):
     def test_metrics_and_skill_are_computed_per_bucket(self):
         now = local(2026, 9, 10, 9)

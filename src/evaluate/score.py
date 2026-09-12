@@ -220,6 +220,16 @@ def evaluate(
     for zone, per_model in zones.items():
         table[zone] = _mae_table(per_model, model_ids)
 
+    # The same table on the hours every horizon forecast — the only fair way to
+    # read a horizon curve off these bars.
+    fair = comparable_frame(frame)
+    fair_table = {"ALL": _mae_table(_bucketed(fair, model_ids) if not fair.empty else {}, model_ids)}
+    for zone in ZONES:
+        subset = fair[fair["zone"] == zone] if not fair.empty else fair
+        fair_table[zone] = _mae_table(
+            _bucketed(subset, model_ids) if not subset.empty else {}, model_ids
+        )
+
     payload = {
         "generated_at": iso(now),
         "window_days": EVAL_WINDOW_DAYS,
@@ -238,8 +248,29 @@ def evaluate(
         "overall": overall,
     }
     payload["table"] = table
+    payload["comparable"] = {
+        "hours": 0 if fair.empty else int(fair.groupby(["zone", "ts"]).ngroups),
+        "table": fair_table,
+    }
     log.info("Evaluated %s scored forecast points", len(frame))
     return payload
+
+
+def comparable_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    """Only the delivery hours every horizon forecast, so the buckets compare like with like.
+
+    A bucket holds the hours its horizon can reach, and those differ. 0-24h can
+    only ever hold the night and morning of tomorrow: the afternoon's price is
+    published at 12:45, before a forecast less than a day ahead could be issued,
+    and a copy of the exchange is not scored. Those small hours are cheaper and
+    calmer than the evening peak every other bucket contains, so comparing
+    bucket means straight across compares different hours, not horizons.
+    """
+    if frame.empty:
+        return frame
+    counts = frame.groupby(["model_id", "zone", "ts"])["bucket"].nunique()
+    keys = counts[counts == len(BUCKET_LABELS)].reset_index()[["model_id", "zone", "ts"]]
+    return frame.merge(keys, on=["model_id", "zone", "ts"], how="inner")
 
 
 def _mae_table(per_model: dict, model_ids: list[str]) -> dict:
@@ -271,4 +302,8 @@ def zone_slice(accuracy: dict, zone: str) -> dict:
         "default_model": accuracy["default_model"],
         "metrics": accuracy["zones"].get(zone, {}),
         "table": accuracy["table"].get(zone, {}),
+        "comparable": {
+            "hours": accuracy.get("comparable", {}).get("hours", 0),
+            "table": accuracy.get("comparable", {}).get("table", {}).get(zone, {}),
+        },
     }

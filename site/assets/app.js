@@ -669,6 +669,8 @@ async function initAccuracy() {
   modelSelect.value = accuracy.models.includes(accuracy.default_model) ? accuracy.default_model : accuracy.models[0];
 
   const draw = () => drawAccuracy(accuracy, zoneSelect.value, modelSelect.value);
+  const comparableBox = el("acc-comparable");
+  if (comparableBox) comparableBox.addEventListener("change", draw);
   zoneSelect.addEventListener("change", draw);
   modelSelect.addEventListener("change", draw);
   bindUnitToggle(draw);
@@ -681,6 +683,14 @@ async function initAccuracy() {
 function drawAccuracy(accuracy, zone, modelId) {
   const metrics = zone === "ALL" ? accuracy.overall : accuracy.zones[zone] || {};
   const table = accuracy.table[zone] || {};
+  // The fair table exists only where every horizon has reached the same hours.
+  const comparable = ((accuracy.comparable || {}).table || {})[zone] || {};
+  const comparableCells = Object.values(comparable).filter((row) =>
+    Object.values(row || {}).some((value) => value !== null)
+  ).length;
+  const box = el("acc-comparable");
+  if (box) box.disabled = !comparableCells;
+  const fair = Boolean(box && box.checked && comparableCells);
 
   const host = el("accuracy-table");
   const rows = accuracyRows(metrics[modelId], modelId);
@@ -715,7 +725,21 @@ function drawAccuracy(accuracy, zone, modelId) {
   }
 
   const chartOptions = { defaultModel: accuracy.default_model, names: state.modelNames };
-  window.PPOCharts.renderMaeBars(el("mae-chart"), table, accuracy.models, state.unit, chartOptions);
+  const note = el("mae-note");
+  if (note) {
+    const hours = ((accuracy.comparable || {}).hours || 0).toLocaleString("sv-SE");
+    note.innerHTML = fair
+      ? `Visar nu <b>bara de ${hours} leveranstimmar som alla horisonter har prognosticerat</b>.
+         Här går det att läsa om prognosen blir sämre ju längre fram den ser.`
+      : comparableCells
+        ? `Visar <b>alla mätta timmar</b>, olika timmar i olika spann. ${hours} leveranstimmar
+           har prognosticerats av varenda horisont och kan jämföras rakt av.`
+        : `Visar alla mätta timmar. Ingen leveranstimme har ännu prognosticerats av varenda
+           horisont, så den rättvisa jämförelsen går inte att göra än.`;
+  }
+  window.PPOCharts.renderMaeBars(
+    el("mae-chart"), fair ? comparable : table, accuracy.models, state.unit, chartOptions
+  );
   window.PPOCharts.renderSkill(el("skill-chart"), metrics, accuracy.models, accuracy.reference_model, chartOptions);
 }
 
