@@ -89,6 +89,11 @@ class Sample:
     wind_index_south: float = 1.0
     temp_anomaly_local: float = 0.0
     solar_index_local: float = 0.0
+    # Northern Germany, kept separate from the southern regional index. SE4
+    # prices follow the continent, and the regional term pools DK2 with SE3 and
+    # SE4, which averages that signal away.
+    wind_index_de: float = 1.0
+    solar_index_de: float = 0.0
     horizon_h: int = 0
 
 
@@ -275,8 +280,11 @@ def build_samples(
                 nb_lag = sum(nb) / len(nb) if nb else float("nan")
                 nb_gap = (lags[0] - nb_lag) if nb else float("nan")
                 local = weather.get(zone, {}).get(ts, {})
+                german = weather.get("DE_NORTH", {}).get(ts, {})
                 samples.append(
                     Sample(
+                        wind_index_de=float(german.get("wind_index", 1.0) or 1.0),
+                        solar_index_de=float(german.get("solar_index", 0.0) or 0.0),
                         wind_index_local=float(local.get("wind_index", 1.0) or 1.0),
                         wind_index_north=regional(ts, NORTH_WIND_POINTS, "wind_index"),
                         wind_index_south=regional(ts, SOUTH_WIND_POINTS, "wind_index"),
@@ -344,6 +352,10 @@ def to_frame(samples: list[Sample]) -> pd.DataFrame:
     frame["wind_north_dev"] = frame["wind_index_north"] - 1.0
     frame["wind_south_dev"] = frame["wind_index_south"] - 1.0
     frame["temp_dev"] = frame["temp_anomaly_local"] / 10.0
+    frame["wind_de_dev"] = frame["wind_index_de"] - 1.0
+    frame["solar_de"] = frame["solar_index_de"]
+    frame["hour"] = frame["ts"].dt.hour
+    frame["dow"] = frame["ts"].dt.dayofweek
 
     # Reservoirs. Low storage should mean a scarcer, steeper system.
     frame["fill_dev"] = -(frame["fill_anomaly"].fillna(0.0))

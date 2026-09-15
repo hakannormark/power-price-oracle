@@ -15,7 +15,7 @@ from ..config import (
     OPEN_METEO_URL,
     SOUTH_WIND_POINTS,
 )
-from ..timeutil import TZ, now_local
+from ..timeutil import TZ, iso, now_local
 from .http import get
 
 log = logging.getLogger(__name__)
@@ -98,6 +98,37 @@ def fetch_weather() -> tuple[pd.DataFrame, dict]:
     weather = pd.concat(frames, ignore_index=True)
     log.info("Open-Meteo: %s rows across %s points", len(weather), weather["point"].nunique())
     return weather, {"ok": True, "points": int(weather["point"].nunique()), "rows": len(weather)}
+
+
+def forecast_log_rows(weather: pd.DataFrame, now: datetime | None = None) -> list[dict]:
+    """Observation rows for the hours this forecast still had ahead of it.
+
+    The ERA5 archive records what the weather was; this records what we thought
+    it would be, which is the only version a live forecast ever had.
+    """
+    if weather is None or weather.empty:
+        return []
+    now = now or now_local()
+    stamp = pd.Timestamp(now)
+    future = weather[weather["ts"] > stamp]
+    if future.empty:
+        return []
+
+    seen_at = iso(now)
+    rows = []
+    for record in future.to_dict("records"):
+        target = pd.Timestamp(record["ts"])
+        row = {
+            "ts": iso(target.to_pydatetime()),
+            "point": record["point"],
+            "seen_at": seen_at,
+            "lead_h": int((target - stamp).total_seconds() // 3600),
+        }
+        for name in ("temp", "wind", "solar", "precip"):
+            value = record.get(name)
+            row[name] = None if value is None or pd.isna(value) else round(float(value), 3)
+        rows.append(row)
+    return rows
 
 
 # ------------------------------------------------------------------ climatology

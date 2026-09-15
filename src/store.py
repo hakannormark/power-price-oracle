@@ -11,6 +11,7 @@ from typing import Any, Iterable, Iterator
 from .config import (
     ACTUALS_DIR,
     FORECASTS_DIR,
+    FUNDAMENTALS_HISTORY_DIR,
     HORIZON_HOURS,
     LEGACY_ACTUALS_PATH,
     LEGACY_FORECASTS_PATH,
@@ -19,6 +20,7 @@ from .config import (
     RESERVOIRS_PATH,
     UMM_DIR,
     ROUND_DECIMALS,
+    WEATHER_FORECAST_LOG_DIR,
 )
 from .timeutil import TZ, now_local, parse_iso, to_local
 
@@ -294,6 +296,145 @@ def append_forecasts(rows: Iterable[dict[str, Any]]) -> int:
     for row in rows:
         grouped.setdefault(_forecast_week_path(parse_iso(row["issued_at"])), []).append(row)
     return sum(append_jsonl(path, part) for path, part in grouped.items())
+
+
+# ------------------------------------------------- forecast inputs, kept for good
+#
+# Both stores answer one question the project could not answer before: what did
+# an upstream forecast say about an hour that had not happened yet? The
+# fundamentals cache held two days and was overwritten every run, and the
+# weather the pipeline believed at issue time was never written down at all —
+# so the residual-load weight and every weather coefficient could only be
+# scored against ERA5 reanalysis, which is a perfect hindcast and flatters day 7
+# exactly as much as day 1.
+#
+# Two observations per hour rather than all of them: four runs a day across a
+# multi-day window would store the same hour a dozen times over, and the first
+# and last already bracket the degradation. `first` is the earliest lead time we
+# saw, `last` the one closest to delivery.
+#
+# Partitioned per ISO week of the hour described, for the same reason the
+# forecast log is. Folding an observation rewrites its whole file: a year file
+# would reach some 79 000 weather rows and be rewritten on all four runs a day,
+# which is tens of megabytes of fresh git objects every day. A week file holds
+# under two thousand rows, and a run only ever touches the one or two weeks its
+# forecast window covers.
+
+OBSERVATION_META = ("first_seen", "last_seen", "first_lead_h", "last_lead_h", "observations")
+
+
+def _history_week_path(directory: Path, target: datetime) -> Path:
+    year, week, _ = to_local(target).isocalendar()
+    return directory / f"{year}-W{week:02d}.jsonl"
+
+
+def _new_observation(row: dict[str, Any], key_fields: tuple, value_names: tuple) -> dict[str, Any]:
+    stored = {field: row[field] for field in key_fields}
+    for name in value_names:
+        stored[f"{name}_first"] = row.get(name)
+        stored[f"{name}_last"] = row.get(name)
+    stored["first_seen"] = stored["last_seen"] = row["seen_at"]
+    stored["first_lead_h"] = stored["last_lead_h"] = int(row["lead_h"])
+    stored["observations"] = 1
+    return stored
+
+
+def _fold_observation(old: dict[str, Any], new: dict[str, Any], value_names: tuple) -> dict[str, Any]:
+    """Keep the earliest sighting of this hour and the most recent one."""
+    merged = dict(old)
+    if new["first_seen"] < old["first_seen"]:
+        for name in value_names:
+            merged[f"{name}_first"] = new[f"{name}_first"]
+        merged["first_seen"] = new["first_seen"]
+        merged["first_lead_h"] = new["first_lead_h"]
+    if new["last_seen"] >= old["last_seen"]:
+        for name in value_names:
+            merged[f"{name}_last"] = new[f"{name}_last"]
+        merged["last_seen"] = new["last_seen"]
+        merged["last_lead_h"] = new["last_lead_h"]
+    merged["observations"] = int(old.get("observations", 1)) + 1
+    return merged
+
+
+def _upsert_observations(
+    directory: Path,
+    rows: Iterable[dict[str, Any]],
+    key_fields: tuple,
+    value_names: tuple,
+) -> int:
+    """Fold observations into per-target-week files. Returns hours newly seen."""
+    incoming: dict[Path, list[dict[str, Any]]] = {}
+    for row in rows:
+        prepared = _new_observation(row, key_fields, value_names)
+        incoming.setdefault(_history_week_path(directory, parse_iso(row["ts"])), []).append(prepared)
+
+    added = 0
+    for path, week_rows in incoming.items():
+
+        def key(r: dict[str, Any]) -> tuple:
+            return tuple(str(r[field]) for field in key_fields)
+
+        merged = {key(r): r for r in read_jsonl(path)}
+        for row in week_rows:
+            existing = merged.get(key(row))
+            if existing is None:
+                merged[key(row)] = row
+                added += 1
+            else:
+                merged[key(row)] = _fold_observation(existing, row, value_names)
+
+        ordered = sorted(
+            merged.values(),
+            key=lambda r: tuple(str(r[f]) for f in key_fields if f != "ts") + (r["ts"],),
+        )
+        write_jsonl(path, ordered)
+    return added
+
+
+def _load_history(directory: Path, since=None) -> list[dict[str, Any]]:
+    if not directory.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    for path in sorted(directory.glob("*.jsonl")):
+        week_start = _forecast_week_start(path)
+        # A week file holds only hours inside that week, so one that ends before
+        # the window opens cannot contribute a row.
+        if since is not None and week_start is not None and week_start + timedelta(days=7) < since:
+            continue
+        for row in read_jsonl(path):
+            if since is not None and parse_iso(row["ts"]) < since:
+                continue
+            rows.append(row)
+    return rows
+
+
+FUNDAMENTALS_KEY = ("ts", "zone", "series")
+WEATHER_LOG_KEY = ("ts", "point")
+WEATHER_LOG_VARIABLES = ("temp", "wind", "solar", "precip")
+
+
+def upsert_fundamentals_history(rows: Iterable[dict[str, Any]]) -> int:
+    """ENTSO-E load and wind/solar forecasts, keyed on the hour they describe.
+
+    Rows carry `ts`, `zone`, `series`, `value`, `seen_at` and `lead_h`; the
+    caller decides which hours were still in the future.
+    """
+    return _upsert_observations(FUNDAMENTALS_HISTORY_DIR, rows, FUNDAMENTALS_KEY, ("value",))
+
+
+def load_fundamentals_history(since=None) -> list[dict[str, Any]]:
+    return _load_history(FUNDAMENTALS_HISTORY_DIR, since)
+
+
+def upsert_weather_forecast_log(rows: Iterable[dict[str, Any]]) -> int:
+    """What Open-Meteo predicted per point, for hours that had not happened yet."""
+    return _upsert_observations(
+        WEATHER_FORECAST_LOG_DIR, rows, WEATHER_LOG_KEY, WEATHER_LOG_VARIABLES
+    )
+
+
+def load_weather_forecast_log(since=None) -> list[dict[str, Any]]:
+    return _load_history(WEATHER_FORECAST_LOG_DIR, since)
 
 
 # ---------------------------------------------------------------- outages

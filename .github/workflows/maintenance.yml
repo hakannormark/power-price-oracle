@@ -4,6 +4,11 @@ name: Maintenance
 # Triggered by hand: gh workflow run Maintenance -f task=diagnose
 
 on:
+  # The weather archive is training data, and it stood still at 2026-08-29 while
+  # the models kept being fitted on it. Weekly is often enough: ERA5 publishes
+  # several days behind real time anyway.
+  schedule:
+    - cron: "40 3 * * 1"
   workflow_dispatch:
     inputs:
       task:
@@ -16,6 +21,7 @@ on:
           - deep-backfill
           - fetch-reservoirs
           - fetch-neighbours
+          - refresh-weather-archive
       days:
         description: Days of history for deep-backfill
         required: false
@@ -24,6 +30,10 @@ on:
 
 permissions:
   contents: write
+
+env:
+  # A scheduled run carries no inputs, so it names its own task.
+  TASK: ${{ github.event_name == 'schedule' && 'refresh-weather-archive' || inputs.task }}
 
 concurrency:
   # Serialises every run that commits to data/ — a 13-minute backfill and a
@@ -46,13 +56,13 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Diagnose upstream sources
-        if: inputs.task == 'diagnose'
+        if: env.TASK == 'diagnose'
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         run: python -m src.diagnose
 
       - name: Deep backfill of day-ahead prices
-        if: inputs.task == 'deep-backfill'
+        if: env.TASK == 'deep-backfill'
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         # Staged outside the repo: the download takes minutes, and origin moves
@@ -61,13 +71,13 @@ jobs:
         run: python -m src.backfill --days ${{ inputs.days }} --stage "$RUNNER_TEMP/staged.jsonl"
 
       - name: Backfill neighbouring zone prices
-        if: inputs.task == 'fetch-neighbours'
+        if: env.TASK == 'fetch-neighbours'
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         run: python -m src.fetch_neighbours --days ${{ inputs.days }} --stage "$RUNNER_TEMP/staged.jsonl"
 
       - name: Commit new history
-        if: inputs.task != 'diagnose'
+        if: env.TASK != 'diagnose'
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
         run: |
@@ -79,10 +89,11 @@ jobs:
             git fetch origin "${{ github.ref_name }}"
             git reset --hard "origin/${{ github.ref_name }}"
 
-            case "${{ inputs.task }}" in
-              deep-backfill)    python -m src.backfill --merge "$RUNNER_TEMP/staged.jsonl" ;;
-              fetch-neighbours) python -m src.fetch_neighbours --merge "$RUNNER_TEMP/staged.jsonl" ;;
-              fetch-reservoirs) python -m src.fetch_reservoirs ;;
+            case "$TASK" in
+              deep-backfill)           python -m src.backfill --merge "$RUNNER_TEMP/staged.jsonl" ;;
+              fetch-neighbours)        python -m src.fetch_neighbours --merge "$RUNNER_TEMP/staged.jsonl" ;;
+              fetch-reservoirs)        python -m src.fetch_reservoirs ;;
+              refresh-weather-archive) python -m src.fetch_weather_archive --refresh ;;
             esac
 
             git add data
@@ -90,7 +101,7 @@ jobs:
               echo "Nothing changed."
               exit 0
             fi
-            git commit -m "chore: ${{ inputs.task }}"
+            git commit -m "chore: $TASK"
             if git push origin "HEAD:${{ github.ref_name }}"; then
               echo "Pushed on attempt $attempt."
               exit 0

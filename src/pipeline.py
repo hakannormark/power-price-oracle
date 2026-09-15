@@ -58,8 +58,10 @@ from .store import (
     load_umm,
     read_jsonl,
     upsert_actuals,
+    upsert_fundamentals_history,
     upsert_quarters,
     upsert_umm,
+    upsert_weather_forecast_log,
 )
 from .timeutil import iso, now_local, run_id_for
 
@@ -129,8 +131,12 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
             upsert_quarters(quarter_rows)
 
         weather, sources["open_meteo"] = open_meteo.fetch_weather()
+        # Kept apart from the cache-filled frame below: only what this run really
+        # fetched may enter the permanent history, or a cached value would be
+        # recorded as a fresh forecast at a lead time it never had.
+        fresh_fundamentals, fundamentals_status = entsoe_fundamentals.fetch_fundamentals()
         fundamentals, sources["entsoe_fundamentals"] = entsoe_fundamentals.with_cache(
-            *entsoe_fundamentals.fetch_fundamentals(), now
+            fresh_fundamentals, fundamentals_status, now
         )
         svk, sources["svk_text"] = svk_text.fetch_svk_text()
         if svk is None:
@@ -166,6 +172,25 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
 
         weather = pd.DataFrame(columns=["ts", "point"])
         regional = pd.DataFrame(columns=["ts", "wind_index_north", "wind_index_south"])
+
+    # ---- 4b. keep the inputs, not just the output ------------------------
+    # Every fitted coefficient in this repo is scored against ERA5 reanalysis
+    # and the two-day fundamentals cache, because nothing else was ever stored.
+    # Reanalysis is a perfect hindcast, so the back-test cannot see forecast
+    # weather degrade with the horizon. These two logs accumulate the honest
+    # version. Gated on `record` for the same reason forecasts are: a local run
+    # at an odd hour must not enter the measured history.
+    stored_inputs = {"fundamentals": 0, "weather": 0}
+    if record and not skip_fetch:
+        try:
+            stored_inputs["fundamentals"] = upsert_fundamentals_history(
+                entsoe_fundamentals.history_rows(fresh_fundamentals, now)
+            )
+            stored_inputs["weather"] = upsert_weather_forecast_log(
+                open_meteo.forecast_log_rows(weather, now)
+            )
+        except Exception as exc:  # noqa: BLE001 - storage must not cost the run
+            log.exception("Could not store forecast inputs: %s", exc)
 
     features = build_features(actuals, weather, regional, fundamentals, now)
 
@@ -288,6 +313,10 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
     print(f"  actuals         : {len(actuals)} rows (+{added} new)")
     print(f"  forecast rows   : +{written}" + ("" if record else "  (ej registrerade — lokal körning)"))
     print(f"  scored points   : {accuracy['scored_points']}")
+    print(
+        f"  inputs stored   : {stored_inputs['fundamentals']} fundamentals, "
+        f"{stored_inputs['weather']} weather hours"
+    )
     print(f"  eur/sek         : {fx['rate'] if fx else 'unavailable'}")
     print(f"  outages         : " + ", ".join(
         f"{z}:{len(b['items'])}" for z, b in outages.items()))

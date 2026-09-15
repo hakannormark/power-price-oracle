@@ -213,6 +213,16 @@ LONGTERM_FORECASTS_PATH = LONGTERM_DIR / "forecasts.jsonl"  # append-only
 # Last successfully fetched ENTSO-E load and wind/solar forecasts, per cell.
 # Committed, so a run that cannot reach ENTSO-E can fill in from the last one that could.
 FUNDAMENTALS_CACHE_PATH = DATA_DIR / "fundamentals" / "latest.jsonl"
+# The same figures, kept for good. The cache above holds two days and is
+# overwritten every run, so weather_scaled weighted the residual load at 0.60
+# live while no history existed to fit or score that weight on. One row per
+# (hour, zone, series), carrying the first published value and the latest.
+FUNDAMENTALS_HISTORY_DIR = DATA_DIR / "fundamentals" / "history"
+# What the weather forecast said, as opposed to what the weather turned out to
+# be. The ERA5 archive is the truth and the back-test feeds it to every horizon,
+# which is why day 7 scores as well as day 1 there. Only this log can measure
+# what a real forecast degrades to.
+WEATHER_FORECAST_LOG_DIR = DATA_DIR / "weather" / "forecast_log"
 
 API_DIR = ROOT / "api" / "v1"
 SITE_DIR = ROOT / "site"

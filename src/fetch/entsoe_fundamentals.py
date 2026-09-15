@@ -167,6 +167,34 @@ def _wide(rows: list[dict]) -> pd.DataFrame:
     return wide[EMPTY_COLUMNS]
 
 
+def history_rows(fresh: pd.DataFrame, now: datetime | None = None) -> list[dict]:
+    """Observation rows for hours still in the future, for the permanent history.
+
+    Only what this run actually fetched: a cached value re-stamped with today's
+    timestamp would claim a lead time it never had.
+    """
+    if fresh is None or fresh.empty:
+        return []
+    now = now or now_local()
+    stamp = iso(now)
+    rows = []
+    for row in _long(fresh, stamp):
+        target = pd.Timestamp(row["ts"]).to_pydatetime()
+        if target <= now:
+            continue
+        rows.append(
+            {
+                "ts": row["ts"],
+                "zone": row["zone"],
+                "series": row["series"],
+                "value": row["value"],
+                "seen_at": stamp,
+                "lead_h": int((target - now).total_seconds() // 3600),
+            }
+        )
+    return rows
+
+
 def with_cache(fresh: pd.DataFrame, status: dict, now: datetime | None = None) -> tuple[pd.DataFrame, dict]:
     """Fill what this run could not fetch from the last run that could, and refresh the cache.
 
