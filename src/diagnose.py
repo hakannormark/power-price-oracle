@@ -192,6 +192,75 @@ def probe_transmission() -> None:
             print(f"  {a}->{b}: FAIL {type(exc).__name__}: {str(exc)[:70]}")
 
 
+def probe_forecast_horizons() -> None:
+    """How far ahead does ENTSO-E publish load and wind/solar, per process type?
+
+    The pipeline only ever asks for the day-ahead process, and the first week of
+    stored history showed why that matters: it reached the end of tomorrow and no
+    further — 27 future hours against a 168-hour forecast window. So the residual
+    load that weather_scaled weights at 0.60 exists for day 1 and 2 and nowhere
+    else, and beyond that the scale falls back to the wind-speed formula without
+    saying so. The models therefore change basis in the middle of the window for
+    reasons that have nothing to do with the weather.
+
+    Week ahead (A31) and month ahead (A32) are in the standard. Whether this
+    token and these bidding zones actually serve them is the question, and it
+    cannot be answered from documentation — hence a probe.
+    """
+    import pandas as pd
+
+    rule("Forecast horizons — how far ahead are load and wind/solar published?")
+    client, now = _client(), now_local()
+    start = pd.Timestamp(now - timedelta(days=1))
+    end = pd.Timestamp(now + timedelta(days=9))
+
+    def describe(result) -> str:
+        if result is None or len(result) == 0:
+            return "empty"
+        if isinstance(result, pd.DataFrame):
+            columns = list(result.columns)
+            result = result.iloc[:, 0]
+        else:
+            columns = []
+        index = pd.to_datetime(result.index)
+        reach = (index.max() - pd.Timestamp(now)) / pd.Timedelta(hours=1)
+        step = pd.Series(index).diff().dropna().mode()
+        text = (
+            f"{len(result)} points, {index.min():%m-%d %H:%M} -> {index.max():%m-%d %H:%M}, "
+            f"reaches {reach:+.0f} h from now, step {step.iloc[0] if len(step) else '?'}"
+        )
+        return text + (f", columns {columns}" if columns else "")
+
+    for label, process in (("day ahead", "A01"), ("week ahead", "A31"), ("month ahead", "A32")):
+        print(f"\n  -- load forecast, {label} ({process}) --")
+        for zone, area in _areas().items():
+            if area is None:
+                print(f"  {zone}: no area alias")
+                continue
+            try:
+                result = client.query_load_forecast(
+                    area, start=start, end=end, process_type=process
+                )
+            except Exception as exc:  # noqa: BLE001
+                print(f"  {zone}: FAIL {type(exc).__name__}: {str(exc)[:70]}")
+                continue
+            print(f"  {zone}: {describe(result)}")
+
+    for label, process in (("day ahead", "A01"), ("week ahead", "A31")):
+        print(f"\n  -- wind and solar forecast, {label} ({process}) --")
+        for zone, area in _areas().items():
+            if area is None:
+                continue
+            try:
+                result = client.query_wind_and_solar_forecast(
+                    area, start=start, end=end, process_type=process
+                )
+            except Exception as exc:  # noqa: BLE001
+                print(f"  {zone}: FAIL {type(exc).__name__}: {str(exc)[:70]}")
+                continue
+            print(f"  {zone}: {describe(result)}")
+
+
 def probe_other() -> None:
     rule("Other sources")
     from .fetch import ecb_fx, open_meteo, svk_text
@@ -223,6 +292,7 @@ def main(argv: list[str] | None = None) -> int:
     probe_outages()
     probe_outages_raw()
     probe_transmission()
+    probe_forecast_horizons()
     if not args.supply:
         probe_other()
     return 0
