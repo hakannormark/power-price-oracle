@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-15T22:01:28+02:00",
- "run_id": "20260915T2001Z",
+ "generated_at": "2026-09-15T22:14:08+02:00",
+ "run_id": "20260915T2014Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
@@ -12,7 +12,7 @@
   "rate": 11.274,
   "date": "2026-09-15",
   "source": "ECB",
-  "fetched_at": "2026-09-15T22:03:03+02:00",
+  "fetched_at": "2026-09-15T22:14:30+02:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
@@ -1909,7 +1909,7 @@
   {
    "id": "shrunk_scaled",
    "name_sv": "Väderskalad, dämpad nivå",
-   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 82 576 timmar ut ur urvalet över tio kvartal: medelfel 25,63 EUR/MWh mot 29,51 för den säsongsnaiva referensen och 28,04 för den väderskalade. Sajtens standardmodell. Den färska nivån såg bättre ut i backtestet men är sämre på skarpa prognoser.",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 437 224 timmar ut ur urvalet över sexton kvartal: medelfel 25,94 EUR/MWh mot 29,87 för den säsongsnaiva referensen och 28,34 för den väderskalade. Men backtestet matar modellerna perfekt väder — på riktiga utfärdade prognoser blir medelfelet 41,9 mot referensens 45,2, alltså 7 procent bättre och inte 13. Sajtens standardmodell. Den färska nivån såg bättre ut i backtestet men är sämre på skarpa prognoser.",
    "quantiles": true,
    "derived": false,
    "is_default": true,
@@ -1927,7 +1927,7 @@
   {
    "id": "ensemble",
    "name_sv": "Ensemble",
-   "description_sv": "Viktat snitt av säsongsnaiv och väderskalad, 35/65. Var sajtens standardmodell fram till att den mättes: på 82 576 timmar ut ur urvalet hamnade den på 28,40 i medelfel mot 25,63 för den dämpade väderskalade modellen. Varje blandning gjorde resultatet sämre än den bästa modellen ensam, så ensemblen finns kvar som jämförelse i stället för som standard.",
+   "description_sv": "Viktat snitt av säsongsnaiv och väderskalad, 35/65. Var sajtens standardmodell fram till att den mättes: på 437 224 timmar ut ur urvalet hamnade den på 28,70 i medelfel mot 25,94 för den dämpade väderskalade modellen. Varje blandning gjorde resultatet sämre än den bästa modellen ensam, så ensemblen finns kvar som jämförelse i stället för som standard.",
    "quantiles": true,
    "derived": true,
    "is_default": false,
