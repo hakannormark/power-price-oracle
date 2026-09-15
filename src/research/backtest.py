@@ -415,12 +415,21 @@ def evaluate(
     level: str,
     drivers: list[str] | None = None,
     per_zone: bool = False,
+    train_window: int | None = None,
 ) -> dict:
     """Out-of-sample MAE, fitting any driver coefficients on earlier quarters.
 
     per_zone fits each coefficient separately for each bidding zone. The shipped
     hand-set weights differ per zone, so comparing them against a single global
     fitted number confuses structure with calibration.
+
+    train_window limits the fit to that many quarters immediately before the one
+    being scored, instead of all earlier history. It exists because cumulative
+    training hid a regime effect once already: a 35-term diurnal shape term
+    scored +2.5 % over the last six quarters and -4.8 % when every quarter was
+    scored with a rolling four-quarter fit, because the gain only existed while
+    training and testing both sat in the post-crisis price level. Any coefficient
+    considered for shipping should survive this, not just the cumulative version.
     """
     quarters = sorted(frame["quarter"].unique())
     # Every quarter is scored except those without enough earlier data to fit on.
@@ -428,8 +437,10 @@ def evaluate(
     scored: list[pd.DataFrame] = []
     fitted: dict[str, list[float]] = defaultdict(list)
 
-    for q in quarters:
+    for position, q in enumerate(quarters):
         train = frame[frame["quarter"] < q]
+        if train_window:
+            train = train[train["quarter"] >= quarters[max(0, position - train_window)]]
         test = frame[frame["quarter"] == q]
         if len(train) < min_train or test.empty:
             continue
@@ -645,6 +656,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Back-test candidate forecast levels")
     parser.add_argument("--days", type=int, default=None, help="limit the history window")
     parser.add_argument("--issue-every", type=int, default=2, help="days between issues")
+    parser.add_argument(
+        "--train-window",
+        type=int,
+        default=None,
+        help=(
+            "fit each quarter on only the N quarters before it — what a model in "
+            "production would have, and the check that exposes a regime-specific gain"
+        ),
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
     logging.basicConfig(
@@ -670,7 +690,7 @@ def main(argv: list[str] | None = None) -> int:
     for entry in CANDIDATES:
         name, level, drivers = entry[0], entry[1], entry[2]
         per_zone = entry[3] if len(entry) > 3 else False
-        result = evaluate(frame, level, drivers, per_zone)
+        result = evaluate(frame, level, drivers, per_zone, args.train_window)
         results[name] = result
         if baseline is None:
             baseline = result["mae"]

@@ -34,6 +34,37 @@ Scored exactly as src/research/backtest.py scores everything else — walk-forwa
 by quarter, every coefficient estimated on quarters strictly earlier than the
 one it is applied to, and the auction cutoff applied so no point is credited for
 reciting a published price.
+
+VERDICT: rejected. Measured against the shipped level (shrunk_scaled, MAE 25.81
+over 431 684 hours), best configuration of twelve in each window:
+
+    window                                   MAE     vs shipped
+    last 6 quarters                        27.77         +2.5 %
+    last 10 quarters                       25.02         +1.8 %
+    all 16 quarters                        27.22         -5.5 %
+    all 16, rolling 4-quarter fit          27.05         -4.8 %
+    all 16, rolling 6-quarter fit          27.15         -5.2 %
+    SE3 only, all 16 quarters              28.97         -2.5 %
+    SE3 + SE4, all 16 quarters             31.21         -2.1 %
+
+The gain exists only when training and testing both sit in the post-crisis price
+level. Scored over the whole history with a rolling refit — which is what a model
+in production actually has — it loses, and it makes the evening bias worse rather
+than better (-6.7 EUR/MWh at 18:00 in SE3 against the level's -3.6).
+
+Gating it to the southern zones does not rescue it: per-zone fitting is identical
+to the SE3-only run, so the failure is the window, not the zone. Two paths were
+tried and rejected inside the term itself: a relative form, which collapsed on
+heavy tails wherever nights price at a few euro, and a free 24-hour basis, which
+was worse than the smooth one everywhere.
+
+What survives from the same evidence is much smaller and lower-dimensional: five
+MAE-fitted weather coefficients per zone instead of the hand-set ones, which the
+main back-test scores at 25.23 against 25.94. Five numbers a zone transfer where
+thirty-five do not — but that claim is only worth as much as the same rolling
+check, which is why --train-window now exists in backtest.py too.
+
+The file is kept, not deleted. A measured refutation is the product here.
 """
 
 from __future__ import annotations
@@ -66,6 +97,15 @@ DRIVERS = [
 # with each other, so the result should be reported across a range rather than
 # at one flattering value.
 PENALTIES = (20.0, 100.0, 400.0)
+
+# The level a relative adjustment is measured against, as in models/band.py: a
+# 2 EUR/MWh hour carries no scale information and would otherwise divide a small
+# residual by a smaller level.
+MIN_BASE = 10.0
+
+
+def _base(level: np.ndarray) -> np.ndarray:
+    return np.maximum(np.abs(level), MIN_BASE)
 
 
 # ------------------------------------------------------------------ the frame
@@ -170,15 +210,39 @@ def walk_forward(
     kind: str,
     penalty: float,
     per_zone: bool = True,
+    mode: str = "rel",
+    train_window: int | None = None,
 ) -> dict:
-    """Out-of-sample MAE, refitting the shape on earlier quarters at each step."""
+    """Out-of-sample MAE, refitting the shape on earlier quarters at each step.
+
+    `mode` decides what the shape term *is*, and the first run of this file
+    showed it decides everything. An absolute term ("abs") is fitted in EUR/MWh,
+    so a coefficient learned while prices averaged 200 is nonsense applied to a
+    quarter averaging 40 — and this sample starts in the 2022 energy crisis. A
+    relative term ("rel") is fitted as a fraction of the level, which is what
+    makes the shipped weather scale survive regime changes at all. It turned out
+    the other way round: "rel" collapsed, because dividing by max(|level|, 10)
+    makes the target heavy-tailed wherever nights price at a few euro, and a
+    least-squares mean fit chases those tails. SE1 and SE2 were worst hit, which
+    is exactly where near-zero hours are common.
+
+    `train_window` limits training to that many quarters immediately before the
+    test quarter instead of all earlier history. Fitting on everything since
+    2022 is what sank the term: the same shape term scored +2.5 % over six
+    quarters and -2.5 % over sixteen. Nothing in production would be stuck with
+    coefficients fitted during the energy crisis, so scoring it that way scores
+    a model nobody would ship.
+    """
     quarters = sorted(frame["quarter"].unique())
     min_train = max(2000, len(frame) // 20)
     zones = sorted(frame["zone"].unique()) if per_zone else [None]
     scored: list[pd.DataFrame] = []
 
-    for quarter in quarters:
+    for position, quarter in enumerate(quarters):
         train_mask = (frame["quarter"] < quarter).to_numpy()
+        if train_window:
+            oldest = quarters[max(0, position - train_window)]
+            train_mask &= (frame["quarter"] >= oldest).to_numpy()
         test_mask = (frame["quarter"] == quarter).to_numpy()
         if train_mask.sum() < min_train or not test_mask.any():
             continue
@@ -200,14 +264,17 @@ def walk_forward(
 
             train_part = train[in_train]
             matrix, _ = design(train_part, kind)
-            residual = (
-                train_part["truth"].to_numpy(dtype="float64")
-                - train_part[level].to_numpy(dtype="float64")
-            )
+            train_level = train_part[level].to_numpy(dtype="float64")
+            residual = train_part["truth"].to_numpy(dtype="float64") - train_level
+            if mode == "rel":
+                residual = residual / _base(train_level)
             fit = fit_ridge(matrix, residual, penalty)
 
             test_matrix, _ = design(test[in_test], kind)
-            prediction[in_test] += apply_ridge(fit, test_matrix)
+            adjustment = apply_ridge(fit, test_matrix)
+            if mode == "rel":
+                adjustment = adjustment * _base(prediction[in_test])
+            prediction[in_test] += adjustment
 
         scored.append(
             pd.DataFrame(
@@ -230,6 +297,9 @@ def walk_forward(
         "bias": float(everything["signed"].mean()),
         "n": int(len(everything)),
         "zones": {str(z): float(v) for z, v in everything.groupby("zone")["error"].mean().items()},
+        # Per-zone counts, so a zone-gated variant can be weighted rather than
+        # eyeballed as a mean of four numbers.
+        "zone_n": {str(z): int(v) for z, v in everything.groupby("zone")["error"].size().items()},
         "buckets": {int(b): float(v) for b, v in everything.groupby("bucket")["error"].mean().items()},
         "hours": {int(h): float(v) for h, v in everything.groupby("hour")["signed"].mean().items()},
     }
@@ -258,6 +328,7 @@ def baseline(frame: pd.DataFrame, level: str) -> dict:
         "bias": float(everything["signed"].mean()),
         "n": int(len(everything)),
         "zones": {str(z): float(v) for z, v in everything.groupby("zone")["error"].mean().items()},
+        "zone_n": {str(z): int(v) for z, v in everything.groupby("zone")["error"].size().items()},
         "buckets": {int(b): float(v) for b, v in everything.groupby("bucket")["error"].mean().items()},
         "hours": {int(h): float(v) for h, v in everything.groupby("hour")["signed"].mean().items()},
     }
@@ -298,6 +369,37 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--issue-every", type=int, default=2)
     parser.add_argument("--cache", type=Path, default=None)
     parser.add_argument("--level", default="level_shrunk")
+    parser.add_argument(
+        "--mode",
+        default="rel",
+        choices=("rel", "abs", "both"),
+        help="shape term as a fraction of the level, in EUR/MWh, or both for comparison",
+    )
+    parser.add_argument(
+        "--quarters",
+        type=int,
+        default=None,
+        help="score only the last N quarters, to separate a regime effect from no signal",
+    )
+    parser.add_argument(
+        "--train-window",
+        type=int,
+        default=None,
+        help=(
+            "fit each quarter on only the N quarters before it, instead of all "
+            "history — what a model in production would actually have"
+        ),
+    )
+    parser.add_argument(
+        "--zones",
+        default=None,
+        help=(
+            "comma-separated zones to score, e.g. SE3,SE4. The shape term helps in "
+            "the south and hurts in the north across every window measured, so the "
+            "shippable variant is gated — this measures that gate instead of "
+            "averaging four zones by hand."
+        ),
+    )
     parser.add_argument("--emit", action="store_true", help="print coefficients fitted on everything")
     parser.add_argument("--emit-kind", default="harmonic")
     parser.add_argument("--emit-penalty", type=float, default=100.0)
@@ -313,6 +415,19 @@ def main(argv: list[str] | None = None) -> int:
         print("No samples — is data/actuals and data/weather/archive populated?")
         return 1
 
+    if args.quarters:
+        keep = sorted(frame["quarter"].unique())[-args.quarters:]
+        frame = frame[frame["quarter"].isin(keep)]
+        print(f"limited to the last {args.quarters} quarters: {keep[0]} .. {keep[-1]}")
+
+    if args.zones:
+        wanted = [z.strip().upper() for z in args.zones.split(",") if z.strip()]
+        frame = frame[frame["zone"].isin(wanted)]
+        print(f"limited to zones: {', '.join(wanted)}")
+        if frame.empty:
+            print("No rows for those zones.")
+            return 1
+
     print(
         f"\n{len(frame):,} scored hours, {frame['issued'].min():%Y-%m-%d} to "
         f"{frame['issued'].max():%Y-%m-%d}, {frame['quarter'].nunique()} quarters"
@@ -323,18 +438,25 @@ def main(argv: list[str] | None = None) -> int:
     report("seasonal_naive", naive, None)
     base = baseline(frame, args.level)
     report(f"{args.level} (no shape term)", base, None)
+    print("  scored hours per zone: " + "  ".join(
+        f"{zone} {count:,}" for zone, count in sorted(base["zone_n"].items())
+    ))
     shipped = baseline(frame, "level_weather_guessed")
     report("shrunk_scaled as shipped", shipped, base["mae"])
 
+    modes = ("rel", "abs") if args.mode == "both" else (args.mode,)
     best = (None, float("inf"), None)
-    for kind in ("harmonic", "hourly"):
-        for penalty in PENALTIES:
-            for per_zone in (False, True):
-                scope = "per zone" if per_zone else "pooled"
-                result = walk_forward(frame, args.level, kind, penalty, per_zone)
-                report(f"+ shape {kind}, λ={penalty:g}, {scope}", result, base["mae"])
-                if result["mae"] < best[1]:
-                    best = (f"{kind}, λ={penalty:g}, {scope}", result["mae"], result)
+    for mode in modes:
+        for kind in ("harmonic", "hourly"):
+            for penalty in PENALTIES:
+                for per_zone in (False, True):
+                    scope = "per zone" if per_zone else "pooled"
+                    result = walk_forward(
+                        frame, args.level, kind, penalty, per_zone, mode, args.train_window
+                    )
+                    report(f"+ {mode} {kind}, λ={penalty:g}, {scope}", result, base["mae"])
+                    if result["mae"] < best[1]:
+                        best = (f"{mode}, {kind}, λ={penalty:g}, {scope}", result["mae"], result)
 
     print(f"\nbest: {best[0]}  MAE {best[1]:.2f}")
     winner = best[2]
