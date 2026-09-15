@@ -86,10 +86,16 @@ den som inte vet vad som redan testats testar det igen.
 ECB:s dagskurs, inte bara en flyttad decimal. Formeln i den ursprungliga specen
 (`ore = eur_mwh / 10`) ger eurocent och är fel. Se `config.ore_per_kwh`.
 
-**Osäkerhetsbandet är brett och asymmetriskt.** Cirka 120 EUR/MWh, med nedsidan
-begränsad och uppsidan två till tre gånger nivån. Det är kalibrerat mot utfall —
-det tidigare, smalare bandet täckte 39,7 % medan det påstod 80. Se
-`models/band.py`.
+**Osäkerhetsbandet är brett och asymmetriskt.** Skarpt i snitt 180 EUR/MWh, med
+nedsidan begränsad och uppsidan två till tre gånger nivån. Det är kalibrerat mot
+utfall — det tidigare, smalare bandet täckte 39,7 % medan det påstod 80. Mätt på
+riktiga utfall täcker det nuvarande **78,8 %** mot målet 80. Se `models/band.py`.
+
+**Anpassa inte om bandet från backtestet.** Backtestets residualer är för tunna,
+eftersom det matar modellerna ERA5-reanalys: det anpassar q90 till +1,98…+2,07
+medan skarpa residualer löper +2,45…+3,14. Två ersättningar anpassade så mättes
+skarpt till 74,6 % och 76,1 %, alltså sämre än det som skeppas. Kvantilerna hör
+hemma i skarp historik, och den är ännu bara elva dygn lång.
 
 **`ensemble` är sämre än en av sina beståndsdelar.** Den ligger kvar som mätt
 jämförelse. Att ta bort förlorande kandidater är hur man slutar märka när något

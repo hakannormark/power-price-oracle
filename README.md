@@ -268,27 +268,32 @@ GitHub Pages tillåter GET från webbläsare, och Home Assistant behöver inte C
 
 ## Modeller i v1
 
-Alla körs varje gång. Talen är medelfel över **82 576 timmar ut ur urvalet**,
-tio kvartal, med varje koefficient anpassad enbart på data äldre än det kvartal
-den tillämpas på (`python -m src.research.backtest`).
+Alla körs varje gång. Talen är medelfel över **437 224 timmar ut ur urvalet**,
+sexton kvartal, med varje koefficient anpassad enbart på data äldre än det kvartal
+den tillämpas på (`python -m src.research.backtest --issue-every 2`).
 
 | Modell | MAE | Mot naiv | Vad den gör |
 | --- | --- | --- | --- |
-| `seasonal_naive` | 29,51 | 0 % | Priset samma veckodag och timme sju dygn tidigare. Referensen alla andra mäts mot. |
-| `weather_scaled` | 28,04 | +5,0 % | Den naiva nivån skalad med vindindex, temperaturavvikelse och sol, med egna vikter per elområde. |
-| `ensemble` | 28,40 | +3,8 % | 35 % naiv + 65 % väderskalad. Var standard tills den mättes. |
-| **`shrunk_scaled`** | **25,38** | **+13,0 %** | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de fyra senaste veckorna. **Sajtens standardmodell.** |
-| `recency_scaled` | 24,57 | +15,8 % | Som ovan, men där gårdagens pris redan publicerats vägs det in med 70 %. Ser bättre ut i backtest men förlorar på riktiga prognoser — se nedan. |
+| `seasonal_naive` | 29,87 | 0 % | Priset samma veckodag och timme sju dygn tidigare. Referensen alla andra mäts mot. |
+| `weather_scaled` | 28,34 | +5,1 % | Den naiva nivån skalad med vindindex, temperaturavvikelse och sol, med egna vikter per elområde. |
+| `ensemble` | 28,70 | +3,9 % | 35 % naiv + 65 % väderskalad. Var standard tills den mättes. |
+| **`shrunk_scaled`** | **25,94** | **+13,2 %** | Samma väderskalning, men grundnivån vägs 70/30 mot medianen för samma timme de fyra senaste veckorna. **Sajtens standardmodell.** |
+| `recency_scaled` | 24,86 | +16,8 % | Som ovan, men där gårdagens pris redan publicerats vägs det in med 70 %. Ser bättre ut i backtest men förlorar på riktiga prognoser — se nedan. |
 | `market_scaled` | – | – | Standardmodellens dygnsform, flyttad så att snittet över en terminsperiod blir terminsmarknadens pris: systemprisets veckokontrakt plus områdets EPAD. Ingen fri terminshistorik finns, så den mäts bara skarpt, från september 2026, och är inte standard. |
 
 "Mot naiv" är hur mycket lägre medelfelet är än den säsongsnaiva referensens — högre
 är bättre.
 
-**Backtest är inte facit.** `recency_scaled` var kortvarigt standard på styrkan av
-ett backtest som saknade auktionsfiltret. På skarpa prognoser, mätta på samma
-fönster för alla fem modeller, är `shrunk_scaled` bäst på alla horisonter
-(32,1 / 24,8 / 36,6 mot 34,3 / 27,1 / 39,9). Läs `CONTRIBUTING.md` innan du
-ändrar något som rör utvärdering.
+**Backtest är inte facit, och skillnaden är stor.** Tabellen ovan matar modellerna
+ERA5-reanalys, alltså ett perfekt väder som ingen skarp prognos har. Mätt på
+riktiga utfärdade prognoser i september 2026, 16 724 poängsatta timmar, ligger
+`shrunk_scaled` på **41,9 EUR/MWh** mot referensens 45,2 — **7,4 procent** bättre,
+inte 13, och 67 procent av medelpriset i perioden. Aktuella skarpa tal per modell,
+elområde och horisont står i `api/v1/accuracy.json`; frys dem inte i kod eller
+text, för de åldras utan att någon märker det.
+
+`recency_scaled` var kortvarigt standard på styrkan av ett backtest som saknade
+auktionsfiltret. Läs `CONTRIBUTING.md` innan du ändrar något som rör utvärdering.
 
 Varje blandning av `shrunk_scaled` med de övriga blev sämre än modellen ensam, så
 standarden är en enskild modell och inte en sammanvägning.

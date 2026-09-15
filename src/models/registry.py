@@ -26,19 +26,22 @@ DERIVED_MODELS = [
 
 MODELS = [*BASE_MODELS, *DERIVED_MODELS]
 
-# Chosen by measurement, not by taste. Over 82 576 out-of-sample hours across
-# ten quarters (src/research/backtest.py):
-#   seasonal_naive          MAE 29.51    0.0 %
-#   weather_scaled          MAE 28.04   +5.0 %
-#   ensemble (0.35/0.65)    MAE 28.40   +3.8 %
-# Chosen on live scoring, which is the only measurement that applies the auction
-# cutoff. Over 24 288 scored points, mean absolute error EUR/MWh:
-#            0-24h   24-48h   48-72h
-#   shrunk_scaled     16.8     18.9     33.8   <- default
-#   weather_scaled    18.3     20.5     35.2
-#   ensemble          18.2     21.3     36.1
-#   seasonal_naive    17.9     23.1     38.1
-#   recency_scaled    34.3     27.1     39.9
+# Chosen by measurement, not by taste. Over 437 224 out-of-sample hours across
+# sixteen quarters (src/research/backtest.py --issue-every 2):
+#   seasonal_naive          MAE 29.87    0.0 %
+#   weather_scaled          MAE 28.34   +5.1 %
+#   ensemble (0.35/0.65)    MAE 28.70   +3.9 %
+#   shrunk_scaled           MAE 25.94  +13.2 %   <- default
+#
+# Live scoring is the only measurement that applies the auction cutoff to real
+# issued forecasts, and it is lower everywhere because the back-test feeds models
+# ERA5 reanalysis. In September 2026, over 16 724 scored hours, shrunk_scaled
+# averaged 41.9 EUR/MWh against 45.2 for the reference — 7.4 % better, not 13 %.
+#
+# No per-model live table is frozen here on purpose: the last one in this comment
+# read 16.8 / 18.9 / 33.8 for the first three horizons and had drifted to
+# 39.1 / 40.0 / 41.9 without anyone noticing. api/v1/accuracy.json carries those
+# numbers and keeps them current.
 #
 # recency_scaled was briefly the default on the strength of a back-test that did
 # not apply the cutoff, and so credited it for hours whose price the exchange had

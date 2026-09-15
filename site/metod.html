@@ -121,20 +121,28 @@
         fyra års avbrottsmeddelanden i projektet. Det gör att modellvalen inte
         längre behöver motiveras med resonemang. Varje kandidat poängsätts i ett
         <b>backtest</b>: modellen får göra prognoser för gamla veckor, och de jämförs med
-        vad priset faktiskt blev. Totalt <b>82 576 timmar</b> över tio kvartal, där varje
+        vad priset faktiskt blev. Totalt <b>437 224 timmar</b> över sexton kvartal, där varje
         vikt anpassas enbart på data som är äldre än kvartalet den prövas på — modellen
         får alltså aldrig se facit i förväg.</p>
+      <p class="banner"><span><b>Läs tabellen nedan som modellens meritvärde, inte som vad
+        sajten levererar.</b> Backtestet matar modellerna ERA5-reanalys, alltså vädret som
+        det faktiskt blev — ett perfekt väder som ingen skarp prognos har. Mätt på riktiga
+        utfärdade prognoser i september 2026, 16 724 poängsatta timmar, ligger
+        standardmodellen på <b>41,9 EUR/MWh</b> mot referensens 45,2. Det är
+        <b>7,4 procent</b> bättre än att kopiera förra veckan, inte 13, och felet är
+        67 procent av medelpriset i perioden. Skillnaden mellan de två talen är
+        skillnaden mellan att veta vädret och att gissa det.</span></p>
 
       <div class="table-scroll">
         <table>
           <thead><tr><th>Kandidat</th><th>Medelfel, EUR/MWh</th><th>Mindre fel än naiv</th></tr></thead>
           <tbody>
-            <tr><td>Säsongsnaiv — referensen</td><td class="num">29,51</td><td class="num">–</td></tr>
-            <tr><td>Väderskalad</td><td class="num">28,04</td><td class="num">5,0 %</td></tr>
-            <tr><td>Ensemble 35/65</td><td class="num">28,40</td><td class="num">3,8 %</td></tr>
-            <tr><td>Enbart dämpad nivå, utan väder</td><td class="num">27,18</td><td class="num">7,9 %</td></tr>
-            <tr><td><b>Dämpad nivå + väderskalning — sajtens standard</b></td><td class="num"><b>25,38</b></td><td class="num best"><b>13,0 %</b></td></tr>
-            <tr><td>Färsk nivå + väderskalning — se nedan</td><td class="num">24,57</td><td class="num">15,8 %*</td></tr>
+            <tr><td>Säsongsnaiv — referensen</td><td class="num">29,87</td><td class="num">–</td></tr>
+            <tr><td>Väderskalad</td><td class="num">28,34</td><td class="num">5,1 %</td></tr>
+            <tr><td>Ensemble 35/65</td><td class="num">28,70</td><td class="num">3,9 %</td></tr>
+            <tr><td>Enbart dämpad nivå, utan väder</td><td class="num">27,53</td><td class="num">7,8 %</td></tr>
+            <tr><td><b>Dämpad nivå + väderskalning — sajtens standard</b></td><td class="num"><b>25,94</b></td><td class="num best"><b>13,2 %</b></td></tr>
+            <tr><td>Färsk nivå + väderskalning — se nedan</td><td class="num">24,86</td><td class="num">16,8 %*</td></tr>
           </tbody>
         </table>
       </div>
@@ -192,7 +200,7 @@
         sämst på det första dygnet. Standardmodellen är återställd till den
         dämpade nivån. Den färska nivån ligger kvar som mätt konkurrent.</p>
       <p>Skarpt har det bekräftats. De första veckorna i september 2026 missade den färska
-        nivån i snitt 44 EUR/MWh på det första dygnet, mot 37 för standardmodellen. Orsaken
+        nivån i snitt 46,0 EUR/MWh på det första dygnet, mot 39,1 för standardmodellen. Orsaken
         syns i datan: för de timmar som går att poängsätta på det första dygnet — natten och
         förmiddagen i morgon, prognoserade innan auktionen — är ”dagen innan” i dag, och
         priset svängde kraftigt från dag till dag (SE3: 50, 103, 62 och 100 EUR/MWh den 8–11
@@ -205,14 +213,20 @@
       <h3>Väderskalningens vikter håller</h3>
       <p>De handsatta vikterna per elområde — SE1 och SE2 mot sin egen vind, SE4
         även mot sydlig vind och sol — skrevs ursprungligen på intuition. De har nu
-        prövats mot anpassade alternativ och står sig: en global anpassad
-        vindkoefficient gav 25,70, per elområde anpassad vind 25,83, båda strax
-        sämre än de befintliga 25,62. Att lägga till fler anpassade termer ovanpå
-        gjorde det genomgående sämre.</p>
-      <p>Slutsatsen är alltså inte fler parametrar och inte färre, utan att den
-        befintliga strukturen råkar vara välbalanserad. Ett förbehåll: anpassningen
-        gjordes girigt, en term i taget på ett grovt rutnät. En riktig
-        samoptimering kan mycket väl slå de handsatta vikterna.</p>
+        prövats mot anpassade alternativ, och den prövningen gav först motsatt svar:
+        anpassar man fem koefficienter per elområde på <em>all</em> äldre historik blir
+        medelfelet 25,23 mot de handsattas 25,94. Anpassade vikter såg alltså bättre ut.</p>
+      <p>Men det är inte den modell någon kan driva. En modell i drift har inte
+        koefficienter anpassade under energikrisen 2022 — den anpassas om på färsk
+        historik. Mäter man i stället så, med bara de närmast föregående kvartalen som
+        underlag för varje kvartal som poängsätts, <b>förlorar</b> de anpassade vikterna:
+        26,80 med fyra kvartals fönster och 26,75 med sex, mot de handsattas 25,94.</p>
+      <p>Orsaken syns i koefficienterna. Med kort fönster blir de nästan identiska
+        mellan elområdena — omkring −0,26 i alla fyra — så den nord/syd-skillnad som de
+        handsatta vikterna kodar återskapas aldrig. <b>De handsatta vikterna är robusta
+        just därför att de inte är anpassade till någon regim.</b> Slutsatsen är alltså
+        inte fler parametrar och inte färre, utan att strukturen står sig — och att en
+        anpassning som tränas på all historik kan se bra ut utan att kunna levereras.</p>
 
       <h3>Avbrott hjälper inte prognosen — men visas ändå</h3>
       <p>Kärnkraftsstopp och kabelbegränsningar hämtas från Nord Pools
@@ -236,33 +250,42 @@
         säker just där den är som mest opålitlig, och felet är tyst: ingenting i
         utdatat skiljer en välträffad timme från en illa träffad.</p>
       <p>Bandet sätts nu av den uppmätta fördelningen av prognosfel per
-        prognosdygn, skattad på tidigare kvartal och prövad på senare. Det
-        träffar 79,7 procent. Två egenskaper är värda att förstå:</p>
+        prognosdygn, skattad på tidigare kvartal och prövad på senare. I backtestet
+        träffar det 79,7 procent, och <b>skarpt 78,8 procent</b> — mätt på 16 724
+        utfärdade timmar i september 2026. Träffen är ojämn över veckan: 70 procent
+        på dygn 1, alltså något för smalt, och 83 procent på dygn 5, något för brett.
+        Den avvikelsen lämnas medvetet orättad. Två försök att anpassa om kvantilerna
+        mättes skarpt till 74,6 och 76,1 procent, alltså sämre än det som skeppas,
+        och elva dygns skarp historik är en fjortondag och ingen kalibrering.
+        Två egenskaper är värda att förstå:</p>
       <ul>
         <li><b>Det är kraftigt asymmetriskt.</b> Nedsidan är begränsad, uppsidan
           löper till två eller tre gånger nivån. Elpriser skjuter uppåt och kan
           inte falla långt under noll. Ett symmetriskt band går inte att
           kalibrera här, oavsett bredd.</li>
-        <li><b>Det är brett.</b> I snitt omkring 120 EUR/MWh mot tidigare 32. Det
-          är inte en försämring — det är den ärliga bredden på en sjudygnsprognos
-          för elpris. Att redovisa 32 var felet.</li>
+        <li><b>Det är brett.</b> Skarpt i snitt 180 EUR/MWh mot tidigare 32, och
+          det växer med horisonten som det ska: 147 på dygn 1, 203 på dygn 5.
+          Medianen är 136 — snittet dras upp av de dyra timmarna, eftersom bandet
+          är proportionellt mot nivån. Det är inte en försämring, det är den ärliga
+          bredden på en sjudygnsprognos för elpris. Att redovisa 32 var felet.</li>
       </ul>
 
-      <h3>Tre saker till som mättes och inte höll</h3>
-      <p>Alla tre var rimliga hypoteser. Ingen av dem förbättrade prognosen.
-        Utgångsläget är standardmodellens 25,68 i medelfel.</p>
+      <h3>Fyra saker till som mättes och inte höll</h3>
+      <p>Alla fyra var rimliga hypoteser. Ingen av dem förbättrade prognosen.
+        Utgångsläget är standardmodellens 25,94 i medelfel.</p>
       <div class="table-scroll">
         <table>
           <thead><tr><th>Tillägg</th><th>MAE</th><th>Effekt</th></tr></thead>
           <tbody>
-            <tr><td>Oplanerade kärnkraftsbortfall</td><td class="num">25,68</td><td>ingen alls</td></tr>
-            <tr><td>Oplanerade bortfall, förändring mot referensveckan</td><td class="num">25,68</td><td>ingen alls</td></tr>
-            <tr><td>Oplanerade produktionsbortfall totalt</td><td class="num">25,85</td><td class="empty">sämre</td></tr>
-            <tr><td>Magasinnivå som nivåjustering</td><td class="num">26,00</td><td class="empty">sämre</td></tr>
-            <tr><td>Magasinnivå × vind (interaktion)</td><td class="num">25,76</td><td class="empty">sämre</td></tr>
-            <tr><td>Båda magasintermerna</td><td class="num">26,05</td><td class="empty">sämre</td></tr>
-            <tr><td>Grannområdenas pris, 15 % vikt</td><td class="num">26,22</td><td class="empty">sämre</td></tr>
-            <tr><td>Grannområdenas pris, 35 % vikt</td><td class="num">28,31</td><td class="empty">mycket sämre</td></tr>
+            <tr><td>Oplanerade kärnkraftsbortfall</td><td class="num">25,93</td><td>ingen alls</td></tr>
+            <tr><td>Oplanerade bortfall, förändring mot referensveckan</td><td class="num">25,91</td><td>ingen alls</td></tr>
+            <tr><td>Oplanerade produktionsbortfall totalt</td><td class="num">26,03</td><td class="empty">sämre</td></tr>
+            <tr><td>Magasinnivå som nivåjustering</td><td class="num">26,01</td><td class="empty">sämre</td></tr>
+            <tr><td>Magasinnivå × vind (interaktion)</td><td class="num">26,03</td><td class="empty">sämre</td></tr>
+            <tr><td>Båda magasintermerna</td><td class="num">26,16</td><td class="empty">sämre</td></tr>
+            <tr><td>Grannområdenas pris, 15 % vikt</td><td class="num">26,32</td><td class="empty">sämre</td></tr>
+            <tr><td>Grannområdenas pris, 35 % vikt</td><td class="num">27,98</td><td class="empty">mycket sämre</td></tr>
+            <tr><td>Dygnsprofil: timme × väder</td><td class="num">27,22</td><td class="empty">mycket sämre</td></tr>
           </tbody>
         </table>
       </div>
@@ -282,9 +305,27 @@
         rör sig någon procent i veckan och förra veckans pris bär den redan.
         Interaktionshypotesen var mer intressant: med tomma magasin kan
         vattenkraften inte absorbera en vindstilla vecka billigt, så samma
-        vindavvikelse borde slå hårdare. Den fick <em>rätt tecken</em> (+0,09) men
-        förbättrade ändå inte prognosen. Mekanismen finns antagligen; den är för
-        svag för att synas i sjudygnsfel.</p>
+        vindavvikelse borde slå hårdare. Den anpassade koefficienten landade på
+        −0,03 och förbättrade inte prognosen. Mekanismen finns antagligen; den är
+        för svag för att synas i sjudygnsfel.</p>
+      <p><b>Dygnsprofilen.</b> Den mest lovande av de fyra, och den som kostade
+        mest arbete. Väderskalningen multiplicerar hela dygnet med <em>ett</em> tal,
+        så en blåsig dag blir lika mycket billigare klockan 03 som klockan 19 — fast
+        vind i verkligheten knäcker kvällstoppen mycket hårdare än natten. Skarpa
+        mätningar visade precis det felet: standardmodellen är opartisk på natten
+        men låg 20–23 EUR/MWh för lågt mellan 09 och 21, och gav bara fyra femtedelar
+        av dygnets verkliga svängning. Att låta varje väderfaktor verka olika vid
+        olika tid på dygnet borde alltså ha hjälpt.</p>
+      <p>Mätt på de sex senaste kvartalen gjorde det också det, med 2,5 procent. Men
+        det är inte en modell som går att driva: den har koefficienter anpassade i
+        samma prisnivå som den prövas i. Med en <b>rullande</b> omanpassning över hela
+        historiken — alltså så som en skarp drift arbetar — blir den 4,8 procent sämre
+        än att inte göra något, och den förvärrar till och med kvällsfelet den byggdes
+        för att laga. Att begränsa den till de södra elområdena hjälper inte, eftersom
+        anpassning per elområde <em>är</em> den mätningen. Slutsatsen är inte att
+        dygnsprofilen saknar signal, utan att 35 anpassade tal per elområde inte
+        överlever ett regimskifte. Den ligger kvar som mätt avslag i
+        <code>src/research/profile_fit.py</code>.</p>
 
       <h3>Det viktigaste förbehållet</h3>
       <p>Backtestet använder ERA5-reanalys som väderunderlag, alltså ett perfekt

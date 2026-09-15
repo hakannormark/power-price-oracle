@@ -47,9 +47,12 @@
       <h2>Vilken används på sajten?</h2>
       <p><b>Väderskalad, dämpad nivå</b> (<code>shrunk_scaled</code>) är standardmodellen.
         Den används i graferna, i timtabellen och i fältet <code>default_model</code> i API:t.
-        I backtestet på 82 576 timmar hade den 25,38 EUR/MWh i medelfel mot 29,51 för den
-        säsongsnaiva referensen — 13 procent mindre fel. Vill du jämföra finns kryssrutan
-        <em>Visa övriga modeller</em> på förstasidan.</p>
+        I backtestet på 437 224 timmar hade den 25,94 EUR/MWh i medelfel mot 29,87 för den
+        säsongsnaiva referensen — 13 procent mindre fel. Men backtestet känner vädret i
+        efterhand. På riktiga utfärdade prognoser blir medelfelet <b>41,9 EUR/MWh</b> mot
+        referensens 45,2, alltså <b>7 procent</b> mindre fel — se
+        <a href="traffsakerhet.html">träffsäkerhetssidan</a> för aktuella tal. Vill du
+        jämföra modellerna finns kryssrutan <em>Visa övriga modeller</em> på förstasidan.</p>
       <p><b>Väderskalad, färsk nivå</b> (<code>recency_scaled</code>) var kortvarigt standard,
         på styrkan av ett backtest som av misstag räknade med timmar vars pris redan var
         publicerat. Mätt rätt är den sämre, särskilt det första dygnet — förklaringen står på

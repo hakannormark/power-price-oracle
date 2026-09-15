@@ -49,6 +49,28 @@ RESIDUAL_QUANTILES: dict[int, tuple[float, float]] = {
 # Beyond the fitted horizon, hold the widest estimate rather than extrapolate.
 FALLBACK = RESIDUAL_QUANTILES[7]
 
+# Checked against live outcomes on 2026-09-15, over 16 724 scored hours of the
+# default model. The table above covers 78.8 % against a target of 80 %:
+#
+#     day          d1    d2    d3    d4    d5    d6    d7
+#     coverage   70.1  75.3  77.5  78.5  83.3  82.9  79.8
+#
+# Day 1 under-covers and days 5-6 over-cover, and the cause of the latter is the
+# lower bound: the empirical 10th percentile of the live residual is about -0.76
+# there, shallower than the -0.877 shipped, so fewer than one hour in ten falls
+# out of the bottom.
+#
+# DO NOT refit this table from back-test residuals. The back-test feeds models
+# ERA5 reanalysis, so its residuals are far tighter than anything a real
+# forecast produces: it fits q90 between +1.98 and +2.07, while live residuals
+# run +2.45 on day 1 to +3.14 on day 7. Two replacements fitted that way were
+# measured on live outcomes and both were worse than what ships — 74.6 % for the
+# back-test quantiles and 76.1 % for a flat curve, against 78.8 % here.
+#
+# Left unchanged deliberately. Eleven days of live scoring, with only 680 points
+# on day 1, is a fortnight and not a calibration; recheck once the live record
+# spans a season.
+
 # The level a band is measured against. Below this the level carries no scale
 # information — a 2 EUR/MWh hour needs an absolute band, not a proportional one.
 MIN_BAND_BASE = 10.0

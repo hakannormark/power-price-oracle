@@ -16,8 +16,8 @@ class Ensemble:
     name_sv = "Ensemble"
     description_sv = (
         "Viktat snitt av säsongsnaiv och väderskalad, 35/65. Var sajtens standardmodell "
-        "fram till att den mättes: på 82 576 timmar ut ur urvalet hamnade den på 28,40 "
-        "i medelfel mot 25,63 för den dämpade väderskalade modellen. Varje blandning "
+        "fram till att den mättes: på 437 224 timmar ut ur urvalet hamnade den på 28,70 "
+        "i medelfel mot 25,94 för den dämpade väderskalade modellen. Varje blandning "
         "gjorde resultatet sämre än den bästa modellen ensam, så ensemblen finns kvar "
         "som jämförelse i stället för som standard."
     )
