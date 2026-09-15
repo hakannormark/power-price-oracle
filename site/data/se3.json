@@ -1,8 +1,8 @@
 {
  "zone": "SE3",
  "zone_name": "Stockholm",
- "generated_at": "2026-09-15T20:59:54+02:00",
- "run_id": "20260915T1859Z",
+ "generated_at": "2026-09-15T21:08:13+02:00",
+ "run_id": "20260915T1908Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
@@ -21,7 +21,7 @@
   "rate": 11.274,
   "date": "2026-09-15",
   "source": "ECB",
-  "fetched_at": "2026-09-15T21:01:31+02:00",
+  "fetched_at": "2026-09-15T21:09:01+02:00",
   "stale": false
  },
  "drivers": {
@@ -33,7 +33,7 @@
    "Överföringen från SE3 till SE4 är begränsad med 2 900 MW, 47 % av kapaciteten, fram till 9 okt.",
    "Överföringen från SE2 till SE3 är begränsad med 2 500 MW, 32 % av kapaciteten, fram till 9 okt.",
    "Vattenmagasinen är fyllda till 71 %, 13 procentenheter under det normala för årstiden.",
-   "Vindprognosen i SE3 ligger 1,38 gånger det normala kommande två dygn."
+   "Vindprognosen i SE3 ligger 1,37 gånger det normala kommande två dygn."
   ],
   "outages": {
    "items": [
@@ -271,13 +271,13 @@
    "change_4w": -0.037
   },
   "features": {
-   "wind_index_local": 1.376,
-   "wind_index_north": 1.682,
+   "wind_index_local": 1.367,
+   "wind_index_north": 1.67,
    "wind_index_south": 1.129,
-   "temp_anomaly_se3_c": -0.305,
-   "temp_local_c": 15.796,
+   "temp_anomaly_se3_c": -0.326,
+   "temp_local_c": 15.775,
    "solar_index_daytime": 0.567,
-   "spread_proxy_se4_se2": 31.988
+   "spread_proxy_se4_se2": 33.153
   }
  },
  "series": [
@@ -1208,9 +1208,9 @@
    "source": "official",
    "models": {
     "seasonal_naive": {
-     "p10": 33.578,
+     "p10": 32.985,
      "p50": 99.015,
-     "p90": 164.452
+     "p90": 165.045
     },
     "weather_scaled": {
      "p10": 12.666,
@@ -2096,32 +2096,32 @@
    "source": "official",
    "models": {
     "seasonal_naive": {
-     "p10": 52.383,
+     "p10": 51.79,
      "p50": 117.82,
-     "p90": 183.257
+     "p90": 183.85
     },
     "weather_scaled": {
-     "p10": 13.927,
+     "p10": 16.304,
      "p50": 113.225,
      "p90": 312.727
     },
     "shrunk_scaled": {
-     "p10": 14.78,
+     "p10": 17.303,
      "p50": 120.163,
      "p90": 331.889
     },
     "recency_scaled": {
-     "p10": 8.354,
+     "p10": 9.78,
      "p50": 67.917,
      "p90": 187.586
     },
     "ensemble": {
-     "p10": 13.648,
+     "p10": 15.978,
      "p50": 114.833,
      "p90": 318.981
     },
     "market_scaled": {
-     "p10": 14.78,
+     "p10": 17.303,
      "p50": 120.163,
      "p90": 331.889
     }
@@ -2984,34 +2984,34 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 69.108,
+     "p10": 68.515,
      "p50": 134.545,
-     "p90": 199.982
+     "p90": 200.575
     },
     "weather_scaled": {
      "p10": 15.847,
      "p50": 128.84,
-     "p90": 400.177
+     "p90": 355.856
     },
     "shrunk_scaled": {
      "p10": 15.517,
      "p50": 126.153,
-     "p90": 391.831
+     "p90": 348.435
     },
     "recency_scaled": {
      "p10": 9.491,
      "p50": 77.165,
-     "p90": 239.674
+     "p90": 213.129
     },
     "ensemble": {
      "p10": 15.53,
      "p50": 130.837,
-     "p90": 408.18
+     "p90": 362.973
     },
     "market_scaled": {
      "p10": 15.517,
      "p50": 126.153,
-     "p90": 391.831
+     "p90": 348.435
     }
    }
   },
@@ -3872,34 +3872,34 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 46.473,
+     "p10": 45.88,
      "p50": 111.91,
-     "p90": 177.347
+     "p90": 177.94
     },
     "weather_scaled": {
      "p10": 12.362,
      "p50": 100.505,
-     "p90": 344.934
+     "p90": 312.169
     },
     "shrunk_scaled": {
      "p10": 11.853,
      "p50": 96.369,
-     "p90": 330.739
+     "p90": 299.323
     },
     "recency_scaled": {
      "p10": 11.853,
      "p50": 96.369,
-     "p90": 330.739
+     "p90": 299.323
     },
     "ensemble": {
      "p10": 12.115,
      "p50": 104.497,
-     "p90": 351.833
+     "p90": 318.413
     },
     "market_scaled": {
      "p10": 11.853,
      "p50": 96.369,
-     "p90": 330.739
+     "p90": 299.323
     }
    }
   },
@@ -4760,34 +4760,34 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": -34.67,
+     "p10": -35.263,
      "p50": 30.767,
-     "p90": 96.204
+     "p90": 96.797
     },
     "weather_scaled": {
      "p10": 2.897,
      "p50": 23.551,
-     "p90": 87.752
+     "p90": 80.828
     },
     "shrunk_scaled": {
      "p10": 3.021,
      "p50": 24.56,
-     "p90": 91.509
+     "p90": 84.289
     },
     "recency_scaled": {
      "p10": 3.021,
      "p50": 24.56,
-     "p90": 91.509
+     "p90": 84.289
     },
     "ensemble": {
-     "p10": -33.977,
+     "p10": -34.557,
      "p50": 26.077,
-     "p90": 98.129
+     "p90": 98.733
     },
     "market_scaled": {
      "p10": 3.021,
      "p50": 24.56,
-     "p90": 91.509
+     "p90": 84.289
     }
    }
   },
@@ -5648,9 +5648,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 68.66,
+     "p10": 68.067,
      "p50": 134.097,
-     "p90": 199.534
+     "p90": 200.127
     },
     "weather_scaled": {
      "p10": 15.895,
@@ -6536,9 +6536,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 94.493,
+     "p10": 93.9,
      "p50": 159.93,
-     "p90": 225.367
+     "p90": 225.96
     },
     "weather_scaled": {
      "p10": 18.092,
@@ -7380,17 +7380,46 @@
      "p90": 381.376
     }
    }
+  },
+  {
+   "ts": "2026-09-22T20:00:00+02:00",
+   "actual": null,
+   "source": "forecast",
+   "models": {
+    "seasonal_naive": {
+     "p10": -20.872,
+     "p50": 55.847,
+     "p90": 132.566
+    },
+    "weather_scaled": {
+     "p10": 7.224,
+     "p50": 58.729,
+     "p90": 218.823
+    },
+    "shrunk_scaled": {
+     "p10": 10.001,
+     "p50": 81.306,
+     "p90": 302.946
+    },
+    "recency_scaled": {
+     "p10": 10.001,
+     "p50": 81.306,
+     "p90": 302.946
+    },
+    "ensemble": {
+     "p10": -20.455,
+     "p50": 57.72,
+     "p90": 223.199
+    },
+    "market_scaled": {
+     "p10": 10.001,
+     "p50": 81.306,
+     "p90": 302.946
+    }
+   }
   }
  ],
  "next_hours": [
-  {
-   "ts": "2026-09-15T20:00:00+02:00",
-   "source": "official",
-   "eur_mwh": 55.847,
-   "ore_kwh": 62.962,
-   "p10": 18.438,
-   "p90": 353.66
-  },
   {
    "ts": "2026-09-15T21:00:00+02:00",
    "source": "official",
@@ -7588,7 +7617,7 @@
    "source": "official",
    "eur_mwh": 58.657,
    "ore_kwh": 66.13,
-   "p10": 14.78,
+   "p10": 17.303,
    "p90": 331.889
   },
   {
@@ -7781,7 +7810,7 @@
    "eur_mwh": 126.153,
    "ore_kwh": 142.225,
    "p10": 15.517,
-   "p90": 391.831
+   "p90": 348.435
   },
   {
    "ts": "2026-09-17T22:00:00+02:00",
@@ -7973,7 +8002,7 @@
    "eur_mwh": 96.369,
    "ore_kwh": 108.646,
    "p10": 11.853,
-   "p90": 330.739
+   "p90": 299.323
   },
   {
    "ts": "2026-09-18T22:00:00+02:00",
@@ -8165,7 +8194,7 @@
    "eur_mwh": 24.56,
    "ore_kwh": 27.689,
    "p10": 3.021,
-   "p90": 91.509
+   "p90": 84.289
   },
   {
    "ts": "2026-09-19T22:00:00+02:00",
@@ -8726,6 +8755,14 @@
    "ore_kwh": 115.395,
    "p10": 12.59,
    "p90": 381.376
+  },
+  {
+   "ts": "2026-09-22T20:00:00+02:00",
+   "source": "forecast",
+   "eur_mwh": 81.306,
+   "ore_kwh": 91.664,
+   "p10": 10.001,
+   "p90": 302.946
   }
  ],
  "quarters": [
@@ -10461,15 +10498,15 @@
  "day_plan": [
   {
    "date": "2026-09-15",
-   "hours": 4,
+   "hours": 3,
    "complete": false,
    "settled": true,
-   "mean_eur_mwh": 45.338,
-   "mean_ore_kwh": 51.114,
+   "mean_eur_mwh": 41.835,
+   "mean_ore_kwh": 47.165,
    "min_eur_mwh": 37.398,
-   "max_eur_mwh": 55.847,
+   "max_eur_mwh": 47.373,
    "min_ore_kwh": 42.163,
-   "max_ore_kwh": 62.962,
+   "max_ore_kwh": 53.408,
    "cheapest_from": "2026-09-15T21:00:00+02:00",
    "cheapest_mean_ore_kwh": 47.165
   },
@@ -10565,11 +10602,11 @@
   },
   {
    "date": "2026-09-22",
-   "hours": 20,
+   "hours": 21,
    "complete": true,
    "settled": false,
-   "mean_eur_mwh": 94.045,
-   "mean_ore_kwh": 106.027,
+   "mean_eur_mwh": 93.439,
+   "mean_ore_kwh": 105.343,
    "min_eur_mwh": 35.89,
    "max_eur_mwh": 144.04,
    "min_ore_kwh": 40.462,
@@ -16347,6 +16384,7 @@
    "ts": "2026-09-17T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "24": 46.288,
     "48": 47.902,
     "72": 49.193,
     "96": 47.765,
@@ -16635,6 +16673,7 @@
    "ts": "2026-09-18T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "48": 111.232,
     "72": 106.685,
     "96": 115.777,
     "120": 103.773,
@@ -16899,6 +16938,7 @@
    "ts": "2026-09-19T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "72": 53.458,
     "96": 50.623,
     "120": 47.272,
     "144": 65.367,
@@ -17139,6 +17179,7 @@
    "ts": "2026-09-20T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "96": 38.604,
     "120": 43.004,
     "144": 47.678,
     "168": 51.839
@@ -17355,6 +17396,7 @@
    "ts": "2026-09-21T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "120": 106.143,
     "144": 94.398,
     "168": 89.554
    }
@@ -17547,6 +17589,7 @@
    "ts": "2026-09-22T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "144": 97.785,
     "168": 84.092
    }
   },
@@ -17619,6 +17662,13 @@
    "forecast": {
     "168": 81.306
    }
+  },
+  {
+   "ts": "2026-09-22T21:00:00+02:00",
+   "actual": null,
+   "forecast": {
+    "168": 68.024
+   }
   }
  ],
  "history_lead_times_h": [
@@ -17634,7 +17684,7 @@
  "accuracy": {
   "zone": "SE3",
   "zone_name": "Stockholm",
-  "generated_at": "2026-09-15T20:59:54+02:00",
+  "generated_at": "2026-09-15T21:08:13+02:00",
   "window_days": 90,
   "scored_from": "2026-09-05T00:00:00+02:00",
   "scored_to": "2026-09-16T23:00:00+02:00",

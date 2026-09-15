@@ -1,8 +1,8 @@
 {
  "zone": "SE1",
  "zone_name": "Luleå",
- "generated_at": "2026-09-15T20:59:54+02:00",
- "run_id": "20260915T1859Z",
+ "generated_at": "2026-09-15T21:08:13+02:00",
+ "run_id": "20260915T1908Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
@@ -21,7 +21,7 @@
   "rate": 11.274,
   "date": "2026-09-15",
   "source": "ECB",
-  "fetched_at": "2026-09-15T21:01:31+02:00",
+  "fetched_at": "2026-09-15T21:09:01+02:00",
   "stale": false
  },
  "drivers": {
@@ -33,7 +33,7 @@
    "Överföringen från SE2 till SE1 är begränsad med 900 MW, 30 % av kapaciteten, fram till 5 okt.",
    "Överföringen från Finland till SE1 är begränsad med 900 MW, 47 % av kapaciteten, fram till 5 okt.",
    "Vattenmagasinen är fyllda till 76 %, 6 procentenheter under det normala för årstiden.",
-   "Vindprognosen i SE1 ligger 1,86 gånger det normala kommande två dygn."
+   "Vindprognosen i SE1 ligger 1,85 gånger det normala kommande två dygn."
   ],
   "outages": {
    "items": [
@@ -175,13 +175,13 @@
    "change_4w": 0.078
   },
   "features": {
-   "wind_index_local": 1.862,
-   "wind_index_north": 1.682,
+   "wind_index_local": 1.849,
+   "wind_index_north": 1.67,
    "wind_index_south": 1.129,
-   "temp_anomaly_se1_c": -0.565,
-   "temp_local_c": 12.475,
+   "temp_anomaly_se1_c": -0.613,
+   "temp_local_c": 12.427,
    "solar_index_daytime": 0.125,
-   "spread_proxy_se4_se2": 31.988
+   "spread_proxy_se4_se2": 33.153
   }
  },
  "series": [
@@ -1112,9 +1112,9 @@
    "source": "official",
    "models": {
     "seasonal_naive": {
-     "p10": 1.947,
+     "p10": 1.819,
      "p50": 42.528,
-     "p90": 83.109
+     "p90": 83.237
     },
     "weather_scaled": {
      "p10": 4.27,
@@ -1132,9 +1132,9 @@
      "p90": 195.177
     },
     "ensemble": {
-     "p10": 1.908,
+     "p10": 1.782,
      "p50": 34.161,
-     "p90": 84.771
+     "p90": 84.902
     },
     "market_scaled": {
      "p10": 4.695,
@@ -2000,32 +2000,32 @@
    "source": "official",
    "models": {
     "seasonal_naive": {
-     "p10": 18.629,
+     "p10": 18.501,
      "p50": 59.21,
-     "p90": 99.791
+     "p90": 99.919
     },
     "weather_scaled": {
-     "p10": 10.812,
+     "p10": 12.657,
      "p50": 87.899,
      "p90": 242.777
     },
     "shrunk_scaled": {
-     "p10": 11.882,
+     "p10": 13.911,
      "p50": 96.605,
      "p90": 266.824
     },
     "recency_scaled": {
-     "p10": 4.899,
+     "p10": 5.735,
      "p50": 39.828,
      "p90": 110.006
     },
     "ensemble": {
-     "p10": 10.595,
+     "p10": 12.404,
      "p50": 77.858,
      "p90": 247.632
     },
     "market_scaled": {
-     "p10": 11.882,
+     "p10": 13.911,
      "p50": 96.605,
      "p90": 266.824
     }
@@ -2888,34 +2888,34 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": -1.421,
+     "p10": -1.549,
      "p50": 39.16,
-     "p90": 79.741
+     "p90": 79.869
     },
     "weather_scaled": {
      "p10": 3.242,
      "p50": 26.356,
-     "p90": 81.863
+     "p90": 72.797
     },
     "shrunk_scaled": {
      "p10": 3.3,
      "p50": 26.829,
-     "p90": 83.33
+     "p90": 74.101
     },
     "recency_scaled": {
      "p10": 2.114,
      "p50": 17.186,
-     "p90": 53.38
+     "p90": 47.468
     },
     "ensemble": {
-     "p10": -1.393,
+     "p10": -1.519,
      "p50": 30.838,
-     "p90": 83.5
+     "p90": 81.467
     },
     "market_scaled": {
      "p10": 3.3,
      "p50": 26.829,
-     "p90": 83.33
+     "p90": 74.101
     }
    }
   },
@@ -3776,34 +3776,34 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": -0.776,
+     "p10": -0.904,
      "p50": 39.805,
-     "p90": 80.386
+     "p90": 80.514
     },
     "weather_scaled": {
      "p10": 4.311,
      "p50": 35.047,
-     "p90": 120.28
+     "p90": 108.855
     },
     "shrunk_scaled": {
      "p10": 4.232,
      "p50": 34.409,
-     "p90": 118.091
+     "p90": 106.874
     },
     "recency_scaled": {
      "p10": 4.232,
      "p50": 34.409,
-     "p90": 118.091
+     "p90": 106.874
     },
     "ensemble": {
-     "p10": -0.761,
+     "p10": -0.886,
      "p50": 36.712,
-     "p90": 122.685
+     "p90": 111.032
     },
     "market_scaled": {
      "p10": 4.232,
      "p50": 34.409,
-     "p90": 118.091
+     "p90": 106.874
     }
    }
   },
@@ -4664,34 +4664,34 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": -13.454,
+     "p10": -13.582,
      "p50": 27.127,
-     "p90": 67.708
+     "p90": 67.837
     },
     "weather_scaled": {
      "p10": 3.109,
      "p50": 25.274,
-     "p90": 94.172
+     "p90": 86.741
     },
     "shrunk_scaled": {
      "p10": 2.896,
      "p50": 23.546,
-     "p90": 87.732
+     "p90": 80.81
     },
     "recency_scaled": {
      "p10": 2.896,
      "p50": 23.546,
-     "p90": 87.732
+     "p90": 80.81
     },
     "ensemble": {
-     "p10": -13.185,
+     "p10": -13.311,
      "p50": 25.923,
-     "p90": 96.055
+     "p90": 88.476
     },
     "market_scaled": {
      "p10": 2.896,
      "p50": 23.546,
-     "p90": 87.732
+     "p90": 80.81
     }
    }
   },
@@ -5552,9 +5552,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": -21.006,
+     "p10": -21.134,
      "p50": 19.575,
-     "p90": 60.156
+     "p90": 60.284
     },
     "weather_scaled": {
      "p10": 2.503,
@@ -5572,7 +5572,7 @@
      "p90": 82.04
     },
     "ensemble": {
-     "p10": -20.586,
+     "p10": -20.712,
      "p50": 20.077,
      "p90": 77.329
     },
@@ -6440,9 +6440,9 @@
    "source": "forecast",
    "models": {
     "seasonal_naive": {
-     "p10": 84.149,
+     "p10": 84.021,
      "p50": 124.73,
-     "p90": 165.311
+     "p90": 165.44
     },
     "weather_scaled": {
      "p10": 18.167,
@@ -7284,17 +7284,46 @@
      "p90": 122.592
     }
    }
+  },
+  {
+   "ts": "2026-09-22T20:00:00+02:00",
+   "actual": null,
+   "source": "forecast",
+   "models": {
+    "seasonal_naive": {
+     "p10": -29.095,
+     "p50": 17.23,
+     "p90": 63.555
+    },
+    "weather_scaled": {
+     "p10": 1.846,
+     "p50": 15.007,
+     "p90": 55.914
+    },
+    "shrunk_scaled": {
+     "p10": 2.984,
+     "p50": 24.257,
+     "p90": 90.382
+    },
+    "recency_scaled": {
+     "p10": 2.984,
+     "p50": 24.257,
+     "p90": 90.382
+    },
+    "ensemble": {
+     "p10": -28.513,
+     "p50": 15.785,
+     "p90": 64.826
+    },
+    "market_scaled": {
+     "p10": 2.984,
+     "p50": 24.257,
+     "p90": 90.382
+    }
+   }
   }
  ],
  "next_hours": [
-  {
-   "ts": "2026-09-15T20:00:00+02:00",
-   "source": "official",
-   "eur_mwh": 17.23,
-   "ore_kwh": 19.425,
-   "p10": 5.223,
-   "p90": 100.182
-  },
   {
    "ts": "2026-09-15T21:00:00+02:00",
    "source": "official",
@@ -7492,7 +7521,7 @@
    "source": "official",
    "eur_mwh": 19.395,
    "ore_kwh": 21.866,
-   "p10": 11.882,
+   "p10": 13.911,
    "p90": 266.824
   },
   {
@@ -7685,7 +7714,7 @@
    "eur_mwh": 26.829,
    "ore_kwh": 30.247,
    "p10": 3.3,
-   "p90": 83.33
+   "p90": 74.101
   },
   {
    "ts": "2026-09-17T22:00:00+02:00",
@@ -7877,7 +7906,7 @@
    "eur_mwh": 34.409,
    "ore_kwh": 38.793,
    "p10": 4.232,
-   "p90": 118.091
+   "p90": 106.874
   },
   {
    "ts": "2026-09-18T22:00:00+02:00",
@@ -8069,7 +8098,7 @@
    "eur_mwh": 23.546,
    "ore_kwh": 26.546,
    "p10": 2.896,
-   "p90": 87.732
+   "p90": 80.81
   },
   {
    "ts": "2026-09-19T22:00:00+02:00",
@@ -8630,6 +8659,14 @@
    "ore_kwh": 37.094,
    "p10": 4.047,
    "p90": 122.592
+  },
+  {
+   "ts": "2026-09-22T20:00:00+02:00",
+   "source": "forecast",
+   "eur_mwh": 24.257,
+   "ore_kwh": 27.347,
+   "p10": 2.984,
+   "p90": 90.382
   }
  ],
  "quarters": [
@@ -10365,15 +10402,15 @@
  "day_plan": [
   {
    "date": "2026-09-15",
-   "hours": 4,
+   "hours": 3,
    "complete": false,
    "settled": true,
-   "mean_eur_mwh": 9.941,
-   "mean_ore_kwh": 11.208,
+   "mean_eur_mwh": 7.512,
+   "mean_ore_kwh": 8.469,
    "min_eur_mwh": 4.498,
-   "max_eur_mwh": 17.23,
+   "max_eur_mwh": 10.438,
    "min_ore_kwh": 5.071,
-   "max_ore_kwh": 19.425,
+   "max_ore_kwh": 11.768,
    "cheapest_from": "2026-09-15T21:00:00+02:00",
    "cheapest_mean_ore_kwh": 8.469
   },
@@ -10469,14 +10506,14 @@
   },
   {
    "date": "2026-09-22",
-   "hours": 20,
+   "hours": 21,
    "complete": true,
    "settled": false,
-   "mean_eur_mwh": 39.183,
-   "mean_ore_kwh": 44.175,
-   "min_eur_mwh": 30.61,
+   "mean_eur_mwh": 38.472,
+   "mean_ore_kwh": 43.374,
+   "min_eur_mwh": 24.257,
    "max_eur_mwh": 63.061,
-   "min_ore_kwh": 34.51,
+   "min_ore_kwh": 27.347,
    "max_ore_kwh": 71.095,
    "cheapest_from": "2026-09-22T14:00:00+02:00",
    "cheapest_mean_ore_kwh": 35.144,
@@ -16251,6 +16288,7 @@
    "ts": "2026-09-17T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "24": 37.725,
     "48": 51.624,
     "72": 45.582,
     "96": 49.488,
@@ -16539,6 +16577,7 @@
    "ts": "2026-09-18T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "48": 62.52,
     "72": 63.544,
     "96": 63.053,
     "120": 62.544,
@@ -16803,6 +16842,7 @@
    "ts": "2026-09-19T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "72": 57.737,
     "96": 62.36,
     "120": 50.448,
     "144": 46.063,
@@ -17043,6 +17083,7 @@
    "ts": "2026-09-20T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "96": 11.729,
     "120": 14.846,
     "144": 13.336,
     "168": 15.743
@@ -17259,6 +17300,7 @@
    "ts": "2026-09-21T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "120": 119.319,
     "144": 78.139,
     "168": 76.198
    }
@@ -17451,6 +17493,7 @@
    "ts": "2026-09-22T10:00:00+02:00",
    "actual": null,
    "forecast": {
+    "144": 52.653,
     "168": 34.048
    }
   },
@@ -17523,6 +17566,13 @@
    "forecast": {
     "168": 24.257
    }
+  },
+  {
+   "ts": "2026-09-22T21:00:00+02:00",
+   "actual": null,
+   "forecast": {
+    "168": 18.282
+   }
   }
  ],
  "history_lead_times_h": [
@@ -17538,7 +17588,7 @@
  "accuracy": {
   "zone": "SE1",
   "zone_name": "Luleå",
-  "generated_at": "2026-09-15T20:59:54+02:00",
+  "generated_at": "2026-09-15T21:08:13+02:00",
   "window_days": 90,
   "scored_from": "2026-09-05T00:00:00+02:00",
   "scored_to": "2026-09-16T23:00:00+02:00",
