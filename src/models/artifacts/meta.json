@@ -1,0 +1,33 @@
+{
+  "features": [
+    "zone_idx",
+    "hour",
+    "dow",
+    "month",
+    "is_weekend",
+    "is_holiday_se",
+    "wind_local",
+    "wind_north",
+    "wind_south",
+    "temp_local",
+    "temp_anomaly",
+    "hdd",
+    "solar_local",
+    "price_lag_24h",
+    "price_lag_168h",
+    "price_lag_336h",
+    "shrunk_level"
+  ],
+  "quantiles": [
+    0.1,
+    0.5,
+    0.9
+  ],
+  "samples": 280512,
+  "zones": [
+    "SE1",
+    "SE2",
+    "SE3",
+    "SE4"
+  ]
+}

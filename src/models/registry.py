@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from .ensemble import Ensemble
+from .lightgbm_v1 import LightGbmV1
 from .market_scaled import MarketScaled
 from .official import Official
 from .recency_scaled import RecencyScaled
+from .relative_scaled import RelativeScaled
 from .seasonal_naive import SeasonalNaive
 from .shrunk_scaled import ShrunkScaled
 from .weather_scaled import WeatherScaled
@@ -16,6 +18,8 @@ BASE_MODELS = [
     WeatherScaled(),
     ShrunkScaled(),
     RecencyScaled(),
+    RelativeScaled(),
+    LightGbmV1(),
 ]
 
 # Derived models are built from base-model output after the base pass.
