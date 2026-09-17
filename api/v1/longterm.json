@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-16T18:01:43+02:00",
+ "generated_at": "2026-09-17T06:31:27+02:00",
  "unit": "EUR/MWh",
  "horizon_months": 3,
  "default_model": "lt_damped",
@@ -42,8 +42,8 @@
   "SE1": {
    "zone": "SE1",
    "name": "Luleå",
-   "recent_30d": 46.131,
-   "year_mean": 38.426,
+   "recent_30d": 46.181,
+   "year_mean": 38.415,
    "months": [
     {
      "month": "2026-10",
@@ -51,15 +51,15 @@
      "horizon": 1,
      "models": {
       "lt_persistence": {
-       "p50": 46.131
+       "p50": 46.181
       },
       "lt_damped": {
-       "p50": 45.795,
-       "p10": 18.185,
-       "p90": 77.155
+       "p50": 45.832,
+       "p10": 18.222,
+       "p90": 77.192
       },
       "lt_fundamental": {
-       "p50": 74.987
+       "p50": 73.139
       },
       "lt_market": {
        "p50": 50.52,
@@ -69,7 +69,7 @@
         "NSBM",
         "LLBM"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 104.69,
        "epad": -54.17
       }
@@ -88,15 +88,15 @@
      "horizon": 2,
      "models": {
       "lt_persistence": {
-       "p50": 46.131
+       "p50": 46.181
       },
       "lt_damped": {
-       "p50": 53.104,
-       "p10": 26.474,
-       "p90": 86.854
+       "p50": 53.141,
+       "p10": 26.511,
+       "p90": 86.891
       },
       "lt_fundamental": {
-       "p50": 82.781
+       "p50": 80.933
       },
       "lt_market": {
        "p50": 53.8,
@@ -106,7 +106,7 @@
         "NSBQ",
         "LLBQ"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 110.38,
        "epad": -56.58
       }
@@ -125,15 +125,15 @@
      "horizon": 3,
      "models": {
       "lt_persistence": {
-       "p50": 46.131
+       "p50": 46.181
       },
       "lt_damped": {
-       "p50": 53.99,
-       "p10": 27.25,
-       "p90": 96.3
+       "p50": 54.028,
+       "p10": 27.288,
+       "p90": 96.338
       },
       "lt_fundamental": {
-       "p50": 87.405
+       "p50": 85.557
       },
       "lt_market": {
        "p50": 53.8,
@@ -143,7 +143,7 @@
         "NSBQ",
         "LLBQ"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 110.38,
        "epad": -56.58
       }
@@ -158,11 +158,11 @@
     }
    ],
    "drivers_sv": [
-    "De senaste 30 dagarna kostade elen i SE1 i snitt 46,1 EUR/MWh, mot 38,4 det senaste året.",
+    "De senaste 30 dagarna kostade elen i SE1 i snitt 46,2 EUR/MWh, mot 38,4 det senaste året.",
     "Terminsmarknaden prissätter oktober 2026 till 50,5 EUR/MWh, 4,7 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 8 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
-    "Planerade kärnkraftsstopp tar i snitt bort 3 313 MW i oktober, 1 720 MW i november och 0 MW i december, mot 2 055 MW de senaste 30 dagarna.",
-    "Gas (TTF) kostar 80,1 EUR/MWh och en utsläppsrätt 81,1 EUR/ton. Ett gaskraftverk behöver då ungefär 190 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
+    "Planerade kärnkraftsstopp tar i snitt bort 3 313 MW i oktober, 1 720 MW i november och 0 MW i december, mot 2 111 MW de senaste 30 dagarna.",
+    "Gas (TTF) kostar 78,0 EUR/MWh och en utsläppsrätt 80,5 EUR/ton. Ett gaskraftverk behöver då ungefär 186 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
     "Säsongsprognosen för vädret i SE1, jämfört med det normala: oktober +0,9 °C och -9 mm nederbörd; november +1,2 °C och -0 mm nederbörd; december +1,2 °C och +6 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
    ],
    "fundamental_coefficients": {
@@ -175,8 +175,8 @@
   "SE2": {
    "zone": "SE2",
    "name": "Sundsvall",
-   "recent_30d": 52.384,
-   "year_mean": 38.854,
+   "recent_30d": 52.354,
+   "year_mean": 38.864,
    "months": [
     {
      "month": "2026-10",
@@ -184,15 +184,15 @@
      "horizon": 1,
      "models": {
       "lt_persistence": {
-       "p50": 52.384
+       "p50": 52.354
       },
       "lt_damped": {
-       "p50": 50.688,
-       "p10": 23.618,
-       "p90": 82.988
+       "p50": 50.665,
+       "p10": 23.595,
+       "p90": 82.965
       },
       "lt_fundamental": {
-       "p50": 78.681
+       "p50": 76.762
       },
       "lt_market": {
        "p50": 48.89,
@@ -202,7 +202,7 @@
         "NSBM",
         "SUBM"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 104.69,
        "epad": -55.8
       }
@@ -221,15 +221,15 @@
      "horizon": 2,
      "models": {
       "lt_persistence": {
-       "p50": 52.384
+       "p50": 52.354
       },
       "lt_damped": {
-       "p50": 57.781,
-       "p10": 30.901,
-       "p90": 93.271
+       "p50": 57.759,
+       "p10": 30.879,
+       "p90": 93.249
       },
       "lt_fundamental": {
-       "p50": 85.886
+       "p50": 83.966
       },
       "lt_market": {
        "p50": 51.68,
@@ -239,7 +239,7 @@
         "NSBQ",
         "SUBQ"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 110.38,
        "epad": -58.7
       }
@@ -258,15 +258,15 @@
      "horizon": 3,
      "models": {
       "lt_persistence": {
-       "p50": 52.384
+       "p50": 52.354
       },
       "lt_damped": {
-       "p50": 59.019,
-       "p10": 32.219,
-       "p90": 101.399
+       "p50": 58.997,
+       "p10": 32.197,
+       "p90": 101.377
       },
       "lt_fundamental": {
-       "p50": 90.458
+       "p50": 88.539
       },
       "lt_market": {
        "p50": 51.68,
@@ -276,7 +276,7 @@
         "NSBQ",
         "SUBQ"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 110.38,
        "epad": -58.7
       }
@@ -294,8 +294,8 @@
     "De senaste 30 dagarna kostade elen i SE2 i snitt 52,4 EUR/MWh, mot 38,9 det senaste året.",
     "Terminsmarknaden prissätter oktober 2026 till 48,9 EUR/MWh, 1,8 under vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 8 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
-    "Planerade kärnkraftsstopp tar i snitt bort 3 313 MW i oktober, 1 720 MW i november och 0 MW i december, mot 2 055 MW de senaste 30 dagarna.",
-    "Gas (TTF) kostar 80,1 EUR/MWh och en utsläppsrätt 81,1 EUR/ton. Ett gaskraftverk behöver då ungefär 190 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
+    "Planerade kärnkraftsstopp tar i snitt bort 3 313 MW i oktober, 1 720 MW i november och 0 MW i december, mot 2 111 MW de senaste 30 dagarna.",
+    "Gas (TTF) kostar 78,0 EUR/MWh och en utsläppsrätt 80,5 EUR/ton. Ett gaskraftverk behöver då ungefär 186 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
     "Säsongsprognosen för vädret i SE2, jämfört med det normala: oktober +0,6 °C och -3 mm nederbörd; november +0,8 °C och -4 mm nederbörd; december +0,8 °C och +8 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
    ],
    "fundamental_coefficients": {
@@ -308,8 +308,8 @@
   "SE3": {
    "zone": "SE3",
    "name": "Stockholm",
-   "recent_30d": 81.96,
-   "year_mean": 65.643,
+   "recent_30d": 80.155,
+   "year_mean": 65.682,
    "months": [
     {
      "month": "2026-10",
@@ -317,15 +317,15 @@
      "horizon": 1,
      "models": {
       "lt_persistence": {
-       "p50": 81.96
+       "p50": 80.155
       },
       "lt_damped": {
-       "p50": 84.27,
-       "p10": 59.24,
-       "p90": 114.03
+       "p50": 82.834,
+       "p10": 57.804,
+       "p90": 112.594
       },
       "lt_fundamental": {
-       "p50": 111.978
+       "p50": 108.875
       },
       "lt_market": {
        "p50": 96.19,
@@ -335,7 +335,7 @@
         "NSBM",
         "STBM"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 104.69,
        "epad": -8.5
       }
@@ -354,15 +354,15 @@
      "horizon": 2,
      "models": {
       "lt_persistence": {
-       "p50": 81.96
+       "p50": 80.155
       },
       "lt_damped": {
-       "p50": 90.416,
-       "p10": 63.246,
-       "p90": 124.766
+       "p50": 88.98,
+       "p10": 61.81,
+       "p90": 123.33
       },
       "lt_fundamental": {
-       "p50": 118.317
+       "p50": 115.214
       },
       "lt_market": {
        "p50": 99.88,
@@ -372,7 +372,7 @@
         "NSBQ",
         "STBQ"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 110.38,
        "epad": -10.5
       }
@@ -391,15 +391,15 @@
      "horizon": 3,
      "models": {
       "lt_persistence": {
-       "p50": 81.96
+       "p50": 80.155
       },
       "lt_damped": {
-       "p50": 88.693,
-       "p10": 58.553,
-       "p90": 128.233
+       "p50": 87.257,
+       "p10": 57.117,
+       "p90": 126.797
       },
       "lt_fundamental": {
-       "p50": 120.287
+       "p50": 117.184
       },
       "lt_market": {
        "p50": 99.88,
@@ -409,7 +409,7 @@
         "NSBQ",
         "STBQ"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 110.38,
        "epad": -10.5
       }
@@ -424,11 +424,11 @@
     }
    ],
    "drivers_sv": [
-    "De senaste 30 dagarna kostade elen i SE3 i snitt 82,0 EUR/MWh, mot 65,6 det senaste året.",
-    "Terminsmarknaden prissätter oktober 2026 till 96,2 EUR/MWh, 11,9 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
+    "De senaste 30 dagarna kostade elen i SE3 i snitt 80,2 EUR/MWh, mot 65,7 det senaste året.",
+    "Terminsmarknaden prissätter oktober 2026 till 96,2 EUR/MWh, 13,4 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 8 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
-    "Planerade kärnkraftsstopp tar i snitt bort 3 313 MW i oktober, 1 720 MW i november och 0 MW i december, mot 2 055 MW de senaste 30 dagarna.",
-    "Gas (TTF) kostar 80,1 EUR/MWh och en utsläppsrätt 81,1 EUR/ton. Ett gaskraftverk behöver då ungefär 190 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
+    "Planerade kärnkraftsstopp tar i snitt bort 3 313 MW i oktober, 1 720 MW i november och 0 MW i december, mot 2 111 MW de senaste 30 dagarna.",
+    "Gas (TTF) kostar 78,0 EUR/MWh och en utsläppsrätt 80,5 EUR/ton. Ett gaskraftverk behöver då ungefär 186 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
     "Säsongsprognosen för vädret i SE3, jämfört med det normala: oktober +0,5 °C och -4 mm nederbörd; november +0,7 °C och +0 mm nederbörd; december +0,6 °C och +5 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
    ],
    "fundamental_coefficients": {
@@ -441,8 +441,8 @@
   "SE4": {
    "zone": "SE4",
    "name": "Malmö",
-   "recent_30d": 105.635,
-   "year_mean": 80.084,
+   "recent_30d": 103.275,
+   "year_mean": 80.213,
    "months": [
     {
      "month": "2026-10",
@@ -450,15 +450,15 @@
      "horizon": 1,
      "models": {
       "lt_persistence": {
-       "p50": 105.635
+       "p50": 103.275
       },
       "lt_damped": {
-       "p50": 101.682,
-       "p10": 75.982,
-       "p90": 135.752
+       "p50": 99.82,
+       "p10": 74.12,
+       "p90": 133.89
       },
       "lt_fundamental": {
-       "p50": 136.915
+       "p50": 133.259
       },
       "lt_market": {
        "p50": 131.19,
@@ -468,7 +468,7 @@
         "NSBM",
         "MABM"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 104.69,
        "epad": 26.5
       }
@@ -487,15 +487,15 @@
      "horizon": 2,
      "models": {
       "lt_persistence": {
-       "p50": 105.635
+       "p50": 103.275
       },
       "lt_damped": {
-       "p50": 108.094,
-       "p10": 77.774,
-       "p90": 140.614
+       "p50": 106.232,
+       "p10": 75.912,
+       "p90": 138.752
       },
       "lt_fundamental": {
-       "p50": 136.79
+       "p50": 133.134
       },
       "lt_market": {
        "p50": 133.68,
@@ -505,7 +505,7 @@
         "NSBQ",
         "MABQ"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 110.38,
        "epad": 23.3
       }
@@ -524,15 +524,15 @@
      "horizon": 3,
      "models": {
       "lt_persistence": {
-       "p50": 105.635
+       "p50": 103.275
       },
       "lt_damped": {
-       "p50": 106.157,
-       "p10": 76.217,
-       "p90": 141.867
+       "p50": 104.295,
+       "p10": 74.355,
+       "p90": 140.005
       },
       "lt_fundamental": {
-       "p50": 132.699
+       "p50": 129.042
       },
       "lt_market": {
        "p50": 133.68,
@@ -542,7 +542,7 @@
         "NSBQ",
         "MABQ"
        ],
-       "trade_date": "2026-09-16",
+       "trade_date": "2026-09-17",
        "system": 110.38,
        "epad": 23.3
       }
@@ -557,11 +557,11 @@
     }
    ],
    "drivers_sv": [
-    "De senaste 30 dagarna kostade elen i SE4 i snitt 105,6 EUR/MWh, mot 80,1 det senaste året.",
-    "Terminsmarknaden prissätter oktober 2026 till 131,2 EUR/MWh, 29,5 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
+    "De senaste 30 dagarna kostade elen i SE4 i snitt 103,3 EUR/MWh, mot 80,2 det senaste året.",
+    "Terminsmarknaden prissätter oktober 2026 till 131,2 EUR/MWh, 31,4 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 8 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
-    "Planerade kärnkraftsstopp tar i snitt bort 3 313 MW i oktober, 1 720 MW i november och 0 MW i december, mot 2 055 MW de senaste 30 dagarna.",
-    "Gas (TTF) kostar 80,1 EUR/MWh och en utsläppsrätt 81,1 EUR/ton. Ett gaskraftverk behöver då ungefär 190 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
+    "Planerade kärnkraftsstopp tar i snitt bort 3 313 MW i oktober, 1 720 MW i november och 0 MW i december, mot 2 111 MW de senaste 30 dagarna.",
+    "Gas (TTF) kostar 78,0 EUR/MWh och en utsläppsrätt 80,5 EUR/ton. Ett gaskraftverk behöver då ungefär 186 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
     "Säsongsprognosen för vädret i SE4, jämfört med det normala: oktober +0,3 °C och -11 mm nederbörd; november +0,6 °C och -3 mm nederbörd; december +0,7 °C och +11 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
    ],
    "fundamental_coefficients": {
@@ -574,14 +574,14 @@
  },
  "inputs": {
   "hydro_anomaly": -0.081,
-  "ttf_eur_mwh": 80.06,
-  "eua_eur_t": 81.14,
-  "gas_plant_cost_eur_mwh": 190.142,
+  "ttf_eur_mwh": 78.03,
+  "eua_eur_t": 80.53,
+  "gas_plant_cost_eur_mwh": 185.856,
   "damping": [
    0.25,
    0.2
   ],
-  "futures_trade_date": "2026-09-16"
+  "futures_trade_date": "2026-09-17"
  },
  "sources_sv": {
   "futures": "Euronext Nord Pool Power Futures, avräkningspris (fördröjd data)",
