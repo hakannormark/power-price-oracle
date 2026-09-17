@@ -1,7 +1,7 @@
 {
  "zone": "SE4",
  "zone_name": "Malmö",
- "generated_at": "2026-09-17T13:31:28+02:00",
+ "generated_at": "2026-09-17T17:18:09+02:00",
  "window_days": 90,
  "scored_from": "2026-09-05T00:00:00+02:00",
  "scored_to": "2026-09-18T23:00:00+02:00",
@@ -21,6 +21,8 @@
   "weather_scaled",
   "shrunk_scaled",
   "recency_scaled",
+  "relative_scaled",
+  "lightgbm_v1",
   "ensemble",
   "market_scaled"
  ],
@@ -508,6 +510,8 @@
    "weather_scaled": 56.399,
    "shrunk_scaled": 53.883,
    "recency_scaled": 65.604,
+   "relative_scaled": null,
+   "lightgbm_v1": null,
    "ensemble": 57.602,
    "market_scaled": 54.204
   },
@@ -516,6 +520,8 @@
    "weather_scaled": 59.758,
    "shrunk_scaled": 56.911,
    "recency_scaled": 63.647,
+   "relative_scaled": null,
+   "lightgbm_v1": null,
    "ensemble": 60.665,
    "market_scaled": 58.584
   },
@@ -524,6 +530,8 @@
    "weather_scaled": 63.563,
    "shrunk_scaled": 60.115,
    "recency_scaled": 62.939,
+   "relative_scaled": null,
+   "lightgbm_v1": null,
    "ensemble": 64.751,
    "market_scaled": 65.589
   },
@@ -532,6 +540,8 @@
    "weather_scaled": 63.919,
    "shrunk_scaled": 60.099,
    "recency_scaled": 59.709,
+   "relative_scaled": null,
+   "lightgbm_v1": null,
    "ensemble": 65.232,
    "market_scaled": 68.607
   },
@@ -540,6 +550,8 @@
    "weather_scaled": 60.023,
    "shrunk_scaled": 56.564,
    "recency_scaled": 56.894,
+   "relative_scaled": null,
+   "lightgbm_v1": null,
    "ensemble": 61.193,
    "market_scaled": 64.507
   },
@@ -548,6 +560,8 @@
    "weather_scaled": 62.795,
    "shrunk_scaled": 59.705,
    "recency_scaled": 60.235,
+   "relative_scaled": null,
+   "lightgbm_v1": null,
    "ensemble": 63.304,
    "market_scaled": 57.218
   },
@@ -556,6 +570,8 @@
    "weather_scaled": 61.6,
    "shrunk_scaled": 57.944,
    "recency_scaled": 58.427,
+   "relative_scaled": null,
+   "lightgbm_v1": null,
    "ensemble": 63.211,
    "market_scaled": 60.206
   }
@@ -568,6 +584,8 @@
     "weather_scaled": 61.652,
     "shrunk_scaled": 56.434,
     "recency_scaled": 62.913,
+    "relative_scaled": null,
+    "lightgbm_v1": null,
     "ensemble": 62.396,
     "market_scaled": 43.846
    },
@@ -576,6 +594,8 @@
     "weather_scaled": 64.133,
     "shrunk_scaled": 58.953,
     "recency_scaled": 64.75,
+    "relative_scaled": null,
+    "lightgbm_v1": null,
     "ensemble": 64.8,
     "market_scaled": 46.969
    },
@@ -584,6 +604,8 @@
     "weather_scaled": 63.669,
     "shrunk_scaled": 58.65,
     "recency_scaled": 59.305,
+    "relative_scaled": null,
+    "lightgbm_v1": null,
     "ensemble": 64.518,
     "market_scaled": 45.314
    },
@@ -592,6 +614,8 @@
     "weather_scaled": 62.312,
     "shrunk_scaled": 57.801,
     "recency_scaled": 58.165,
+    "relative_scaled": null,
+    "lightgbm_v1": null,
     "ensemble": 63.975,
     "market_scaled": 41.959
    },
@@ -600,6 +624,8 @@
     "weather_scaled": 60.636,
     "shrunk_scaled": 57.211,
     "recency_scaled": 57.66,
+    "relative_scaled": null,
+    "lightgbm_v1": null,
     "ensemble": 61.589,
     "market_scaled": 51.05
    },
@@ -608,6 +634,8 @@
     "weather_scaled": 62.308,
     "shrunk_scaled": 56.957,
     "recency_scaled": 57.38,
+    "relative_scaled": null,
+    "lightgbm_v1": null,
     "ensemble": 62.437,
     "market_scaled": 51.862
    },
@@ -616,6 +644,8 @@
     "weather_scaled": 60.598,
     "shrunk_scaled": 56.058,
     "recency_scaled": 56.805,
+    "relative_scaled": null,
+    "lightgbm_v1": null,
     "ensemble": 61.788,
     "market_scaled": 60.512
    }

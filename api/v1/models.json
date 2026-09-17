@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-17T13:32:57+02:00",
+ "generated_at": "2026-09-17T17:19:02+02:00",
  "default_model": "shrunk_scaled",
  "models": [
   {
@@ -33,6 +33,24 @@
    "id": "recency_scaled",
    "name_sv": "Väderskalad, färsk nivå",
    "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet. I backtestet såg den bäst ut, men testet räknade med timmar vars pris redan var publicerat. Mätt skarpt är den sämre än standardmodellen, mest det första dygnet: när priset svänger från dag till dag missar en modell som säger ”som i dag” åt samma håll som svängen.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "relative_scaled",
+   "name_sv": "Relativ väderskalning",
+   "description_sv": "Grundnivån från förra veckan (dämpad med fyraveckorsmedianen) justerad med skillnaden i väder mellan måltimmen och samma timme förra veckan, i stället för mot ett teoretiskt normalklimat. Rättar till felet där förra veckans extrema väder ärvs in blint, och lägger till temperaturtröskel och helgdagskorrigering.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "lightgbm_v1",
+   "name_sv": "Gradient boosting (LightGBM)",
+   "description_sv": "Kvantilregression (p10, p50, p90) tränad med LightGBM på 4 års historiska marknads- och väderdata. Modellerar elmarknadens icke-linjära merit order-kurva, temperaturtrösklar och samspel mellan tid på dygnet och väder.",
    "quantiles": true,
    "derived": false,
    "is_default": false,

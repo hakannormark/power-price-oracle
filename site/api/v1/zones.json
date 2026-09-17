@@ -1,16 +1,16 @@
 {
- "generated_at": "2026-09-17T13:31:28+02:00",
- "run_id": "20260917T1131Z",
+ "generated_at": "2026-09-17T17:18:09+02:00",
+ "run_id": "20260917T1518Z",
  "unit": "EUR/MWh",
  "resolution": "PT60M",
  "degraded": false,
  "default_model": "shrunk_scaled",
  "fx": {
   "pair": "EUR/SEK",
-  "rate": 11.2875,
-  "date": "2026-09-16",
+  "rate": 11.2715,
+  "date": "2026-09-17",
   "source": "ECB",
-  "fetched_at": "2026-09-17T13:32:35+02:00",
+  "fetched_at": "2026-09-17T17:18:43+02:00",
   "stale": false
  },
  "zones": [
@@ -21,9 +21,9 @@
    "lon": 22.1567,
    "eic": "10Y1001A1001A44P",
    "current": {
-    "ts": "2026-09-17T13:00:00+02:00",
-    "eur_mwh": 13.602,
-    "ore_kwh": 15.353,
+    "ts": "2026-09-17T17:00:00+02:00",
+    "eur_mwh": 45.195,
+    "ore_kwh": 50.942,
     "source": "official"
    },
    "forecast_url": "zones/SE1/forecast.json",
@@ -37,9 +37,9 @@
    "lon": 17.3069,
    "eic": "10Y1001A1001A45N",
    "current": {
-    "ts": "2026-09-17T13:00:00+02:00",
-    "eur_mwh": 17.587,
-    "ore_kwh": 19.851,
+    "ts": "2026-09-17T17:00:00+02:00",
+    "eur_mwh": 49.355,
+    "ore_kwh": 55.63,
     "source": "official"
    },
    "forecast_url": "zones/SE2/forecast.json",
@@ -53,9 +53,9 @@
    "lon": 18.0686,
    "eic": "10Y1001A1001A46L",
    "current": {
-    "ts": "2026-09-17T13:00:00+02:00",
-    "eur_mwh": 13.395,
-    "ore_kwh": 15.12,
+    "ts": "2026-09-17T17:00:00+02:00",
+    "eur_mwh": 96.873,
+    "ore_kwh": 109.19,
     "source": "official"
    },
    "forecast_url": "zones/SE3/forecast.json",
@@ -69,9 +69,9 @@
    "lon": 13.0038,
    "eic": "10Y1001A1001A47J",
    "current": {
-    "ts": "2026-09-17T13:00:00+02:00",
-    "eur_mwh": 11.685,
-    "ore_kwh": 13.189,
+    "ts": "2026-09-17T17:00:00+02:00",
+    "eur_mwh": 133.535,
+    "ore_kwh": 150.514,
     "source": "official"
    },
    "forecast_url": "zones/SE4/forecast.json",

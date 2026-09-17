@@ -39,6 +39,24 @@
    "is_reference": false
   },
   {
+   "id": "relative_scaled",
+   "name_sv": "Relativ väderskalning",
+   "description_sv": "Grundnivån från förra veckan (dämpad med fyraveckorsmedianen) justerad med skillnaden i väder mellan måltimmen och samma timme förra veckan, i stället för mot ett teoretiskt normalklimat. Rättar till felet där förra veckans extrema väder ärvs in blint, och lägger till temperaturtröskel och helgdagskorrigering.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "lightgbm_v1",
+   "name_sv": "Gradient boosting (LightGBM)",
+   "description_sv": "Kvantilregression (p10, p50, p90) tränad med LightGBM på 4 års historiska marknads- och väderdata. Modellerar elmarknadens icke-linjära merit order-kurva, temperaturtrösklar och samspel mellan tid på dygnet och väder.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
    "id": "ensemble",
    "name_sv": "Ensemble",
    "description_sv": "Viktat snitt av säsongsnaiv och väderskalad, 35/65. Var sajtens standardmodell fram till att den mättes: på 437 224 timmar ut ur urvalet hamnade den på 28,70 i medelfel mot 25,94 för den dämpade väderskalade modellen. Varje blandning gjorde resultatet sämre än den bästa modellen ensam, så ensemblen finns kvar som jämförelse i stället för som standard.",
