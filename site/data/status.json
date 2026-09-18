@@ -1,7 +1,7 @@
 {
  "ok": true,
- "generated_at": "2026-09-18T06:31:41+02:00",
- "run_id": "20260918T0431Z",
+ "generated_at": "2026-09-18T10:16:22+02:00",
+ "run_id": "20260918T0816Z",
  "degraded": false,
  "demo": false,
  "fx": {
@@ -9,7 +9,7 @@
   "rate": 11.2715,
   "date": "2026-09-17",
   "source": "ECB",
-  "fetched_at": "2026-09-18T06:32:09+02:00",
+  "fetched_at": "2026-09-18T10:17:01+02:00",
   "stale": false
  },
  "sources": {
@@ -28,7 +28,7 @@
   },
   "entsoe_fundamentals": {
    "ok": true,
-   "rows": 288
+   "rows": 384
   },
   "svk_text": {
    "ok": true,
@@ -41,12 +41,12 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1150
+   "messages": 1165
   },
   "fuels": {
    "ok": true,
    "rows": 128,
-   "added": 0
+   "added": 1
   },
   "euronext_futures": {
    "ok": true,
@@ -59,8 +59,8 @@
   "longterm": {
    "ok": true,
    "default": "lt_damped",
-   "logged": 48
+   "logged": 0
   }
  },
- "next_expected_update_utc": "2026-09-18T08:15:00Z"
+ "next_expected_update_utc": "2026-09-18T11:30:00Z"
 }
