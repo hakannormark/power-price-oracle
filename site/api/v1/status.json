@@ -1,25 +1,25 @@
 {
  "ok": true,
- "generated_at": "2026-09-18T13:32:09+02:00",
- "run_id": "20260918T1132Z",
+ "generated_at": "2026-09-18T18:01:57+02:00",
+ "run_id": "20260918T1601Z",
  "degraded": false,
  "demo": false,
  "fx": {
   "pair": "EUR/SEK",
-  "rate": 11.2715,
-  "date": "2026-09-17",
+  "rate": 11.2915,
+  "date": "2026-09-18",
   "source": "ECB",
-  "fetched_at": "2026-09-18T13:34:15+02:00",
+  "fetched_at": "2026-09-18T18:04:40+02:00",
   "stale": false
  },
  "sources": {
   "entsoe_prices": {
    "ok": true,
-   "rows": 384
+   "rows": 480
   },
   "entsoe_quarters": {
    "ok": true,
-   "rows": 1536
+   "rows": 1920
   },
   "open_meteo": {
    "ok": true,
@@ -36,17 +36,17 @@
   },
   "ecb_fx": {
    "ok": true,
-   "rate": 11.2715,
-   "date": "2026-09-17"
+   "rate": 11.2915,
+   "date": "2026-09-18"
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1175
+   "messages": 1199
   },
   "fuels": {
    "ok": true,
    "rows": 129,
-   "added": 1
+   "added": 0
   },
   "euronext_futures": {
    "ok": true,
@@ -62,5 +62,5 @@
    "logged": 0
   }
  },
- "next_expected_update_utc": "2026-09-18T16:00:00Z"
+ "next_expected_update_utc": "2026-09-19T04:30:00Z"
 }
