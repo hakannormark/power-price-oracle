@@ -28,6 +28,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from ..timeutil import TZ, horizon_hours
@@ -111,6 +112,14 @@ def compute_relative_scale(
         target_solar = getattr(target_row, "solar_index_local", 0.0)
         d_solar = float(target_solar if not pd.isna(target_solar) else 0.0)
 
+    # Dampen extreme weather deltas so violent week-over-week weather transitions
+    # do not cause run-away price overshoot.
+    d_wind_local = float(np.clip(d_wind_local, -0.8, 0.8))
+    d_wind_north = float(np.clip(d_wind_north, -0.8, 0.8))
+    d_wind_south = float(np.clip(d_wind_south, -0.8, 0.8))
+    d_temp_hdd = float(np.clip(d_temp_hdd, -1.0, 1.0))
+    d_solar = float(np.clip(d_solar, -1.0, 1.0))
+
     scale = 1.0
     scale -= weights.wind_local * d_wind_local
     scale -= weights.wind_north * d_wind_north
@@ -118,7 +127,8 @@ def compute_relative_scale(
     scale += weights.temp * d_temp_hdd
     scale -= weights.solar * d_solar
 
-    return min(max(scale, SCALE_MIN), SCALE_MAX)
+    # Tighter scale boundaries (0.65 to 1.55) to prevent over-amplification
+    return min(max(scale, 0.65), 1.55)
 
 
 class RelativeScaled:

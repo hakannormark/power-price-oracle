@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from .ensemble import Ensemble
+from .horizon_hybrid import HorizonHybrid
 from .lightgbm_v1 import LightGbmV1
+from .lightgbm_v2 import LightGbmV2
 from .market_scaled import MarketScaled
 from .official import Official
 from .recency_scaled import RecencyScaled
@@ -20,12 +22,14 @@ BASE_MODELS = [
     RecencyScaled(),
     RelativeScaled(),
     LightGbmV1(),
+    LightGbmV2(),
 ]
 
 # Derived models are built from base-model output after the base pass.
 DERIVED_MODELS = [
     Ensemble(),
     MarketScaled(),  # measured live from 2026-09; no futures history to back-test
+    HorizonHybrid(),
 ]
 
 MODELS = [*BASE_MODELS, *DERIVED_MODELS]

@@ -108,6 +108,70 @@ class LightGbmModelTests(unittest.TestCase):
         ids = [d["id"] for d in descriptions]
         self.assertIn("relative_scaled", ids)
         self.assertIn("lightgbm_v1", ids)
+        self.assertIn("lightgbm_v2", ids)
+        self.assertIn("horizon_hybrid", ids)
+
+
+class LightGbmV2ModelTests(unittest.TestCase):
+    def test_registered_in_base_models(self):
+        self.assertIn("lightgbm_v2", model_ids())
+        from src.models.lightgbm_v2 import LightGbmV2
+
+        model = get_model("lightgbm_v2")
+        self.assertIsInstance(model, LightGbmV2)
+        self.assertTrue(model.quantiles)
+        self.assertFalse(model.derived)
+
+    def test_predict_produces_ordered_quantiles(self):
+        now = now_local()
+        actuals = [
+            {"zone": z, "ts": (now - timedelta(hours=h)).isoformat(), "price_eur_mwh": 55.0}
+            for z in ZONES
+            for h in range(1, 400)
+        ]
+        features = build_features(actuals, pd.DataFrame(), pd.DataFrame(), None, now)
+        from src.models.lightgbm_v2 import LightGbmV2
+
+        model = LightGbmV2()
+        points = model.predict(features, now)
+        self.assertGreater(len(points), 0)
+        for p in points:
+            self.assertLessEqual(p.p10, p.p50)
+            self.assertLessEqual(p.p50, p.p90)
+
+
+class HorizonHybridModelTests(unittest.TestCase):
+    def test_registered_in_derived_models(self):
+        self.assertIn("horizon_hybrid", model_ids())
+        from src.models.horizon_hybrid import HorizonHybrid
+
+        model = get_model("horizon_hybrid")
+        self.assertIsInstance(model, HorizonHybrid)
+        self.assertTrue(model.quantiles)
+        self.assertTrue(model.derived)
+
+    def test_combine_ramps_correctly(self):
+        from src.models.base import ForecastPoint
+        from src.models.horizon_hybrid import HorizonHybrid
+
+        now = now_local()
+        short_pts = [
+            ForecastPoint(ts=now + timedelta(hours=h), zone="SE3", p10=20.0, p50=30.0, p90=40.0)
+            for h in range(1, 100)
+        ]
+        long_pts = [
+            ForecastPoint(ts=now + timedelta(hours=h), zone="SE3", p10=50.0, p50=60.0, p90=70.0)
+            for h in range(1, 100)
+        ]
+
+        model = HorizonHybrid()
+        combined = model.combine({"lightgbm_v2": short_pts, "shrunk_scaled": long_pts}, now)
+        self.assertEqual(len(combined), 99)
+
+        # Hour 12 should be short model (p50 = 30.0)
+        self.assertAlmostEqual(combined[11].p50, 30.0, places=1)
+        # Hour 80 should be long model (p50 = 60.0)
+        self.assertAlmostEqual(combined[79].p50, 60.0, places=1)
 
 
 if __name__ == "__main__":
