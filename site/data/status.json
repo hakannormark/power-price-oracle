@@ -1,21 +1,22 @@
 {
  "ok": true,
- "generated_at": "2026-09-29T13:31:44+02:00",
- "run_id": "20260929T1131Z",
+ "generated_at": "2026-09-29T18:02:01+02:00",
+ "run_id": "20260929T1602Z",
  "degraded": false,
  "demo": false,
  "fx": {
   "pair": "EUR/SEK",
-  "rate": 11.3205,
-  "date": "2026-09-28",
+  "rate": 11.321,
+  "date": "2026-09-29",
   "source": "ECB",
-  "fetched_at": "2026-09-29T13:33:05+02:00",
+  "fetched_at": "2026-09-29T18:08:19+02:00",
   "stale": false
  },
  "sources": {
   "entsoe_prices": {
    "ok": true,
-   "rows": 480
+   "rows": 360,
+   "error": "SE2: 599 Server Error: status code 599 for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A45N&out_Domain=10Y1001A1001A45N&periodStart=202609252200&periodEnd=202609302200&secu"
   },
   "entsoe_quarters": {
    "ok": true,
@@ -28,7 +29,9 @@
   },
   "entsoe_fundamentals": {
    "ok": true,
-   "rows": 384
+   "rows": 384,
+   "error": "SE3 load: HTTPError",
+   "cache_filled": 77
   },
   "svk_text": {
    "ok": true,
@@ -36,17 +39,17 @@
   },
   "ecb_fx": {
    "ok": true,
-   "rate": 11.3205,
-   "date": "2026-09-28"
+   "rate": 11.321,
+   "date": "2026-09-29"
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1132
+   "messages": 1147
   },
   "fuels": {
    "ok": true,
-   "rows": 129,
-   "added": 0
+   "rows": 130,
+   "added": 1
   },
   "euronext_futures": {
    "ok": true,
@@ -62,5 +65,5 @@
    "logged": 0
   }
  },
- "next_expected_update_utc": "2026-09-29T16:00:00Z"
+ "next_expected_update_utc": "2026-09-30T04:30:00Z"
 }
