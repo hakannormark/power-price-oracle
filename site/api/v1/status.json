@@ -1,7 +1,7 @@
 {
  "ok": true,
- "generated_at": "2026-09-29T18:02:01+02:00",
- "run_id": "20260929T1602Z",
+ "generated_at": "2026-09-30T06:32:20+02:00",
+ "run_id": "20260930T0432Z",
  "degraded": false,
  "demo": false,
  "fx": {
@@ -9,18 +9,17 @@
   "rate": 11.321,
   "date": "2026-09-29",
   "source": "ECB",
-  "fetched_at": "2026-09-29T18:08:19+02:00",
+  "fetched_at": "2026-09-30T06:32:45+02:00",
   "stale": false
  },
  "sources": {
   "entsoe_prices": {
    "ok": true,
-   "rows": 360,
-   "error": "SE2: 599 Server Error: status code 599 for url: https://web-api.tp.entsoe.eu/api?documentType=A44&in_Domain=10Y1001A1001A45N&out_Domain=10Y1001A1001A45N&periodStart=202609252200&periodEnd=202609302200&secu"
+   "rows": 384
   },
   "entsoe_quarters": {
    "ok": true,
-   "rows": 1920
+   "rows": 1536
   },
   "open_meteo": {
    "ok": true,
@@ -29,9 +28,7 @@
   },
   "entsoe_fundamentals": {
    "ok": true,
-   "rows": 384,
-   "error": "SE3 load: HTTPError",
-   "cache_filled": 77
+   "rows": 288
   },
   "svk_text": {
    "ok": true,
@@ -44,12 +41,12 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1147
+   "messages": 1083
   },
   "fuels": {
    "ok": true,
-   "rows": 130,
-   "added": 1
+   "rows": 129,
+   "added": 0
   },
   "euronext_futures": {
    "ok": true,
@@ -62,8 +59,8 @@
   "longterm": {
    "ok": true,
    "default": "lt_damped",
-   "logged": 0
+   "logged": 48
   }
  },
- "next_expected_update_utc": "2026-09-30T04:30:00Z"
+ "next_expected_update_utc": "2026-09-30T08:15:00Z"
 }
