@@ -1,7 +1,7 @@
 {
  "ok": true,
- "generated_at": "2026-09-30T18:02:03+02:00",
- "run_id": "20260930T1602Z",
+ "generated_at": "2026-10-01T06:31:47+02:00",
+ "run_id": "20261001T0431Z",
  "degraded": false,
  "demo": false,
  "fx": {
@@ -9,17 +9,17 @@
   "rate": 11.331,
   "date": "2026-09-30",
   "source": "ECB",
-  "fetched_at": "2026-09-30T18:04:06+02:00",
+  "fetched_at": "2026-10-01T06:33:15+02:00",
   "stale": false
  },
  "sources": {
   "entsoe_prices": {
    "ok": true,
-   "rows": 480
+   "rows": 384
   },
   "entsoe_quarters": {
    "ok": true,
-   "rows": 1920
+   "rows": 1536
   },
   "open_meteo": {
    "ok": true,
@@ -28,7 +28,7 @@
   },
   "entsoe_fundamentals": {
    "ok": true,
-   "rows": 384
+   "rows": 288
   },
   "svk_text": {
    "ok": true,
@@ -41,16 +41,17 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1151
+   "messages": 1115
   },
   "fuels": {
    "ok": true,
-   "rows": 130,
-   "added": 1
+   "rows": 129,
+   "added": 0
   },
   "euronext_futures": {
-   "ok": true,
-   "rows": 17
+   "ok": false,
+   "rows": 0,
+   "error": "HTTPError: 500 Server Error: Internal Server Error for url: https://live.euronext.com/en/ajax/featured_derivatives_contracts/get_block_content"
   },
   "seasonal_outlook": {
    "ok": true,
@@ -59,8 +60,8 @@
   "longterm": {
    "ok": true,
    "default": "lt_damped",
-   "logged": 0
+   "logged": 48
   }
  },
- "next_expected_update_utc": "2026-10-01T04:30:00Z"
+ "next_expected_update_utc": "2026-10-01T08:15:00Z"
 }
