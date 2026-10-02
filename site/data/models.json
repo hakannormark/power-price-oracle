@@ -1,5 +1,5 @@
 {
- "default_model": "shrunk_scaled",
+ "default_model": "horizon_hybrid",
  "reference_model": "seasonal_naive",
  "models": [
   {
@@ -23,10 +23,10 @@
   {
    "id": "shrunk_scaled",
    "name_sv": "Väderskalad, dämpad nivå",
-   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 437 224 timmar ut ur urvalet över sexton kvartal: medelfel 25,94 EUR/MWh mot 29,87 för den säsongsnaiva referensen och 28,34 för den väderskalade. Men backtestet matar modellerna perfekt väder — på riktiga utfärdade prognoser blir medelfelet 41,9 mot referensens 45,2, alltså 7 procent bättre och inte 13. Sajtens standardmodell. Den färska nivån såg bättre ut i backtestet men är sämre på skarpa prognoser.",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 437 224 timmar ut ur urvalet över sexton kvartal: medelfel 25,94 EUR/MWh mot 29,87 för den säsongsnaiva referensen och 28,34 för den väderskalade. Men backtestet matar modellerna perfekt väder — på riktiga utfärdade prognoser blir medelfelet 41,9 mot referensens 45,2, alltså 7 procent bättre och inte 13. Tidigare standardmodell på sajten (ersatt av horisonthybriden i oktober 2026). Den färska nivån såg bättre ut i backtestet men är sämre på skarpa prognoser.",
    "quantiles": true,
    "derived": false,
-   "is_default": true,
+   "is_default": false,
    "is_reference": false
   },
   {
@@ -86,10 +86,10 @@
   {
    "id": "horizon_hybrid",
    "name_sv": "Horisonthybrid",
-   "description_sv": "Kombinerar LightGBM:s överlägsna precision på kort sikt (0–36 h) med den dämpade och marknadsjusterade basnivån på längre horisonter (48–168 h).",
+   "description_sv": "Kombinerar LightGBM:s överlägsna precision på kort sikt (0–36 h) med en balanserad blandning (60/40) av LightGBM och marknadsjusterad basnivå på längre horisonter (48–168 h). Sajtens standardmodell sedan oktober 2026.",
    "quantiles": true,
    "derived": true,
-   "is_default": false,
+   "is_default": true,
    "is_reference": false
   }
  ]

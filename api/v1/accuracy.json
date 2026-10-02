@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-02T06:31:43+02:00",
+ "generated_at": "2026-10-02T10:02:38+02:00",
  "window_days": 90,
  "unit": "EUR/MWh",
  "min_samples": 24,
@@ -25,7 +25,7 @@
   "horizon_hybrid"
  ],
  "reference_model": "seasonal_naive",
- "default_model": "shrunk_scaled",
+ "default_model": "horizon_hybrid",
  "scored_points": 373536,
  "scored_from": "2026-09-05T00:00:00+02:00",
  "scored_to": "2026-10-02T23:00:00+02:00",
