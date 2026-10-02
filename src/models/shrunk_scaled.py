@@ -86,8 +86,9 @@ class ShrunkScaled:
         "medelfel 25,94 EUR/MWh mot 29,87 för den säsongsnaiva referensen och 28,34 "
         "för den väderskalade. Men backtestet matar modellerna perfekt väder — på "
         "riktiga utfärdade prognoser blir medelfelet 41,9 mot referensens 45,2, alltså "
-        "7 procent bättre och inte 13. Sajtens standardmodell. Den färska nivån såg "
-        "bättre ut i backtestet men är sämre på skarpa prognoser."
+        "7 procent bättre och inte 13. Tidigare standardmodell på sajten (ersatt av "
+        "horisonthybriden i oktober 2026). Den färska nivån såg bättre ut i backtestet men "
+        "är sämre på skarpa prognoser."
     )
     quantiles = True
     derived = False

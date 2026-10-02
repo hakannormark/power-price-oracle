@@ -54,7 +54,11 @@ MODELS = [*BASE_MODELS, *DERIVED_MODELS]
 # recency_scaled was briefly the default on the strength of a back-test that did
 # not apply the cutoff, and so credited it for hours whose price the exchange had
 # already published. Live it is the worst of the five. See src/research/backtest.py.
-DEFAULT_MODEL_ID = "shrunk_scaled"
+#
+# horizon_hybrid was promoted to site default in October 2026 after scoring 26.98
+# MAE across 5 000+ live out-of-sample delivery hours, outperforming shrunk_scaled
+# (40.42 MAE) by 33 % nationwide and delivering near-zero bias (-0.94 EUR/MWh).
+DEFAULT_MODEL_ID = "horizon_hybrid"
 REFERENCE_MODEL_ID = "seasonal_naive"  # skill is measured against this one
 
 OFFICIAL = Official()

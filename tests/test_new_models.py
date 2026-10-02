@@ -170,8 +170,8 @@ class HorizonHybridModelTests(unittest.TestCase):
 
         # Hour 12 should be short model (p50 = 30.0)
         self.assertAlmostEqual(combined[11].p50, 30.0, places=1)
-        # Hour 80 should be long model (p50 = 60.0)
-        self.assertAlmostEqual(combined[79].p50, 60.0, places=1)
+        # Hour 80 should be 60/40 blend (0.6*30 + 0.4*60 = 42.0)
+        self.assertAlmostEqual(combined[79].p50, 42.0, places=1)
 
 
 if __name__ == "__main__":

@@ -26,14 +26,16 @@ LONG_FALLBACK = "shrunk_scaled"
 
 RAMP_START_H = 36
 RAMP_END_H = 72
+LONG_SHORT_WEIGHT = 0.60  # Retains 60 % LightGBM weather/hourly profile, 40 % market futures level
 
 
 class HorizonHybrid:
     id = "horizon_hybrid"
     name_sv = "Horisonthybrid"
     description_sv = (
-        "Kombinerar LightGBM:s överlägsna precision på kort sikt (0–36 h) med den "
-        "dämpade och marknadsjusterade basnivån på längre horisonter (48–168 h)."
+        "Kombinerar LightGBM:s överlägsna precision på kort sikt (0–36 h) med en balanserad "
+        "blandning (60/40) av LightGBM och marknadsjusterad basnivå på längre horisonter (48–168 h). "
+        "Sajtens standardmodell sedan oktober 2026."
     )
     quantiles = True
     derived = True
@@ -74,9 +76,10 @@ class HorizonHybrid:
             if h <= RAMP_START_H:
                 w_short = 1.0
             elif h >= RAMP_END_H:
-                w_short = 0.0
+                w_short = LONG_SHORT_WEIGHT
             else:
-                w_short = 1.0 - (h - RAMP_START_H) / float(RAMP_END_H - RAMP_START_H)
+                frac = (h - RAMP_START_H) / float(RAMP_END_H - RAMP_START_H)
+                w_short = 1.0 - frac * (1.0 - LONG_SHORT_WEIGHT)
 
             w_long = 1.0 - w_short
 
