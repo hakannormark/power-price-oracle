@@ -211,6 +211,50 @@
       </div>
       <p class="sub">Tittar <strong>bakåt i tiden</strong> och simulerar exakt vad samma batterianläggning hade genererat i intäkter och besparingar under verkliga historiska timpriser och solförhållanden i det valda elområdet.</p>
 
+      <!-- Systemväljare för historiskt backtest -->
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: flex-end; background: rgba(255, 255, 255, 0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+        <div style="flex: 1; min-width: 250px;">
+          <label for="bess-backtest-offer" style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 0.35rem;">
+            Valt system i backtestet:
+          </label>
+          <select class="field" id="bess-backtest-offer" style="width: 100%;">
+            <option value="custom" selected>⭐ Ditt val: Egen anläggning (från kalkylatorn)</option>
+            <option value="solis_dyness_15">Solis S6 & Dyness (15 kWh / 10 kW)</option>
+            <option value="sigenergy_18">Sigenergy SigenStor (18 kWh / 12 kW)</option>
+            <option value="svea_solar_10">Svea Solar Home (10 kWh / 10 kW)</option>
+            <option value="greenely_polarium_13_8">Greenely & Polarium (13,8 kWh / 8 kW)</option>
+            <option value="elteknik_saj_15">Elteknik & SAJ (15 kWh / 10 kW)</option>
+            <option value="evify_saj_15">Evify & SAJ (15 kWh / 10 kW)</option>
+          </select>
+        </div>
+
+        <div style="flex: 1; min-width: 250px;">
+          <label for="bess-backtest-compare" style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 0.35rem;">
+            Jämför mot referenssystem:
+          </label>
+          <select class="field" id="bess-backtest-compare" style="width: 100%;">
+            <option value="solis_dyness_15" selected>Solis S6 & Dyness (15 kWh / 10 kW)</option>
+            <option value="sigenergy_18">Sigenergy SigenStor (18 kWh / 12 kW)</option>
+            <option value="custom">Ditt val: Egen anläggning</option>
+            <option value="svea_solar_10">Svea Solar Home (10 kWh / 10 kW)</option>
+            <option value="greenely_polarium_13_8">Greenely & Polarium (13,8 kWh / 8 kW)</option>
+            <option value="elteknik_saj_15">Elteknik & SAJ (15 kWh / 10 kW)</option>
+            <option value="evify_saj_15">Evify & SAJ (15 kWh / 10 kW)</option>
+            <option value="none">Ingen jämförelse (Visa enbart valt system)</option>
+          </select>
+        </div>
+
+        <div style="min-width: 200px;">
+          <label for="bess-backtest-strategy" style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 0.35rem;">
+            Driftstrategi:
+          </label>
+          <select class="field" id="bess-backtest-strategy" style="width: 100%;">
+            <option value="mixed" selected>Stödtjänster + Arbitrage + Solel</option>
+            <option value="energy_only">Enbart Soloptimering & Arbitrage</option>
+          </select>
+        </div>
+      </div>
+
       <div class="zone-pills" id="bess-era-pills" style="margin-bottom: 1.25rem;">
         <button type="button" class="zone-pill active" data-era="modern">Moderna eran (2022–2026) · Rekommenderas för kalkyl</button>
         <button type="button" class="zone-pill" data-era="all">Hela historiken (2015–2026) · 11 år</button>
@@ -287,6 +331,6 @@
   </div>
 </main>
 
-<script src="assets/bess.js?v=20261004c"></script>
+<script src="assets/bess.js?v=20261004d"></script>
 </body>
 </html>

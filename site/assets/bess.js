@@ -10,6 +10,8 @@
     selectedOfferId: "solis_dyness_15",
     showCustomCf: false,
     selectedEra: "modern",
+    backtestOfferId: "custom",
+    backtestCompareOfferId: "solis_dyness_15",
 
     // Custom system settings
     custom: {
@@ -28,7 +30,8 @@
   }
 
   function fmtYears(val) {
-    if (val === null || val === undefined || isNaN(val) || !isFinite(val)) return "—";
+    if (val === null || val === undefined || isNaN(val) || !isFinite(val)) return "> 15 år";
+    if (val > 15) return "> 15 år";
     return val.toFixed(1).replace(".", ",") + " år";
   }
 
@@ -52,6 +55,8 @@
         if (saved.scenario) state.scenario = saved.scenario;
         if (saved.selectedEra) state.selectedEra = saved.selectedEra;
         if (saved.selectedOfferId) state.selectedOfferId = saved.selectedOfferId;
+        if (saved.backtestOfferId) state.backtestOfferId = saved.backtestOfferId;
+        if (saved.backtestCompareOfferId !== undefined) state.backtestCompareOfferId = saved.backtestCompareOfferId;
         if (saved.showCustomCf !== undefined) state.showCustomCf = !!saved.showCustomCf;
         if (saved.custom && typeof saved.custom === "object") {
           state.custom = Object.assign({}, state.custom, saved.custom);
@@ -73,6 +78,8 @@
         scenario: state.scenario,
         selectedEra: state.selectedEra,
         selectedOfferId: state.selectedOfferId,
+        backtestOfferId: state.backtestOfferId,
+        backtestCompareOfferId: state.backtestCompareOfferId,
         showCustomCf: state.showCustomCf,
         custom: state.custom,
       }));
@@ -245,6 +252,39 @@
           : "Visa 15-årig Framtidsprognos för Kassaflöde (År 1–15 framåt) ▼";
       });
     }
+
+    // 6. Backtest selectors
+    const btOfferSelect = document.getElementById("bess-backtest-offer");
+    if (btOfferSelect) {
+      if (state.backtestOfferId) btOfferSelect.value = state.backtestOfferId;
+      btOfferSelect.addEventListener("change", (e) => {
+        state.backtestOfferId = e.target.value;
+        saveState();
+        renderBacktest();
+      });
+    }
+
+    const btCompareSelect = document.getElementById("bess-backtest-compare");
+    if (btCompareSelect) {
+      if (state.backtestCompareOfferId) btCompareSelect.value = state.backtestCompareOfferId;
+      btCompareSelect.addEventListener("change", (e) => {
+        state.backtestCompareOfferId = e.target.value;
+        saveState();
+        renderBacktest();
+      });
+    }
+
+    const btStratSelect = document.getElementById("bess-backtest-strategy");
+    if (btStratSelect) {
+      if (state.strategy) btStratSelect.value = state.strategy;
+      btStratSelect.addEventListener("change", (e) => {
+        state.strategy = e.target.value;
+        const mainStrat = document.getElementById("bess-strategy");
+        if (mainStrat) mainStrat.value = state.strategy;
+        saveState();
+        renderAll();
+      });
+    }
   }
 
   // Calculate dynamic custom battery system
@@ -301,13 +341,13 @@
     }
 
     const totalAnnualValue = solarSavingsSek + arbitrageProfitSek + ancillaryRevSek;
-    const simplePayback = totalAnnualValue > 0 ? (netPrice / totalAnnualValue) : null;
 
     // 15-year lifecycle forecast (forward-looking Years 1 to 15)
     const cashFlows = [];
     let cumCash = -netPrice;
     let npv = -netPrice;
     let npv10 = -netPrice;
+    let dynamicPayback = null;
     let discPayback = null;
 
     for (let yr = 1; yr <= 15; yr++) {
@@ -339,12 +379,20 @@
       const prevCumCash = cumCash;
       cumCash += yrTotal;
 
-      const df = 1.0 / Math.pow(1.05, yr);
-      npv += yrTotal * df;
-      if (yr <= 10) npv10 += yrTotal * df;
+      if (dynamicPayback === null && cumCash >= 0 && yrTotal > 0) {
+        const unrecovered = -prevCumCash;
+        dynamicPayback = (yr - 1) + Math.max(0, Math.min(1, unrecovered / yrTotal));
+      }
 
-      if (discPayback === null && npv >= 0) {
-        discPayback = yr;
+      const prevNpv = npv;
+      const df = 1.0 / Math.pow(1.05, yr);
+      const discountedYr = yrTotal * df;
+      npv += discountedYr;
+      if (yr <= 10) npv10 += discountedYr;
+
+      if (discPayback === null && npv >= 0 && discountedYr > 0) {
+        const unrecoveredNpv = -prevNpv;
+        discPayback = (yr - 1) + Math.max(0, Math.min(1, unrecoveredNpv / discountedYr));
       }
 
       cashFlows.push({
@@ -358,6 +406,8 @@
         cumulative_cash_flow: cumCash,
       });
     }
+
+    const simplePayback = dynamicPayback !== null ? dynamicPayback : (totalAnnualValue > 0 ? (netPrice / totalAnnualValue) : null);
 
     return {
       netPrice,
@@ -769,6 +819,78 @@
     `;
   }
 
+  function getSystemBacktestYear(sysId, yData) {
+    if (!yData) return { solar: 0, arb: 0, ancillary: 0, total: 0, name: "Okänt", shortName: "Okänt" };
+    const strat = state.strategy === "energy_only" ? "energy_only" : "mixed";
+
+    if (sysId === "custom") {
+      const c = state.custom;
+      const solis = (yData.offers && yData.offers["solis_dyness_15"] && yData.offers["solis_dyness_15"][strat]) || {};
+      const solisSolar = solis.solar_savings_sek || 0;
+      const solisArb = solis.arbitrage_profit_sek || 0;
+      const solisAnc = solis.ancillary_revenue_sek || 0;
+
+      // 1. Spot arbitrage scaling based on usable capacity & max power:
+      // Solis baseline: 15 kWh, 10 kW -> min(15 * 0.9 * 0.70, 10 * 2.5) = 9.45 kWh
+      const customArbCap = Math.min(c.cap_kwh * 0.90 * 0.70, c.p_kw * 2.5);
+      const arbRatio = customArbCap / 9.45;
+      const arb = Math.round(solisArb * arbRatio);
+
+      // 2. Solar PV self-consumption scaling:
+      let solar = 0;
+      if (c.pv_kwp > 0) {
+        const annualPv = c.pv_kwp * 850;
+        const daytimeLoadFrac = c.load_kwh >= 25000 ? 0.45 : 0.35;
+        const directPv = Math.min(annualPv * 0.40, c.load_kwh * daytimeLoadFrac);
+        const surplusPv = Math.max(0, annualPv - directPv);
+        const nightLoad = c.load_kwh * 0.45;
+        const storedSolarKwh = Math.min(surplusPv, c.cap_kwh * 0.90 * 180, nightLoad);
+        // Solis baseline: 10 kWp, 8000 kWh load, 15 kWh battery -> min(5100, 2430, 3600) = 2430 kWh
+        const solarRatio = storedSolarKwh / 2430;
+        solar = Math.round(solisSolar * solarRatio);
+      }
+
+      // 3. Ancillary (FCR-D) services:
+      let ancillary = 0;
+      if (strat === "mixed" && c.p_kw >= 3) {
+        // Solis baseline: 10 kW, 9 kW biddable
+        const customBiddable = Math.min(c.p_kw, c.cap_kwh * 0.9) * 0.9;
+        const rateRatio = (c.fcr_rate_month || 25) / 25;
+        ancillary = Math.round(solisAnc * (customBiddable / 9.0) * rateRatio);
+      }
+
+      const total = solar + arb + ancillary;
+      return {
+        name: `Ditt val (${c.cap_kwh} kWh / ${c.p_kw} kW)`,
+        shortName: `Ditt val`,
+        solar,
+        arb,
+        ancillary,
+        total,
+      };
+    }
+
+    // Commercial offer lookup from backtest dataset
+    const zd = getZoneData();
+    const offersList = (zd && zd.offers) || (state.data && state.data.offers) || [];
+    const offerMeta = offersList.find((o) => o.id === sysId) || { name: sysId };
+
+    const offData = (yData.offers && yData.offers[sysId] && yData.offers[sysId][strat]) || {};
+    const solar = Math.round(offData.solar_savings_sek || 0);
+    const arb = Math.round(offData.arbitrage_profit_sek || 0);
+    const ancillary = Math.round(offData.ancillary_revenue_sek || 0);
+    const total = Math.round(offData.total_value_sek || (solar + arb + ancillary));
+
+    return {
+      name: offerMeta.name,
+      shortName: offerMeta.name.split(" ")[0] || offerMeta.name,
+      solar,
+      arb,
+      ancillary,
+      total,
+    };
+  }
+
   function renderBacktest() {
     const btContainer = document.getElementById("bess-backtest-box");
     const btTitle = document.getElementById("bess-backtest-title");
@@ -777,14 +899,47 @@
     const zd = getZoneData();
     const btData = (zd && zd.backtest) || (state.data && state.data.backtest) || {};
     const yearsData = btData.years || {};
-    const erasSummary = btData.eras_summary || {};
 
     let eraLabel = "Moderna eran (2022–2026)";
     if (state.selectedEra === "classic") eraLabel = "Gamla eran (2015–2020)";
     else if (state.selectedEra === "all") eraLabel = "Hela historiken (2015–2026)";
 
+    const primarySysId = state.backtestOfferId || "custom";
+    const compareSysId = state.backtestCompareOfferId || "solis_dyness_15";
+    const hasCompare = compareSysId !== "none" && compareSysId !== primarySysId;
+
+    // Sample data to retrieve readable system names
+    const sampleYearKey = Object.keys(yearsData)[0] || "2024";
+    const sampleYData = yearsData[sampleYearKey] || {};
+    const primarySample = getSystemBacktestYear(primarySysId, sampleYData);
+    const compareSample = hasCompare ? getSystemBacktestYear(compareSysId, sampleYData) : null;
+
     if (btTitle) {
-      btTitle.textContent = `4. Historiskt backtest i ${state.selectedZone}: Faktiskt utfall (${eraLabel})`;
+      btTitle.textContent = `3. Historiskt backtest i ${state.selectedZone}: ${primarySample.name} (${eraLabel})`;
+    }
+
+    // Sync backtest selectors in the DOM
+    const btOfferSelect = document.getElementById("bess-backtest-offer");
+    if (btOfferSelect) {
+      const customOpt = btOfferSelect.querySelector('option[value="custom"]');
+      if (customOpt) {
+        customOpt.textContent = `⭐ Ditt val: Egen anläggning (${state.custom.cap_kwh} kWh / ${state.custom.p_kw} kW)`;
+      }
+      btOfferSelect.value = primarySysId;
+    }
+
+    const btCompareSelect = document.getElementById("bess-backtest-compare");
+    if (btCompareSelect) {
+      const customCompOpt = btCompareSelect.querySelector('option[value="custom"]');
+      if (customCompOpt) {
+        customCompOpt.textContent = `Ditt val: Egen anläggning (${state.custom.cap_kwh} kWh / ${state.custom.p_kw} kW)`;
+      }
+      btCompareSelect.value = compareSysId;
+    }
+
+    const btStratSelect = document.getElementById("bess-backtest-strategy");
+    if (btStratSelect) {
+      btStratSelect.value = state.strategy;
     }
 
     let allYearKeys = Object.keys(yearsData).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
@@ -798,10 +953,8 @@
     let rows = "";
     filteredYears.forEach((year) => {
       const yData = yearsData[year];
-      const solis = (yData.offers && yData.offers["solis_dyness_15"]) || {};
-      const solisMixed = solis.mixed || {};
-      const sig = (yData.offers && yData.offers["sigenergy_18"]) || {};
-      const sigMixed = sig.mixed || {};
+      const prim = getSystemBacktestYear(primarySysId, yData);
+      const comp = hasCompare ? getSystemBacktestYear(compareSysId, yData) : null;
 
       const yNum = parseInt(year, 10);
       let eraBadge = "";
@@ -825,37 +978,64 @@
           <td>${(yData.mean_spot_sek_kwh * 100).toFixed(1)} öre/kWh</td>
           <td style="color: #38bdf8; font-weight: 600;">${spreadStr}</td>
           <td>${negHoursStr}</td>
-          <td>${fmtKr(solisMixed.solar_savings_sek)}</td>
-          <td>${fmtKr(solisMixed.arbitrage_profit_sek)}</td>
-          <td style="color: #4ade80; font-weight: 600;">${fmtKr(solisMixed.total_value_sek)}</td>
-          <td style="color: #38bdf8; font-weight: 600;">${fmtKr(sigMixed.total_value_sek)}</td>
+          <td>${fmtKr(prim.solar)}</td>
+          <td>${fmtKr(prim.arb)}</td>
+          ${state.strategy === "mixed" ? `<td>${fmtKr(prim.ancillary)}</td>` : ""}
+          <td style="color: #4ade80; font-weight: 700;">${fmtKr(prim.total)}</td>
+          ${hasCompare ? `<td style="color: #38bdf8; font-weight: 600;">${fmtKr(comp.total)}</td>` : ""}
         </tr>
       `;
     });
 
-    // Era summary metrics
-    const classicSummary = erasSummary.classic || {};
-    const modernSummary = erasSummary.modern || {};
+    // Dynamic era metrics for the selected primary system
+    const classicYears = allYearKeys.filter((y) => parseInt(y, 10) <= 2020);
+    const modernYears = allYearKeys.filter((y) => parseInt(y, 10) >= 2022);
+
+    function calcEraMetrics(yearList) {
+      if (!yearList || yearList.length === 0) return { meanSpot: 0, meanSpread: 0, meanArb: 0, meanTot: 0 };
+      let sumSpot = 0, sumSpread = 0, sumArb = 0, sumTot = 0;
+      yearList.forEach((yk) => {
+        const yd = yearsData[yk];
+        sumSpot += yd.mean_spot_sek_kwh || 0;
+        sumSpread += yd.mean_daily_spread_sek_kwh || 0;
+        const p = getSystemBacktestYear(primarySysId, yd);
+        sumArb += p.arb;
+        sumTot += p.total;
+      });
+      const n = yearList.length;
+      return {
+        meanSpot: sumSpot / n,
+        meanSpread: sumSpread / n,
+        meanArb: Math.round(sumArb / n),
+        meanTot: Math.round(sumTot / n),
+      };
+    }
+
+    const classicM = calcEraMetrics(classicYears);
+    const modernM = calcEraMetrics(modernYears);
+    const mult = classicM.meanTot > 0 ? (modernM.meanTot / classicM.meanTot).toFixed(1) : "—";
 
     let summaryBlock = `
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
         <div style="background: rgba(148, 163, 184, 0.05); border: 1px solid var(--border); border-radius: 8px; padding: 1rem;">
-          <div style="font-weight: 600; color: #94a3b8; font-size: 0.95em; margin-bottom: 0.5rem;">Gamla eran (2015–2020) Snitt:</div>
+          <div style="font-weight: 600; color: #94a3b8; font-size: 0.95em; margin-bottom: 0.5rem;">Gamla eran (2015–2020) Snitt för ${primarySample.shortName}:</div>
           <div style="font-size: 0.88em; color: var(--muted); line-height: 1.6;">
-            • Snittspot: <strong>${classicSummary.mean_spot_sek_kwh ? (classicSummary.mean_spot_sek_kwh * 100).toFixed(1) : "36,7"} öre/kWh</strong><br>
-            • Dygnsspread: <strong>${classicSummary.mean_daily_spread_sek_kwh ? (classicSummary.mean_daily_spread_sek_kwh * 100).toFixed(1) : "21,5"} öre/kWh</strong><br>
-            • Solis arbitrage: <strong>${classicSummary.solis_mean_arbitrage_sek ? fmtKr(classicSummary.solis_mean_arbitrage_sek) : "467 kr"}/år</strong><br>
+            • Snittspot: <strong>${(classicM.meanSpot * 100).toFixed(1)} öre/kWh</strong><br>
+            • Dygnsspread: <strong>${(classicM.meanSpread * 100).toFixed(1)} öre/kWh</strong><br>
+            • Spotarbitrage: <strong>${fmtKr(classicM.meanArb)}/år</strong><br>
+            • Totalt årsvärde: <strong>${fmtKr(classicM.meanTot)}/år</strong><br>
             • Slutsats: <em>För låg volatilitet. Batteri olönsamt (payback &gt;40 år).</em>
           </div>
         </div>
 
         <div style="background: rgba(56, 189, 248, 0.06); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem;">
-          <div style="font-weight: 600; color: #38bdf8; font-size: 0.95em; margin-bottom: 0.5rem;">Moderna eran (2022–2026) Snitt:</div>
+          <div style="font-weight: 600; color: #38bdf8; font-size: 0.95em; margin-bottom: 0.5rem;">Moderna eran (2022–2026) Snitt för ${primarySample.shortName}:</div>
           <div style="font-size: 0.88em; color: var(--text); line-height: 1.6;">
-            • Snittspot: <strong>${modernSummary.mean_spot_sek_kwh ? (modernSummary.mean_spot_sek_kwh * 100).toFixed(1) : "94,3"} öre/kWh</strong><br>
-            • Dygnsspread: <strong>${modernSummary.mean_daily_spread_sek_kwh ? (modernSummary.mean_daily_spread_sek_kwh * 100).toFixed(1) : "125,4"} öre/kWh</strong><br>
-            • Solis arbitrage: <strong>${modernSummary.solis_mean_arbitrage_sek ? fmtKr(modernSummary.solis_mean_arbitrage_sek) : "3 596 kr"}/år</strong><br>
-            • Slutsats: <em>7–10× högre arbitragevärde. Batteri når 5–8 års återbetalningstid.</em>
+            • Snittspot: <strong>${(modernM.meanSpot * 100).toFixed(1)} öre/kWh</strong><br>
+            • Dygnsspread: <strong>${(modernM.meanSpread * 100).toFixed(1)} öre/kWh</strong><br>
+            • Spotarbitrage: <strong>${fmtKr(modernM.meanArb)}/år</strong><br>
+            • Totalt årsvärde: <strong>${fmtKr(modernM.meanTot)}/år</strong><br>
+            • Slutsats: <em>${mult}× högre årsvärde i moderna eran! Batteri når 4–7 års återbetalningstid.</em>
           </div>
         </div>
       </div>
@@ -871,10 +1051,11 @@
               <th>Snittspot</th>
               <th>Dygnsspread</th>
               <th>Neg. timmar</th>
-              <th>Solel (Solis)</th>
-              <th>Arbitrage (Solis)</th>
-              <th>Summa Solis 15 kWh</th>
-              <th>Summa Sigenergy 18 kWh</th>
+              <th>Solel (${primarySample.shortName})</th>
+              <th>Arbitrage (${primarySample.shortName})</th>
+              ${state.strategy === "mixed" ? `<th>Stödtjänster (${primarySample.shortName})</th>` : ""}
+              <th style="color: #4ade80;">Summa ${primarySample.shortName}</th>
+              ${hasCompare ? `<th style="color: #38bdf8;">Jämförelse: ${compareSample.shortName}</th>` : ""}
             </tr>
           </thead>
           <tbody>
