@@ -271,6 +271,17 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
         log.exception("Long-term forecast failed: %s", exc)
         sources["longterm"] = {"ok": False, "error": str(exc)[:200]}
 
+    # ---- 10c. bess / battery valuation ---------------------------------
+    try:
+        from .bess import publish as bess_publish
+
+        bess_payload = bess_publish.build_bess_payload(actuals, fx_rate=fx, zone="SE4", now=now)
+        bess_publish.write_bess(bess_payload)
+        sources["bess"] = {"ok": True, "offers": len(bess_payload.get("offers", []))}
+    except Exception as exc:  # noqa: BLE001
+        log.exception("BESS valuation failed: %s", exc)
+        sources["bess"] = {"ok": False, "error": str(exc)[:200]}
+
     # ---- 11-12. publish -------------------------------------------------
     meta = {
         "generated_at": iso(now),

@@ -1,0 +1,170 @@
+"""Builds and serializes BESS valuation and battery investment data for the website and API."""
+
+from __future__ import annotations
+
+import json
+import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from ..config import SITE_DATA_DIR
+from ..publish.api import write_json
+from ..timeutil import TZ, iso, now_local
+from .backtest import run_historical_backtest
+from .dispatch import simulate_battery_dispatch
+from .lifecycle import compute_lifecycle
+from .offers import OFFERS, get_offer
+from .profiles import generate_household_profiles
+
+log = logging.getLogger(__name__)
+
+
+def build_bess_payload(
+    actuals: list[dict],
+    fx_rate: float = 11.33,
+    zone: str = "SE4",
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Compile the full BESS analysis payload."""
+    now = now or now_local()
+
+    # 1. Base dispatch using the most recent 12 months (or latest available window) of SE4 prices
+    zone_rows = [r for r in actuals if r.get("zone") == zone]
+    if zone_rows:
+        import pandas as pd
+        df_z = pd.DataFrame(zone_rows)
+        df_z["ts"] = pd.to_datetime(df_z["ts"], utc=True).dt.tz_convert(TZ)
+        df_z = df_z.sort_values("ts")
+        # Take latest up to 8760 hours
+        df_recent = df_z.tail(8760)
+        timestamps = [t.to_pydatetime() for t in df_recent["ts"]]
+        spot_sek_kwh = (df_recent["price_eur_mwh"] * fx_rate) / 1000.0
+    else:
+        # Fallback synthetic year
+        from datetime import timedelta
+        base_t = now - timedelta(days=365)
+        timestamps = [base_t + timedelta(hours=i) for i in range(8760)]
+        spot_sek_kwh = [0.85] * 8760
+
+    profile_df = generate_household_profiles(timestamps)
+
+    # Compute baseline dispatch and lifecycle for all offers
+    offers_data: list[dict[str, Any]] = []
+    for offer in OFFERS:
+        disp_mixed = simulate_battery_dispatch(profile_df, spot_sek_kwh, offer, strategy="mixed")
+        disp_energy = simulate_battery_dispatch(profile_df, spot_sek_kwh, offer, strategy="energy_only")
+
+        # 15-year lifecycle under 2 owners (full deduction) and 1 owner (capped)
+        lc_nordic_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="nordic_frequency")
+        lc_nordic_1own = compute_lifecycle(offer, disp_mixed, num_owners=1, scenario="nordic_frequency")
+        lc_base_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="base_only")
+        lc_cannibal_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="cannibalization")
+
+        offer_entry = offer.to_dict(num_owners=2)
+        offer_entry["annual_dispatch"] = {
+            "mixed": {
+                "solar_savings_sek": disp_mixed.solar_savings_sek,
+                "arbitrage_profit_sek": disp_mixed.arbitrage_profit_sek,
+                "ancillary_revenue_sek": disp_mixed.ancillary_revenue_sek,
+                "total_annual_value_sek": disp_mixed.total_annual_value_sek,
+                "solar_self_consumed_kwh": disp_mixed.solar_self_consumed_kwh,
+                "solar_exported_kwh": disp_mixed.solar_exported_kwh,
+                "battery_throughput_kwh": disp_mixed.battery_throughput_kwh,
+                "equivalent_cycles": disp_mixed.equivalent_cycles,
+            },
+            "energy_only": {
+                "solar_savings_sek": disp_energy.solar_savings_sek,
+                "arbitrage_profit_sek": disp_energy.arbitrage_profit_sek,
+                "total_annual_value_sek": disp_energy.total_annual_value_sek,
+                "solar_self_consumed_kwh": disp_energy.solar_self_consumed_kwh,
+                "equivalent_cycles": disp_energy.equivalent_cycles,
+            },
+        }
+        offer_entry["lifecycle"] = {
+            "nordic_frequency_2_owners": {
+                "payback_years": lc_nordic_2own.payback_years,
+                "discounted_payback_years": lc_nordic_2own.discounted_payback_years,
+                "npv_10y": lc_nordic_2own.npv_10y,
+                "npv_15y": lc_nordic_2own.npv_15y,
+                "irr": lc_nordic_2own.irr,
+                "cash_flows": [cf.__dict__ for cf in lc_nordic_2own.annual_cash_flows],
+            },
+            "nordic_frequency_1_owner": {
+                "payback_years": lc_nordic_1own.payback_years,
+                "discounted_payback_years": lc_nordic_1own.discounted_payback_years,
+                "npv_10y": lc_nordic_1own.npv_10y,
+                "npv_15y": lc_nordic_1own.npv_15y,
+                "irr": lc_nordic_1own.irr,
+            },
+            "base_only_2_owners": {
+                "payback_years": lc_base_2own.payback_years,
+                "discounted_payback_years": lc_base_2own.discounted_payback_years,
+                "npv_15y": lc_base_2own.npv_15y,
+            },
+            "cannibalization_2_owners": {
+                "payback_years": lc_cannibal_2own.payback_years,
+                "discounted_payback_years": lc_cannibal_2own.discounted_payback_years,
+                "npv_15y": lc_cannibal_2own.npv_15y,
+            },
+        }
+        offers_data.append(offer_entry)
+
+    # 2. Historical backtest across 2024, 2025, 2026
+    backtest_data = run_historical_backtest(actuals=actuals, fx_rate=fx_rate, zone=zone)
+
+    # 3. Compile strategic advice blocks from the dossier
+    advice_sv = {
+        "case_house": {
+            "zone": "SE4 (Skåne / Sydsverige)",
+            "pv_capacity_kwp": 10.0,
+            "annual_pv_kwh": 7000,
+            "annual_load_kwh": 8000,
+            "current_export_kwh": 5000,
+            "evening_night_load_kwh": "8–11 kWh (sommar), 10–12 kWh (vinter)",
+        },
+        "key_reforms_2026": [
+            {
+                "title": "1. 60-öringen är slopad",
+                "desc": "Skattereduktionen för mikroproduktion (60 öre/kWh) togs bort 1 januari 2026. Inmatad el ger nu endast spotpris plus ca 6 öre i nätnytta. Värdet av en lagrad och egenanvänd kWh steg därmed från ca 0,50 kr till ca 1,65 kr.",
+            },
+            {
+                "title": "2. Effektavgiftskravet upphävt",
+                "desc": "Ei upphävde föreskrifterna i juni 2026. Ellevio återgick till säkringsabonnemang. Räkna inte med effekttoppskapning förrän nätbolaget bekräftat framtida modell (utreds till 2027).",
+            },
+            {
+                "title": "3. Batteriavdraget ligger kvar men har tak",
+                "desc": "Grön teknik ger fortsatt 50 % (effektivt 48,5 %) på batterier. Taket är dock strikt 50 000 kr per person och år. Vid bruttopris över ca 103 000 kr sprängs taket om fastigheten har en ensam ägare.",
+            },
+        ],
+        "dimensioning": {
+            "recommendation": "10–13 kWh nu, med möjlighet att komplettera modulärt.",
+            "rationale": "Kvälls- och nattbehovet är 8–11 kWh på sommaren. Bortom 10–13 kWh krävs export vid pristoppar eller stödtjänster för att hålla batteriet sysselsatt. Marginalnyttan på kilowattimme 11–20 ger ca 18 års payback.",
+            "tax_tip": "Att köpa 10 kWh år 1 och komplettera med moduler år 2 sprider grönt avdrag över två beskattningsår och kringgår 50 000 kr-taket.",
+        },
+        "questions_before_signing": [
+            "Hur många ägare finns på fastigheten, och hur mycket avdragsutrymme för grön teknik återstår i år?",
+            "Vilken batterimodell ingår i offerten, och vem bär garantin år 11–15?",
+            "Vilket C-tal har batteripaketet? SAJ HS3 ligger på 0,5 (alltså 7,5 kW biddbar effekt av 12 kW växelriktare).",
+            "Begär prislista och historisk ersättning för stödtjänsterna (ingen leverantör lämnar fast garanti på detta).",
+        ],
+    }
+
+    payload = {
+        "generated_at": iso(now),
+        "zone": zone,
+        "fx_rate": fx_rate,
+        "offers": offers_data,
+        "backtest": backtest_data,
+        "advice_sv": advice_sv,
+    }
+    return payload
+
+
+def write_bess(payload: dict[str, Any]) -> None:
+    """Save bess payload to api and site directories."""
+    write_json("bess.json", payload)
+    site_file = SITE_DATA_DIR / "bess.json"
+    site_file.parent.mkdir(parents=True, exist_ok=True)
+    site_file.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
+    log.info("Wrote BESS valuation to %s and API", site_file)
