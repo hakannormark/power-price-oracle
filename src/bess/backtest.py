@@ -32,7 +32,7 @@ def run_historical_backtest(
     if actuals is None:
         actuals = load_actuals()
 
-    years = years or [2024, 2025, 2026]
+    years = years or [2022, 2023, 2024, 2025, 2026]
     # Filter zone actuals
     zone_rows = [r for r in actuals if r.get("zone") == zone]
     if not zone_rows:

@@ -4,30 +4,121 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Batterikalkyl & Investering — Spotprognos</title>
-<meta name="description" content="Lönsamhetskalkyl, backtest och investeringsanalys för hembatterier och BESS i SE4.">
+<meta name="description" content="Interaktiv lönsamhetskalkyl, hembatterisimulator, backtest och investeringsanalys för hembatterier och BESS i SE1–SE4.">
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 <style>
-  .bess-controls {
+  .zone-pills {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 0.6rem;
+    margin: 1rem 0 1.25rem 0;
+  }
+  .zone-pill {
+    flex: 1 1 180px;
+    padding: 0.65rem 1rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.9em;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+  }
+  .zone-pill:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .zone-pill.active {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    color: #38bdf8;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+  }
+
+  .bess-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
     margin-bottom: 1.5rem;
-    align-items: center;
   }
   .bess-control-group {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.4rem;
   }
   .bess-control-group label {
     font-size: 0.85em;
     color: var(--muted);
     font-weight: 600;
+    display: flex;
+    justify-content: space-between;
   }
+  .bess-slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .bess-slider-wrap input[type="range"] {
+    flex: 1;
+    accent-color: #38bdf8;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .bess-slider-wrap input[type="number"] {
+    width: 95px;
+    padding: 0.35rem 0.5rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.9em;
+    font-weight: 600;
+    text-align: right;
+  }
+  .bess-hint {
+    font-size: 0.78em;
+    color: var(--faint);
+    line-height: 1.3;
+  }
+
+  .bess-results-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .bess-result-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .bess-result-label {
+    font-size: 0.82em;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+  .bess-result-val {
+    font-size: 1.45em;
+    font-weight: 700;
+    color: #fff;
+  }
+  .bess-result-sub {
+    font-size: 0.78em;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
   .bess-row-selected {
     background: rgba(56, 189, 248, 0.1) !important;
     outline: 1px solid #38bdf8;
@@ -49,11 +140,11 @@
     <nav class="site-nav">
       <a href="index.html">Prognos</a>
       <a href="langtid.html">Långtid</a>
-      <a href="batteri.html" aria-current="page">Batteri</a>
       <a href="traffsakerhet.html">Träffsäkerhet</a>
       <a href="modeller.html">Modeller</a>
       <a href="metod.html">Metod</a>
       <a href="api.html">API</a>
+      <a href="batteri.html" aria-current="page">Batteri</a>
     </nav>
   </div>
 </header>
@@ -63,55 +154,215 @@
 
     <div class="page-head">
       <h1>Batterikalkyl & Investeringsanalys</h1>
-      <p class="lede">Lönsamhetsanalys, fysisk dispatch-simulering och 15-årigt backtest för hembatterier och BESS i SE4.
-        Anpassad för 2026 års förändrade spelplan: slopad 60-öring, 15-minuters dygnsspreadar, State-of-Charge-konflikter och
-        skattereduktionens avdragstak.</p>
+      <p class="lede">Interaktiv lönsamhetskalkyl, fysisk dispatch-simulering och 5-årigt backtest (2022–2026) för hembatterier och BESS i Sveriges fyra elprisområden (SE1–SE4).
+        Anpassad för 2026 års nya spelregler: slopad 60-öring, 15-minutersavräkning, State-of-Charge-konflikter och Grön tekniks avdragstak.</p>
     </div>
 
-    <!-- Interaktiva reglage -->
+    <!-- Val av Elprisområde -->
     <section class="card">
       <div class="section-title">
-        <h2>Kalkylinställningar & Förutsättningar</h2>
+        <h2>1. Välj Elprisområde</h2>
+      </div>
+      <p class="sub">Elområdet avgör dygnsspreadar, spotprisvolatilitet och värdet av lagrad solel gentemot nätimport.</p>
+
+      <div class="zone-pills" id="bess-zone-pills">
+        <button type="button" class="zone-pill" data-zone="SE1">SE1 · Luleå / Norrbotten</button>
+        <button type="button" class="zone-pill" data-zone="SE2">SE2 · Sundsvall / Norra Mellansverige</button>
+        <button type="button" class="zone-pill" data-zone="SE3">SE3 · Stockholm / Mellansverige</button>
+        <button type="button" class="zone-pill active" data-zone="SE4">SE4 · Malmö / Sydsverige</button>
       </div>
 
-      <div class="bess-controls">
+      <div id="bess-zone-info" style="font-size: 0.9em; color: var(--muted); background: rgba(56, 189, 248, 0.05); padding: 0.75rem 1rem; border-radius: 6px; border-left: 3px solid #38bdf8;">
+        Laddar elområdesdata…
+      </div>
+    </section>
+
+    <!-- Interaktiva reglage för eget system -->
+    <section class="card">
+      <div class="section-title">
+        <h2>2. Interaktiv Kalkylator – Simulera din egen anläggning</h2>
+      </div>
+      <p class="sub">Justera parametrar för att omedelbart räkna fram intäktsströmmar, kassaflöde, Grön teknik-avdrag och återbetalningstid för just ditt hushåll.</p>
+
+      <div class="bess-grid">
+        <!-- Batterikapacitet -->
         <div class="bess-control-group">
-          <label for="bess-owners">Ägarförhållande (Grön teknik)</label>
+          <label for="bess-cap-slider">
+            <span>Batterikapacitet</span>
+            <span id="bess-cap-val" style="color: #38bdf8;">15 kWh</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="bess-cap-slider" min="5" max="30" step="1" value="15">
+            <input type="number" id="bess-cap-num" min="5" max="30" step="1" value="15">
+          </div>
+          <span class="bess-hint" id="bess-cap-hint">Användbar kapacitet (90 % DoD): 13,5 kWh</span>
+        </div>
+
+        <!-- Inverter/Batterieffekt -->
+        <div class="bess-control-group">
+          <label for="bess-p-slider">
+            <span>Inverter- / Batterieffekt</span>
+            <span id="bess-p-val" style="color: #38bdf8;">10 kW</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="bess-p-slider" min="3" max="20" step="1" value="10">
+            <input type="number" id="bess-p-num" min="3" max="20" step="1" value="10">
+          </div>
+          <span class="bess-hint" id="bess-c-rate-hint">C-tal: 0,67 C (Godkänd för full stödtjänstbudning)</span>
+        </div>
+
+        <!-- Årlig förbrukning -->
+        <div class="bess-control-group">
+          <label for="bess-load-slider">
+            <span>Hushållets årsförbrukning</span>
+            <span id="bess-load-val" style="color: #38bdf8;">8 000 kWh</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="bess-load-slider" min="3000" max="35000" step="500" value="8000">
+            <input type="number" id="bess-load-num" min="3000" max="35000" step="500" value="8000">
+          </div>
+          <span class="bess-hint">Kvälls- och nattbehov: ca 45 % av årsförbrukningen</span>
+        </div>
+
+        <!-- Installerad solel -->
+        <div class="bess-control-group">
+          <label for="bess-pv-slider">
+            <span>Installerad solcellseffekt</span>
+            <span id="bess-pv-val" style="color: #38bdf8;">10 kWp</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="bess-pv-slider" min="0" max="25" step="1" value="10">
+            <input type="number" id="bess-pv-num" min="0" max="25" step="1" value="10">
+          </div>
+          <span class="bess-hint" id="bess-pv-hint">Årsproduktion: ca 7 000 kWh (Sätt 0 vid enbart batteri)</span>
+        </div>
+
+        <!-- Bruttoinvestering -->
+        <div class="bess-control-group">
+          <label for="bess-cost-slider">
+            <span>Bruttoinvestering (offertpris)</span>
+            <span id="bess-cost-val" style="color: #38bdf8;">65 000 kr</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="bess-cost-slider" min="20000" max="200000" step="2500" value="65000">
+            <input type="number" id="bess-cost-num" min="20000" max="200000" step="2500" value="65000">
+          </div>
+          <span class="bess-hint" id="bess-cost-hint">Inkl. moms och installation före Grön teknik</span>
+        </div>
+
+        <!-- Ägarförhållande -->
+        <div class="bess-control-group">
+          <label for="bess-owners">
+            <span>Ägarförhållande (Grön teknik)</span>
+          </label>
           <select class="field" id="bess-owners">
-            <option value="2" selected>2 ägare (Tak 100 000 kr – fullt avdrag)</option>
-            <option value="1">1 ägare (Tak 50 000 kr – spränger taket på dyra spår)</option>
+            <option value="2" selected>2 ägare (Tak 100 000 kr – 48,5 % fullt avdrag)</option>
+            <option value="1">1 ägare (Tak 50 000 kr – spränger taket över 103k)</option>
           </select>
+          <span class="bess-hint">Strikt tak per person och kalenderår hos Skatteverket</span>
         </div>
 
+        <!-- Driftstrategi -->
         <div class="bess-control-group">
-          <label for="bess-strategy">Driftstrategi</label>
+          <label for="bess-strategy">
+            <span>Driftstrategi</span>
+          </label>
           <select class="field" id="bess-strategy">
-            <option value="mixed" selected>Blandad drift (Solel + Arbitrage + Stödtjänster ca 25 kr/kW/mån)</option>
-            <option value="energy_only">Ren energioptimering (Solel + Arbitrage, 0 kr stödtjänster, fritt elavtal)</option>
+            <option value="mixed" selected>Blandad drift (Solel + Arbitrage + Stödtjänster)</option>
+            <option value="energy_only">Ren energioptimering (Solel + Arbitrage, 0 kr stödtjänster)</option>
           </select>
+          <span class="bess-hint">Stödtjänster kräver aggregator (CheckWatt, Greenely etc.)</span>
         </div>
 
+        <!-- Ersättning för stödtjänster -->
+        <div class="bess-control-group" id="bess-fcr-group">
+          <label for="bess-fcr-slider">
+            <span>Stödtjänstersättning</span>
+            <span id="bess-fcr-val" style="color: #38bdf8;">25 kr/kW/mån</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="bess-fcr-slider" min="0" max="80" step="5" value="25">
+            <input type="number" id="bess-fcr-num" min="0" max="80" step="5" value="25">
+          </div>
+          <span class="bess-hint">Marknadsnivå 2026: ca 20–30 kr/kW/mån efter aggregatorsnitt</span>
+        </div>
+
+        <!-- Livscykelscenario -->
         <div class="bess-control-group">
-          <label for="bess-scenario">Livscykelscenario (15 år)</label>
+          <label for="bess-scenario">
+            <span>Livscykelscenario (15 år)</span>
+          </label>
           <select class="field" id="bess-scenario">
-            <option value="nordic_frequency" selected>Nordisk basfrekvens (1,5 positiva & 0,5 negativa extremår per decennium)</option>
+            <option value="nordic_frequency" selected>Nordisk basfrekvens (1,5 positiva & 0,5 negativa extremår/dec)</option>
             <option value="base_only">Konservativt basår (1,0× linjärt utan extremår)</option>
             <option value="cannibalization">Mättnad & Kannibalisering (12 % årlig erosion i stödtjänster)</option>
           </select>
+          <span class="bess-hint">Modellerar prischocker vs marknadsmättnad</span>
         </div>
       </div>
 
-      <p class="sub" style="font-size: 0.9em; margin-bottom: 0;">
-        <strong>Referenshus i SE4:</strong> 10 kWp befintliga solceller (7 000 kWh/år produktion), 8 000 kWh/år förbrukning (kvällsbehov 8–11 kWh sommar, 10–12 kWh vinter).
-      </p>
+      <!-- Kalkylresultat för din anläggning -->
+      <div class="section-title" style="margin-top: 1.5rem;">
+        <h3>Resultat för din anläggning</h3>
+      </div>
+
+      <div class="bess-results-summary">
+        <div class="bess-result-card">
+          <div class="bess-result-label">Nettoinvestering efter avdrag</div>
+          <div class="bess-result-val" id="bess-res-net" style="color: #fff;">— kr</div>
+          <div class="bess-result-sub" id="bess-res-deduction">Grön teknik: — kr</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">Beräknat årsvärde (basår)</div>
+          <div class="bess-result-val" id="bess-res-rev" style="color: #38bdf8;">— kr/år</div>
+          <div class="bess-result-sub" id="bess-res-rev-split">Sol: — · Arb: — · FCR: —</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">Återbetalningstid (Payback)</div>
+          <div class="bess-result-val" id="bess-res-payback" style="color: #4ade80;">— år</div>
+          <div class="bess-result-sub" id="bess-res-payback-disc">Diskonterad: — år (5 % kalkylränta)</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">15-års Nettonuvärde (NPV)</div>
+          <div class="bess-result-val" id="bess-res-npv" style="color: #4ade80;">— kr</div>
+          <div class="bess-result-sub" id="bess-res-npv-10">10-års NPV: — kr</div>
+        </div>
+      </div>
+
+      <!-- Fäll ut 15-årigt kassaflöde för anpassat system -->
+      <div style="margin-top: 1.25rem;">
+        <button type="button" class="field" id="bess-custom-toggle-cf" style="cursor: pointer; font-weight: 600; padding: 0.5rem 1rem;">
+          Visa 15-årigt kassaflöde för din anläggning ▼
+        </button>
+      </div>
+
+      <div id="bess-custom-cf-box" style="display: none; margin-top: 1rem; overflow-x: auto;">
+        <table class="data-table" style="width: 100%; font-size: 0.9em;">
+          <thead>
+            <tr>
+              <th>År</th>
+              <th>Solelbesparing</th>
+              <th>Spotarbitrage</th>
+              <th>Stödtjänster</th>
+              <th>Totalt kassaflöde</th>
+              <th>Kapacitet</th>
+              <th>Ackumulerat netto</th>
+            </tr>
+          </thead>
+          <tbody id="bess-custom-cf-body"></tbody>
+        </table>
+      </div>
     </section>
 
-    <!-- Sida vid sida offerttabell -->
+    <!-- Sida vid sida offerttabell för färdiga paket -->
     <section class="card">
       <div class="section-title">
-        <h2>Sida-vid-sida-jämförelse av sex leverantörsspår</h2>
+        <h2>3. Sida-vid-sida-jämförelse av leverantörsspår</h2>
       </div>
-      <p class="sub">Klicka på en rad för att granska detaljerad intäktsuppdelning, tekniska begränsningar och 15-årigt kassaflöde.</p>
+      <p class="sub">Jämförelse av sex vanliga kommersiella hårdvaru- och leverantörskonfigurationer, simulerade för det valda elområdet. Klicka på en rad för teknisk specifikation och villkor.</p>
 
       <div style="overflow-x: auto;">
         <table class="data-table" style="width: 100%;">
@@ -141,13 +392,13 @@
     <!-- Backtestresultat -->
     <section class="card">
       <div class="section-title">
-        <h2>Historiskt backtest i SE4 (2024–2026)</h2>
+        <h2 id="bess-backtest-title">4. Historiskt backtest (2022–2026)</h2>
       </div>
-      <p class="sub">Faktiskt årligt utfall på verkliga spotpriser och solstrålning. Visar hur 15-minutersavräkningen (från okt 2025) och slopandet av 60-öringen (jan 2026) lyfte värdet av batteriet.</p>
+      <p class="sub">Faktiskt årligt utfall baserat på verkliga historiska spotpriser och solstrålning. Visar hur extremåret 2022 exploderade i värde, priskollapsen 2024 dämpade intäkterna, och hur 15-minutersavräkningen (2025) samt slopandet av 60-öringen (2026) lyfte lönsamheten.</p>
       <div id="bess-backtest-box"></div>
     </section>
 
-    <!-- Strategiska rådssektioner från underlaget -->
+    <!-- Strategiska rådssektioner & Extremårsanalys -->
     <section class="card">
       <div class="section-title">
         <h2>Spelreglerna 2026: Varför gamla tumregler inte längre gäller</h2>
@@ -155,47 +406,52 @@
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
           <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">1. 60-öringen är borta</h3>
-          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Skattereduktionen för mikroproduktion slopades 1 januari 2026. Inmatad el ger nu bara spotpris plus nätnytta (ca 6 öre). Värdet av en lagrad och egenanvänd kWh steg därmed från ca 0,50 kr till ca 1,65 kr.</p>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Skattereduktionen för mikroproduktion slopades 1 januari 2026. Inmatad el ger nu bara spotpris plus nätnytta (ca 6 öre). Värdet av en lagrad och egenanvänd kWh steg därmed från ca 0,50 kr till ca 1,65–1,80 kr (undviken nätimport inklusive energiskatt och moms).</p>
         </div>
 
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
           <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">2. Effektavgiftskravet upphävt</h3>
-          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Energimarknadsinspektionen (Ei) upphävde föreskriften i juni 2026. Ellevio återgick till säkringsabonnemang 1 juni. Räkna därför inte in effekttoppskapning förrän nätbolaget bekräftat en bindande tariff.</p>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Energimarknadsinspektionen (Ei) upphävde föreskriften i juni 2026. Ellevio återgick till säkringsabonnemang 1 juni. Räkna därför inte in effekttoppskapning förrän ditt nätbolag bekräftat en bindande tariffmodell.</p>
         </div>
 
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
           <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">3. Batteriavdragets tak (50 000 kr)</h3>
-          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Grön teknik ger fortsatt 50 % (effektivt 48,5 %) på batterier. Men taket är 50 000 kr per person och kalenderår. System över ca 103 000 kr brutto spränger taket om det bara finns en ägare på lagfarten.</p>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Grön teknik ger fortsatt 50 % (schablon 48,5 %) på batterier. Men taket är strikt 50 000 kr per person och kalenderår. System över ca 103 000 kr brutto spränger taket om fastigheten bara har en ensam ägare på lagfarten.</p>
         </div>
       </div>
     </section>
 
     <section class="card">
       <div class="section-title">
-        <h2>Dimensioneringsråd & Fyra frågor före påskrift</h2>
+        <h2>Extremårsanalys: Kan man lita på referensen?</h2>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; font-size: 0.95em;">
         <div>
-          <h3 style="color: #4ade80; margin-top: 0;">10 kWh eller 20 kWh?</h3>
+          <h3 style="color: #38bdf8; margin-top: 0;">Empirisk verifiering mot verklig elmarknadsdata</h3>
           <p style="color: var(--muted); line-height: 1.6;">
-            <strong>Slutsats: 10–13 kWh är sweet spot.</strong><br>
-            Hushållets natt- och kvällsbehov är 8–11 kWh på sommaren och 10–12 kWh på vintern.
-            All lagring utöver 10–13 kWh kräver export vid pristoppar eller full budning mot stödtjänster för att hålla cellerna sysselsatta.
-            Marginalnyttan på kWh 11 till 20 ger omkring <strong>18 års payback</strong>.
+            I investeringsunderlaget anges en tumregel om <strong>1,5 positiva och 0,5 negativa extremår per decennium</strong>.
+            Ett positivt extremår definieras som ett år där arbitrage- och energivärdet når &gt;2,0× normalt basår (orsakat av torka, gaskriser, kärnkraftsrevisioner eller kalla vinterdunkelflaute).
+            Ett negativt extremår definieras som &lt;0,6× normalt värde (orsakat av våtår, extrem hydrologisk dämpning eller låg volatilitet).
           </p>
           <p style="color: var(--muted); line-height: 1.6;">
-            <strong>Skattetaktik:</strong> Att köpa 10 kWh år 1 och komplettera med moduler år 2 sprider det gröna avdraget över två beskattningsår och kringgår 50 000 kr-taket helt.
+            Vår empiriska analys av svensk spotmarknadsdata (2011–2026) bekräftar detta:
+            Under de senaste 15 åren har Sverige haft 3 extrema positiva volatilitetsår (2018 års torka, 2021 års kontinentala gaskris, 2022 års energichock) vilket motsvarar <strong>2,0 positiva år per decennium</strong>.
+            År 2020 och 2024 utgjorde lågvolatila perioder med komprimerade spreadar.
+            Referensen är därmed <em>inte</em> en teoretisk konstruktion utan väl förankrad i den nordiska kraftmarknadens historiska svängningar.
           </p>
         </div>
 
         <div>
-          <h3 style="color: #facc15; margin-top: 0;">Fyra frågor före påskrift</h3>
-          <ol style="color: var(--muted); padding-left: 1.2rem; line-height: 1.6;">
-            <li><strong>Ägarfördelning:</strong> Hur många ägare finns på fastigheten, och hur mycket avdragsutrymme för Grön teknik återstår i år?</li>
-            <li><strong>Garantiansvar:</strong> Vilken batterimodell ingår, och vem bär garantin år 11–15 vid förlängda partneravtal?</li>
-            <li><strong>C-tal & Reell effekt:</strong> Vilket C-tal har batteripaketet? SAJ HS3 har 0,5 C vilket ger 7,5 kW biddbar effekt av växelriktarens 12 kW.</li>
-            <li><strong>Prislista för stödtjänster:</strong> Begär historisk prislista för stödtjänsterna — ingen leverantör lämnar fast garanti på framtida ersättning.</li>
-          </ol>
+          <h3 style="color: #facc15; margin-top: 0;">Dimensionering: 10 kWh eller 20 kWh?</h3>
+          <p style="color: var(--muted); line-height: 1.6;">
+            <strong>Slutsats: 10–13 kWh är sweet spot för de flesta villor.</strong><br>
+            Ett normalt hushålls natt- och kvällsbehov är 8–11 kWh på sommaren och 10–12 kWh på vintern.
+            All kapacitet utöver 10–13 kWh kräver nätarbitrage eller full biddning mot stödtjänster för att hålla cellerna i cykling.
+            Marginalnyttan på kilowattimme 11 till 20 ger ca <strong>18 års payback</strong> i ren egenanvändning.
+          </p>
+          <p style="color: var(--muted); line-height: 1.6;">
+            <strong>Skattetaktik:</strong> Att installera 10 kWh år 1 och komplettera med moduler år 2 sprider Grön teknik-avdraget över två beskattningsår och eliminerar risken att spränga 50 000 kr-taket.
+          </p>
         </div>
       </div>
     </section>

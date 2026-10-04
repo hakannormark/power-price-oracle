@@ -20,28 +20,31 @@ from .profiles import generate_household_profiles
 log = logging.getLogger(__name__)
 
 
-def build_bess_payload(
+ZONE_NAMES = {
+    "SE1": "SE1 (Luleå / Norra Sverige)",
+    "SE2": "SE2 (Sundsvall / Norra Mellansverige)",
+    "SE3": "SE3 (Stockholm / Södra Mellansverige)",
+    "SE4": "SE4 (Malmö / Sydsverige)",
+}
+
+
+def _build_single_zone_data(
     actuals: list[dict],
     fx_rate: float = 11.33,
     zone: str = "SE4",
     now: datetime | None = None,
 ) -> dict[str, Any]:
-    """Compile the full BESS analysis payload."""
     now = now or now_local()
-
-    # 1. Base dispatch using the most recent 12 months (or latest available window) of SE4 prices
     zone_rows = [r for r in actuals if r.get("zone") == zone]
     if zone_rows:
         import pandas as pd
         df_z = pd.DataFrame(zone_rows)
         df_z["ts"] = pd.to_datetime(df_z["ts"], utc=True).dt.tz_convert(TZ)
         df_z = df_z.sort_values("ts")
-        # Take latest up to 8760 hours
         df_recent = df_z.tail(8760)
         timestamps = [t.to_pydatetime() for t in df_recent["ts"]]
         spot_sek_kwh = (df_recent["price_eur_mwh"] * fx_rate) / 1000.0
     else:
-        # Fallback synthetic year
         from datetime import timedelta
         base_t = now - timedelta(days=365)
         timestamps = [base_t + timedelta(hours=i) for i in range(8760)]
@@ -49,13 +52,11 @@ def build_bess_payload(
 
     profile_df = generate_household_profiles(timestamps)
 
-    # Compute baseline dispatch and lifecycle for all offers
     offers_data: list[dict[str, Any]] = []
     for offer in OFFERS:
         disp_mixed = simulate_battery_dispatch(profile_df, spot_sek_kwh, offer, strategy="mixed")
         disp_energy = simulate_battery_dispatch(profile_df, spot_sek_kwh, offer, strategy="energy_only")
 
-        # 15-year lifecycle under 2 owners (full deduction) and 1 owner (capped)
         lc_nordic_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="nordic_frequency")
         lc_nordic_1own = compute_lifecycle(offer, disp_mixed, num_owners=1, scenario="nordic_frequency")
         lc_base_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="base_only")
@@ -110,8 +111,48 @@ def build_bess_payload(
         }
         offers_data.append(offer_entry)
 
-    # 2. Historical backtest across 2024, 2025, 2026
     backtest_data = run_historical_backtest(actuals=actuals, fx_rate=fx_rate, zone=zone)
+
+    import numpy as np
+    spot_arr = np.asarray(spot_sek_kwh)
+    mean_spot = round(float(spot_arr.mean()), 3) if len(spot_arr) > 0 else 0.85
+    daily_spreads = []
+    for i in range(0, len(spot_arr), 24):
+        chk = spot_arr[i : i + 24]
+        if len(chk) >= 12:
+            daily_spreads.append(float(np.max(chk) - np.min(chk)))
+    mean_spread = round(float(np.mean(daily_spreads)), 3) if daily_spreads else 0.80
+
+    stats = {
+        "mean_spot_sek_kwh": mean_spot,
+        "mean_daily_spread_sek_kwh": mean_spread,
+        "arbitrage_yield_sek_per_kwh": round(mean_spread * 0.88 * 230.0, 1),
+        "solar_avoided_cost_sek_kwh": round(mean_spot + 0.855, 3),
+    }
+
+    return {
+        "zone": zone,
+        "name": ZONE_NAMES.get(zone, zone),
+        "stats": stats,
+        "offers": offers_data,
+        "backtest": backtest_data,
+    }
+
+
+def build_bess_payload(
+    actuals: list[dict],
+    fx_rate: float = 11.33,
+    zone: str = "SE4",
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Compile the full BESS analysis payload covering all bidding zones."""
+    now = now or now_local()
+
+    zones_data: dict[str, Any] = {}
+    for z in ("SE1", "SE2", "SE3", "SE4"):
+        zones_data[z] = _build_single_zone_data(actuals, fx_rate=fx_rate, zone=z, now=now)
+
+    default_z = zones_data.get(zone, zones_data["SE4"])
 
     # 3. Compile strategic advice blocks from the dossier
     advice_sv = {
@@ -154,8 +195,9 @@ def build_bess_payload(
         "generated_at": iso(now),
         "zone": zone,
         "fx_rate": fx_rate,
-        "offers": offers_data,
-        "backtest": backtest_data,
+        "offers": default_z["offers"],
+        "backtest": default_z["backtest"],
+        "zones": zones_data,
         "advice_sv": advice_sv,
     }
     return payload

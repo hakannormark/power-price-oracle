@@ -117,43 +117,16 @@ def simulate_battery_dispatch(
                 is_arb_ch_hour[i : min(i + window, n)] = (chunk_spot <= q25)
                 is_arb_dis_hour[i : min(i + window, n)] = (chunk_spot >= q75)
 
-    for t in range(n):
-        s_t = surplus[t]
-        d_t = deficit[t]
-        p_t = spot[t]
-
-        # 1. SOLAR CHARGING (Priority 1: absorb local solar surplus)
-        ch_solar = 0.0
-        if s_t > 0:
-            space_for_solar = max(0.0, soc_max - soc)
-            max_solar_in = min(s_t, max_p, space_for_solar / eff_ch)
-            ch_solar = max_solar_in
-            soc += ch_solar * eff_ch
-            s_t -= ch_solar
-
-        batt_charge_solar[t] = ch_solar
-        grid_export[t] = s_t  # Unabsorbed solar is exported at export_price
-
-        # 2. HOUSE DEFICIT DISCHARGE (Priority 2: cover house demand from battery)
-        dis_solar = 0.0
-        if d_t > 0 and soc > (soc_min + fcr_soc_reserve * 0.5):
-            avail_dis = max(0.0, soc - (soc_min + fcr_soc_reserve * 0.5)) * eff_dis
-            max_dis = min(d_t, max_p, avail_dis)
-            dis_solar = max_dis
-            soc -= dis_solar / eff_dis
-            d_t -= dis_solar
-
-        batt_discharge[t] = dis_solar
-
     # Identify arbitrage windows: night dip (01-05) and morning peak (07-09), afternoon dip (12-14), evening peak (17-21)
     night_hours = {1, 2, 3, 4, 5}
     peak_hours = {7, 8, 9, 17, 18, 19, 20}
+    hours = profile_df["hour"].to_numpy()
 
     for t in range(n):
         s_t = surplus[t]
         d_t = deficit[t]
         p_t = spot[t]
-        hour = profile_df["hour"].iloc[t]
+        hour = hours[t]
 
         # 1. SOLAR CHARGING (Priority 1: absorb local solar surplus)
         ch_solar = 0.0
@@ -200,40 +173,47 @@ def simulate_battery_dispatch(
 
     # Compute financial values
     scale_to_year = 8760.0 / n if n > 0 else 1.0
-    tot_solar_absorbed = batt_charge_solar.sum() * scale_to_year
+    tot_solar_absorbed = float(batt_charge_solar.sum()) * scale_to_year
 
     # 1. Solar self-consumption value:
-    # Gross savings on electricity bill = stored solar replacing grid import at ~1.65 kr/kWh
-    # (avoided import_price: spot + energy_tax + grid_fee + VAT)
+    # Stored solar replaces grid import. Avoided retail price = spot + energy_tax + grid_fee + margin.
     avg_import_price = float(import_price.mean())
-    solar_savings_sek = tot_solar_absorbed * avg_import_price
+    solar_savings_sek = round(tot_solar_absorbed * min(1.85, max(1.10, avg_import_price)), 1)
 
     # 2. Spot arbitrage profit:
-    # Marginal gain per cycled arbitrage kWh (0.75 - 0.80 kr/kWh in SE4 post-15min spread)
-    tot_arb_charged = float(batt_charge_grid.sum()) * scale_to_year
-    # In SE4, arbitrage yields approx 0.75-0.80 kr/kWh net of round-trip efficiency
-    arbitrage_profit_sek = tot_arb_charged * 0.75
+    # Computed from diurnal price spread and usable capacity within roundtrip efficiency
+    daily_gains = []
+    window = 24
+    usable_arb_cap = min(cap_usable * 0.70, max_p * 2.5)
+    for i in range(0, n, window):
+        chunk = spot[i : min(i + window, n)]
+        if len(chunk) >= 12:
+            s_sorted = np.sort(chunk)
+            low_k = int(max(1, len(chunk) * 0.15))
+            low_mean = float(np.mean(s_sorted[:low_k]))
+            high_mean = float(np.mean(s_sorted[-low_k:]))
+            gain_per_kwh = max(0.0, high_mean * offer.round_trip_eff - low_mean)
+            if gain_per_kwh > 0.12:
+                daily_gains.append(gain_per_kwh * usable_arb_cap)
+            else:
+                daily_gains.append(0.0)
 
-    # Cap physical bounds: 10-15 kWh battery captures ~1400-1700 kWh solar and ~2000-2800 kWh arbitrage
-    # Scale slightly with battery usable capacity
-    cap_factor = min(1.3, offer.capacity_kwh / 10.0)
-    solar_savings_sek = min(2800.0, max(2400.0, 2600.0 * (0.85 + 0.15 * cap_factor)))
-    arbitrage_profit_sek = min(2500.0, max(1600.0, 2100.0 * (0.75 + 0.25 * cap_factor)))
+    if daily_gains:
+        arbitrage_profit_sek = round(float(sum(daily_gains) * (365.0 / len(daily_gains))), 1)
+    else:
+        arbitrage_profit_sek = 0.0
 
     # 3. Stödtjänster / FCR-D ancillary revenue
     bid_kw = offer.battery_max_power_kw
     if strategy == "mixed":
-        # Blended operation: Svea Solar & consensus case = ca 25 kr/kW/mån
-        # 10 kW -> 3 000 kr, 12 kW -> 3 600 kr, 7.5 kW (SAJ 0.5C) -> 2 250 kr
-        ancillary_revenue_sek = bid_kw * FCR_D_RATE_MIXED_SEK_PER_KW_MONTH * 12.0
+        ancillary_revenue_sek = round(bid_kw * FCR_D_RATE_MIXED_SEK_PER_KW_MONTH * 12.0, 1)
     elif strategy == "fcr_priority":
-        # Dedicated FCR bidding = ca 52 kr/kW/mån
-        ancillary_revenue_sek = bid_kw * FCR_D_RATE_FULL_SEK_PER_KW_MONTH * 12.0
+        ancillary_revenue_sek = round(bid_kw * FCR_D_RATE_FULL_SEK_PER_KW_MONTH * 12.0, 1)
     else:
-        # Energy only = 0 kr
         ancillary_revenue_sek = 0.0
 
-    total_annual_value_sek = solar_savings_sek + arbitrage_profit_sek + ancillary_revenue_sek
+    total_annual_value_sek = round(solar_savings_sek + arbitrage_profit_sek + ancillary_revenue_sek, 1)
+    tot_arb_charged = float(batt_charge_grid.sum()) * scale_to_year
     throughput_kwh = (batt_charge_solar.sum() + batt_charge_grid.sum()) * scale_to_year
     eq_cycles = throughput_kwh / offer.capacity_kwh if offer.capacity_kwh > 0 else 0.0
 
