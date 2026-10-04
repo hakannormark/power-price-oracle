@@ -1054,8 +1054,8 @@
               <th>Solel (${primarySample.shortName})</th>
               <th>Arbitrage (${primarySample.shortName})</th>
               ${state.strategy === "mixed" ? `<th>Stödtjänster (${primarySample.shortName})</th>` : ""}
-              <th style="color: #4ade80;">Summa ${primarySample.shortName}</th>
-              ${hasCompare ? `<th style="color: #38bdf8;">Jämförelse: ${compareSample.shortName}</th>` : ""}
+              <th style="color: #4ade80;">Totalt årsvärde: ${primarySample.shortName}</th>
+              ${hasCompare ? `<th style="color: #38bdf8;">Totalt årsvärde: ${compareSample.shortName}</th>` : ""}
             </tr>
           </thead>
           <tbody>
@@ -1063,6 +1063,9 @@
           </tbody>
         </table>
       </div>
+      <p style="font-size: 0.8em; color: var(--muted); margin-top: 0.5rem; margin-bottom: 1rem;">
+        * <strong>Totalt årsvärde (kr/år):</strong> Summan av årets ekonomiska nytta för det enskilda året = Solel (sparad nätel) + Spotarbitrage (vinst från dygnsspreadar) + Stödtjänster (ersättning via aggregator). Siffran visar utfallet för respektive år (ej ackumulerat).
+      </p>
       ${summaryBlock}
     `;
   }
