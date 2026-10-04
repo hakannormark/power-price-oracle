@@ -1,7 +1,7 @@
 {
  "ok": true,
- "generated_at": "2026-10-04T17:49:42+02:00",
- "run_id": "20261004T1549Z",
+ "generated_at": "2026-10-04T18:02:05+02:00",
+ "run_id": "20261004T1602Z",
  "degraded": false,
  "demo": false,
  "fx": {
@@ -9,7 +9,7 @@
   "rate": 11.29,
   "date": "2026-10-02",
   "source": "ECB",
-  "fetched_at": "2026-10-04T17:49:53+02:00",
+  "fetched_at": "2026-10-04T18:04:39+02:00",
   "stale": false
  },
  "sources": {
@@ -54,8 +54,7 @@
   },
   "seasonal_outlook": {
    "ok": true,
-   "zones": 3,
-   "error": "SE2: ReadTimeout"
+   "zones": 4
   },
   "longterm": {
    "ok": true,
@@ -67,5 +66,5 @@
    "error": "unsupported operand type(s) for *: 'float' and 'dict'"
   }
  },
- "next_expected_update_utc": "2026-10-04T16:00:00Z"
+ "next_expected_update_utc": "2026-10-05T04:30:00Z"
 }

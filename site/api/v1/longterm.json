@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-04T17:49:42+02:00",
+ "generated_at": "2026-10-04T18:02:05+02:00",
  "unit": "EUR/MWh",
  "horizon_months": 3,
  "default_model": "lt_damped",
@@ -197,7 +197,11 @@
      },
      "last_year": 31.234,
      "nuclear_out_mw": 1719.6,
-     "outlook": null
+     "outlook": {
+      "month": "2026-11",
+      "temp_anomaly_c": 0.8,
+      "precip_anomaly_mm": -4.5
+     }
     },
     {
      "month": "2026-12",
@@ -218,7 +222,11 @@
      },
      "last_year": 29.389,
      "nuclear_out_mw": 0.0,
-     "outlook": null
+     "outlook": {
+      "month": "2026-12",
+      "temp_anomaly_c": 0.8,
+      "precip_anomaly_mm": 8.2
+     }
     },
     {
      "month": "2027-01",
@@ -251,7 +259,11 @@
      },
      "last_year": 88.14,
      "nuclear_out_mw": 0.0,
-     "outlook": null
+     "outlook": {
+      "month": "2027-01",
+      "temp_anomaly_c": 0.3,
+      "precip_anomaly_mm": 0.4
+     }
     }
    ],
    "drivers_sv": [
@@ -259,7 +271,8 @@
     "Terminsmarknaden prissätter november 2026 till 47,9 EUR/MWh, 0,2 under vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 8 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
     "Planerade kärnkraftsstopp tar i snitt bort 1 720 MW i november, 0 MW i december och 0 MW i januari, mot 3 281 MW de senaste 30 dagarna.",
-    "Gas (TTF) kostar 74,8 EUR/MWh och en utsläppsrätt 80,2 EUR/ton. Ett gaskraftverk behöver då ungefär 179 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna."
+    "Gas (TTF) kostar 74,8 EUR/MWh och en utsläppsrätt 80,2 EUR/ton. Ett gaskraftverk behöver då ungefär 179 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
+    "Säsongsprognosen för vädret i SE2, jämfört med det normala: november +0,8 °C och -4 mm nederbörd; december +0,8 °C och +8 mm nederbörd; januari +0,3 °C och +0 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
    ],
    "fundamental_coefficients": {
     "seasonal_diff": -1.45,
