@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elmarknadens Epoker (2015–2026) — Batterikalkyl & BESS</title>
+<meta name="description" content="Empirisk analys av elmarknadens två epoker: gamla baskraftseran (2015–2020) vs moderna eran (2022–2026). Historiskt backtest över 11 år med verkliga spotpriser och dygnsspreadar.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .zone-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .zone-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .zone-pill:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .zone-pill.active {
+    background: #38bdf8;
+    color: #0b1220;
+    border-color: #38bdf8;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body data-page="batteri-eror">
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="header-top-row">
+      <a class="brand" href="batteri.html"><span class="dot" style="background: #38bdf8; box-shadow: 0 0 12px #38bdf8;"></span>Batterikalkyl <small>BESS Investering</small></a>
+      <nav class="portal-nav" aria-label="Huvudsystem">
+        <a href="index.html" class="portal-tab">
+          <span class="portal-tab-icon">⚡</span>
+          <span>Spotprisprognos</span>
+        </a>
+        <a href="batteri.html" class="portal-tab active">
+          <span class="portal-tab-icon">🔋</span>
+          <span>Batterikalkyl & BESS</span>
+        </a>
+      </nav>
+    </div>
+    <nav class="site-nav">
+      <a href="batteri.html">Kalkylator</a>
+      <a href="batteri-paket.html">Paket & Offerter</a>
+      <a href="batteri-eror.html" aria-current="page">Elmarknadens Epoker</a>
+      <a href="batteri-extremar.html">Extremår & Scenarier</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack" id="bess-app">
+
+    <div class="page-head">
+      <h1>Elmarknadens Epoker: 2015–2026</h1>
+      <p class="lede">Empirisk analys av 11 års elmarknadsdata och historiskt backtest. Se varför gamla tumregler och kalkyler från baskraftseran (2015–2020) inte stämmer idag, och hur 15-minutersavräkning och vindexpansion fundamentalt förändrat batteriers lönsamhet.</p>
+    </div>
+
+    <!-- Val av Elprisområde -->
+    <section class="card">
+      <div class="section-title">
+        <h2>1. Välj Elprisområde</h2>
+      </div>
+      <p class="sub">Elområdet avgör dygnsspreadar, spotprisvolatilitet och värdet av lagrad solel gentemot nätimport.</p>
+
+      <div class="zone-pills" id="bess-zone-pills">
+        <button type="button" class="zone-pill" data-zone="SE1">SE1 · Luleå / Norrbotten</button>
+        <button type="button" class="zone-pill" data-zone="SE2">SE2 · Sundsvall / Norra Mellansverige</button>
+        <button type="button" class="zone-pill" data-zone="SE3">SE3 · Stockholm / Mellansverige</button>
+        <button type="button" class="zone-pill active" data-zone="SE4">SE4 · Malmö / Sydsverige</button>
+      </div>
+
+      <div id="bess-zone-info" style="font-size: 0.9em; color: var(--muted); background: rgba(56, 189, 248, 0.05); padding: 0.75rem 1rem; border-radius: 6px; border-left: 3px solid #38bdf8;">
+        Laddar elområdesdata…
+      </div>
+    </section>
+
+    <!-- Elmarknadens två epoker: Pedagogisk genomgång -->
+    <section class="card">
+      <div class="section-title">
+        <h2>2. Varför gamla kalkyler från 2015–2020 inte stämmer idag</h2>
+      </div>
+      <div style="font-size: 0.95em; color: var(--text); line-height: 1.6;">
+        <p>
+          En av de vanligaste fallgroparna när man bedömer batteriers lönsamhet är att titta på äldre elmarknadsstatistik från 2015–2020.
+          Under den perioden var batterier i princip ekonomiskt omöjliga att räkna hem. Men sedan 2022 har marknadens fundamenta genomgått ett oåterkalleligt systemskifte.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
+          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem;">
+            <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.15em;">Gamla eran (2015–2020): Den dämpade marknaden</h3>
+            <ul style="padding-left: 1.25rem; font-size: 0.9em; color: var(--muted); line-height: 1.6;">
+              <li><strong>Tung planerbar baskraft:</strong> Ringhals 1 & 2 och Oskarshamn 1 & 2 var i drift, och Tyskland hade massiv kärn- och kolkraft.</li>
+              <li><strong>Små dygnsspreadar:</strong> Prisskillnaden mellan dag och natt i SE4 var endast <strong>15–27 öre/kWh</strong>.</li>
+              <li><strong>Försumbart arbitrage:</strong> Ett 15 kWh batteri tjänade bara <strong>300–500 kr/år</strong> på spotprisskillnader. Teoretisk payback var över 40 år.</li>
+              <li><strong>Inga negativa priser:</strong> Negativa spotpriser förekom i princip aldrig (0–2 timmar/år).</li>
+            </ul>
+          </div>
+
+          <div style="background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 1.25rem;">
+            <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em;">Nya eran (2022–2026): Flexibilitetens tidsålder</h3>
+            <ul style="padding-left: 1.25rem; font-size: 0.9em; color: var(--text); line-height: 1.6;">
+              <li><strong>Väderberoende kraft & stängd baskraft:</strong> Över 15 GW vindkraft i Norden och nedlagd kärnkraft i söder har skapat kraftig intradagsvolatilitet.</li>
+              <li><strong>Vidgade dygnsspreadar:</strong> Dygnsspreaden i SE4 ligger på <strong>97–232 öre/kWh</strong> – en fyr- till tiodubbling!</li>
+              <li><strong>Exploderande arbitrage:</strong> Samma 15 kWh batteri genererar nu <strong>2 500–6 200 kr/år</strong> i rent spotarbitrage (6–12× mer!).</li>
+              <li><strong>15-minutersavräkning & slopad 60-öring:</strong> 15-minutersperioder (okt 2025) synliggör extrema spikar, och slopandet av 60-öringen (jan 2026) tredubblar värdet av att lagra egen solel (~1,65 kr/kWh istället för 0,50 kr).</li>
+            </ul>
+          </div>
+        </div>
+
+        <p style="color: var(--muted); font-size: 0.9em; margin-bottom: 0;">
+          <strong>Slutsats:</strong> Att använda data före 2022 för att beräkna framtida batterilönsamhet ger en djupt missvisande bild. Dagens flexibilitetsmarknad, nätavgifter och solcellskalkyler kräver att man utgår från den moderna erans prisdynamik.
+        </p>
+      </div>
+    </section>
+
+    <!-- Historiskt backtest över 11 år -->
+    <section class="card">
+      <div class="section-title">
+        <h2 id="bess-backtest-title">3. Historiskt backtest: Faktiskt utfall (2015–2026)</h2>
+      </div>
+      <p class="sub">Tittar <strong>bakåt i tiden</strong> och simulerar exakt vad samma batterianläggning hade genererat i intäkter och besparingar under verkliga historiska timpriser och solförhållanden i det valda elområdet.</p>
+
+      <div class="zone-pills" id="bess-era-pills" style="margin-bottom: 1.25rem;">
+        <button type="button" class="zone-pill active" data-era="modern">Moderna eran (2022–2026) · Rekommenderas för kalkyl</button>
+        <button type="button" class="zone-pill" data-era="all">Hela historiken (2015–2026) · 11 år</button>
+        <button type="button" class="zone-pill" data-era="classic">Gamla eran (2015–2020) · Hög baskraft & låg volatilitet</button>
+      </div>
+
+      <div id="bess-backtest-box"></div>
+    </section>
+
+    <!-- Strukturella drivkrafter -->
+    <section class="card">
+      <div class="section-title">
+        <h2>4. De fyra strukturella drivkrafterna bakom systemskiftet</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">1. Kärnkraftsnedläggningarna</h3>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Nedstängningen av Ringhals 1 & 2 och Oskarshamn 1 & 2 samt Tysklands kärnkraftsavveckling minskade den dämpande baskraften i södra Sverige. Södra Sverige blev därmed direkt exponerat för kontinentens gaskraftspriser och volatilitet.</p>
+        </div>
+
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">2. Vind- & solelexpansionen</h3>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Med över 15 GW vindkraft i Norden och snabbt växande taksolel styrs priserna alltmer av vädret. När det blåser kraschar priserna (till och med under nollpunkten), och när det mojnar rusar priserna snabbt uppåt.</p>
+        </div>
+
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">3. 15-minutersavräkning (Okt 2025)</h3>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Övergången från 60- till 15-minutersperioder innebär att kortvariga effekttoppar och svackor inte längre smetas ut i timmedelvärden. Batterier med snabb responstid kan fånga extremspikar som tidigare var osynliga.</p>
+        </div>
+
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">4. Slopad 60-öring (Jan 2026)</h3>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Skattereduktionen för inmatad solel slopades 1 januari 2026. Att sälja el till nätet ger nu endast spotpris + nätnytta. Värdet av att lagra och använda sin egen solel steg därmed från ~0,50 kr till ~1,65 kr/kWh.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script src="assets/bess.js"></script>
+</body>
+</html>

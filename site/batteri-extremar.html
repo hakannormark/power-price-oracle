@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extremår & Scenariosimulering — Batterikalkyl & BESS</title>
+<meta name="description" content="Stresstesta batterikalkylen mot framtida extremår (gaskris, torka, våtår) och marknadsmättnad på stödtjänster (FCR-D). Empirisk analys av nordisk prisvolatilitet 2011–2026.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .zone-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .zone-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .zone-pill:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .zone-pill.active {
+    background: #38bdf8;
+    color: #0b1220;
+    border-color: #38bdf8;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  }
+  .field {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.95em;
+  }
+  .bess-results-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+  .bess-result-card {
+    background: var(--bg-card);
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .bess-result-label {
+    font-size: 0.85em;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+  .bess-result-val {
+    font-size: 1.5em;
+    font-weight: 700;
+  }
+  .bess-result-sub {
+    font-size: 0.8em;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+  .scenario-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+</style>
+</head>
+<body data-page="batteri-extremar">
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="header-top-row">
+      <a class="brand" href="batteri.html"><span class="dot" style="background: #38bdf8; box-shadow: 0 0 12px #38bdf8;"></span>Batterikalkyl <small>BESS Investering</small></a>
+      <nav class="portal-nav" aria-label="Huvudsystem">
+        <a href="index.html" class="portal-tab">
+          <span class="portal-tab-icon">⚡</span>
+          <span>Spotprisprognos</span>
+        </a>
+        <a href="batteri.html" class="portal-tab active">
+          <span class="portal-tab-icon">🔋</span>
+          <span>Batterikalkyl & BESS</span>
+        </a>
+      </nav>
+    </div>
+    <nav class="site-nav">
+      <a href="batteri.html">Kalkylator</a>
+      <a href="batteri-paket.html">Paket & Offerter</a>
+      <a href="batteri-eror.html">Elmarknadens Epoker</a>
+      <a href="batteri-extremar.html" aria-current="page">Extremår & Scenarier</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack" id="bess-app">
+
+    <div class="page-head">
+      <h1>Extremår & Scenariosimulering</h1>
+      <p class="lede">Hur påverkas din batteriinvestering av framtida energikriser, våtår med låga priser och marknadsmättnad på stödtjänster? Simulera och stresstesta 15 års kassaflöden under tre olika makroekonomiska framtidsscenarier.</p>
+    </div>
+
+    <!-- Val av Elprisområde -->
+    <section class="card">
+      <div class="section-title">
+        <h2>1. Välj Elprisområde</h2>
+      </div>
+      <p class="sub">Elområdet avgör dygnsspreadar, spotprisvolatilitet och värdet av lagrad solel gentemot nätimport.</p>
+
+      <div class="zone-pills" id="bess-zone-pills">
+        <button type="button" class="zone-pill" data-zone="SE1">SE1 · Luleå / Norrbotten</button>
+        <button type="button" class="zone-pill" data-zone="SE2">SE2 · Sundsvall / Norra Mellansverige</button>
+        <button type="button" class="zone-pill" data-zone="SE3">SE3 · Stockholm / Mellansverige</button>
+        <button type="button" class="zone-pill active" data-zone="SE4">SE4 · Malmö / Sydsverige</button>
+      </div>
+
+      <div id="bess-zone-info" style="font-size: 0.9em; color: var(--muted); background: rgba(56, 189, 248, 0.05); padding: 0.75rem 1rem; border-radius: 6px; border-left: 3px solid #38bdf8;">
+        Laddar elområdesdata…
+      </div>
+    </section>
+
+    <!-- Scenarioväljare -->
+    <section class="card">
+      <div class="section-title">
+        <h2>2. Välj Framtidsscenario</h2>
+      </div>
+      <p class="sub">Växla scenario för att omedelbart se hur återbetalningstiden, nuvärdet (NPV) och de årliga kassaflödena förändras.</p>
+
+      <div style="max-width: 450px; margin-bottom: 1.5rem;">
+        <label for="bess-scenario" style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9em;">Aktivt scenario:</label>
+        <select class="field" id="bess-scenario" style="width: 100%;">
+          <option value="nordic_frequency" selected>1. Nordisk basfrekvens (1,5 positiva & 0,5 negativa per decennium)</option>
+          <option value="base_only">2. Enbart basår (Konservativ kalkyl utan makrochocker)</option>
+          <option value="cannibalization">3. Marknadskannibalisering (Snabb priserosion på FCR-D)</option>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+        <div class="scenario-card">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.05em;">Scenario 1: Nordisk basfrekvens (Standard)</h3>
+          <p style="font-size: 0.88em; color: var(--muted); line-height: 1.5; margin-bottom: 0;">
+            Modellerar 1,5 positiva extremår (t.ex. gaskris, torkår med 2,0× arbitrage år 3 och 11) och 0,5 negativa extremår (våtår med 0,6× arbitrage år 7) per decennium. Stödtjänster trappas av med realistiska -5 %/år ned till en stabil bottennivå på 40 %.
+          </p>
+        </div>
+
+        <div class="scenario-card">
+          <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.05em;">Scenario 2: Enbart basår (Konservativ)</h3>
+          <p style="font-size: 0.88em; color: var(--muted); line-height: 1.5; margin-bottom: 0;">
+            Antar att elmarknaden inte upplever några extremår alls under hela 15-årsperioden. Kassaflödena baseras uteslutande på normallägets spreadar och solelbesparing med endast batteriets fysiska åldrande (-1,8 %/år).
+          </p>
+        </div>
+
+        <div class="scenario-card">
+          <h3 style="color: #f87171; margin-top: 0; font-size: 1.05em;">Scenario 3: Kannibalisering (Stresstest)</h3>
+          <p style="font-size: 0.88em; color: var(--muted); line-height: 1.5; margin-bottom: 0;">
+            Stresstest för hård överetablering. Inga positiva prischocker tillåts. Ersättningen för stödtjänster faller kraftigt med -12 % per år ned till ett golv på 25 % då Svenska kraftnäts frekvensmarknad (FCR-D) mättas snabbt.
+          </p>
+        </div>
+      </div>
+
+      <!-- Kalkylresultat för valt scenario -->
+      <div class="bess-results-summary" style="margin-top: 1.5rem;">
+        <div class="bess-result-card">
+          <div class="bess-result-label">Nettoinvestering efter avdrag</div>
+          <div class="bess-result-val" id="bess-res-net" style="color: #fff;">— kr</div>
+          <div class="bess-result-sub" id="bess-res-deduction">Grön teknik: — kr</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">Beräknat årsvärde (basår)</div>
+          <div class="bess-result-val" id="bess-res-rev" style="color: #38bdf8;">— kr/år</div>
+          <div class="bess-result-sub" id="bess-res-rev-split">Sol: — · Arb: — · FCR: —</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">Återbetalningstid (Payback)</div>
+          <div class="bess-result-val" id="bess-res-payback" style="color: #4ade80;">— år</div>
+          <div class="bess-result-sub" id="bess-res-payback-disc">Diskonterad: — år (5 % kalkylränta)</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">15-års Nettonuvärde (NPV)</div>
+          <div class="bess-result-val" id="bess-res-npv" style="color: #4ade80;">— kr</div>
+          <div class="bess-result-sub" id="bess-res-npv-10">10-års NPV: — kr</div>
+        </div>
+      </div>
+
+      <!-- 15-årigt kassaflöde direkt i scenariovyn -->
+      <div style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.1em; color: #fff; margin-bottom: 0.5rem;">15-årigt kassaflöde under valt scenario</h3>
+        <p style="font-size: 0.85em; color: var(--muted); margin-bottom: 1rem;">
+          Visar kassaflödet år för år med vald scenarioprofil (inkl. cellnedbrytning -1,8 %/år SoH och diskontering vid 5 % kalkylränta).
+        </p>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table" style="width: 100%; font-size: 0.9em;">
+            <thead>
+              <tr>
+                <th>År (Framåt)</th>
+                <th>Solelbesparing</th>
+                <th>Spotarbitrage</th>
+                <th>Stödtjänster (FCR-D)*</th>
+                <th>Totalt kassaflöde</th>
+                <th>Kapacitet</th>
+                <th>Ackumulerat netto</th>
+              </tr>
+            </thead>
+            <tbody id="bess-custom-cf-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Empirisk verifiering av extremår -->
+    <section class="card">
+      <div class="section-title">
+        <h2>3. Empirisk verifiering: Kan man lita på extremårsreferensen?</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; font-size: 0.95em;">
+        <div>
+          <h3 style="color: #38bdf8; margin-top: 0;">Varför extremår är en ofrånkomlig del av kraftmarknaden</h3>
+          <p style="color: var(--muted); line-height: 1.6;">
+            I investeringsunderlag används ofta en tumregel om <strong>1,5 positiva och 0,5 negativa extremår per decennium</strong>.
+            Ett positivt extremår definieras som ett år där arbitrage- och energivärdet når &gt;2,0× normalt basår (orsakat av torka, gaskriser, kärnkraftsrevisioner eller kalla vinterdunkelflaute).
+            Ett negativt extremår definieras som &lt;0,6× normalt värde (orsakat av våtår, extrem hydrologisk dämpning eller låg volatilitet).
+          </p>
+          <p style="color: var(--muted); line-height: 1.6;">
+            Vår empiriska analys av svensk spotmarknadsdata (2011–2026) bekräftar detta:
+            Under de senaste 15 åren har Sverige haft 3 extrema positiva volatilitetsår (<strong>2018</strong> års torka, <strong>2021</strong> års kontinentala gaskris, <strong>2022</strong> års energichock) vilket motsvarar <strong>2,0 positiva år per decennium</strong>.
+            Åren 2020 och 2024 utgjorde lågvolatila perioder med komprimerade spreadar.
+          </p>
+          <p style="color: var(--muted); line-height: 1.6;">
+            Referensen är därmed <em>inte</em> en teoretisk konstruktion utan väl förankrad i den nordiska kraftmarknadens historiska svängningar.
+          </p>
+        </div>
+
+        <div>
+          <h3 style="color: #facc15; margin-top: 0;">Slutsats för din investeringskalkyl</h3>
+          <p style="color: var(--muted); line-height: 1.6;">
+            <strong>Konservativ rekommendation:</strong>
+            En sund batteriinvestering ska inte stå och falla med att ett nytt extremår som 2022 inträffar direkt år 1.
+            Kalkylen bör vara lönsam (dvs. positivt 15-års NPV och payback under batteriets 10-åriga garantitid) redan i det konservativa <strong>Scenario 2 (Enbart basår)</strong> eller tåla <strong>Scenario 3 (Kannibalisering)</strong>.
+          </p>
+          <p style="color: var(--muted); line-height: 1.6;">
+            Om och när ett framtida extremår väl inträffar fungerar det som en ren ekonomisk bonus (en "jackpot" som kortar återbetalningstiden med 1–3 år per chockår).
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script src="assets/bess.js"></script>
+</body>
+</html>

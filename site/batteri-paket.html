@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leverantörspaket & Offertjämförelse — Batterikalkyl & BESS</title>
+<meta name="description" content="Sida-vid-sida-jämförelse av 6 kommersiella hembatteripaket (Solis, Sigenergy, Svea Solar, Greenely, Elteknik, Evify). Simulering av årsvärde, C-tal, inlåsning och 15-årigt kassaflöde.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .zone-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .zone-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .zone-pill:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .zone-pill.active {
+    background: #38bdf8;
+    color: #0b1220;
+    border-color: #38bdf8;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  }
+  .bess-row-selected {
+    background: rgba(56, 189, 248, 0.1) !important;
+    outline: 1px solid #38bdf8;
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body data-page="batteri-paket">
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="header-top-row">
+      <a class="brand" href="batteri.html"><span class="dot" style="background: #38bdf8; box-shadow: 0 0 12px #38bdf8;"></span>Batterikalkyl <small>BESS Investering</small></a>
+      <nav class="portal-nav" aria-label="Huvudsystem">
+        <a href="index.html" class="portal-tab">
+          <span class="portal-tab-icon">⚡</span>
+          <span>Spotprisprognos</span>
+        </a>
+        <a href="batteri.html" class="portal-tab active">
+          <span class="portal-tab-icon">🔋</span>
+          <span>Batterikalkyl & BESS</span>
+        </a>
+      </nav>
+    </div>
+    <nav class="site-nav">
+      <a href="batteri.html">Kalkylator</a>
+      <a href="batteri-paket.html" aria-current="page">Paket & Offerter</a>
+      <a href="batteri-eror.html">Elmarknadens Epoker</a>
+      <a href="batteri-extremar.html">Extremår & Scenarier</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack" id="bess-app">
+
+    <div class="page-head">
+      <h1>Leverantörspaket & Offertjämförelse</h1>
+      <p class="lede">Sida-vid-sida-jämförelse av sex vanliga kommersiella hårdvaru- och leverantörskonfigurationer på svenska marknaden. Simulerade mot det valda elområdets faktiska spotpriser, dygnsspreadar och solförhållanden.</p>
+    </div>
+
+    <!-- Val av Elprisområde -->
+    <section class="card">
+      <div class="section-title">
+        <h2>1. Välj Elprisområde</h2>
+      </div>
+      <p class="sub">Elområdet avgör dygnsspreadar, spotprisvolatilitet och värdet av lagrad solel gentemot nätimport.</p>
+
+      <div class="zone-pills" id="bess-zone-pills">
+        <button type="button" class="zone-pill" data-zone="SE1">SE1 · Luleå / Norrbotten</button>
+        <button type="button" class="zone-pill" data-zone="SE2">SE2 · Sundsvall / Norra Mellansverige</button>
+        <button type="button" class="zone-pill" data-zone="SE3">SE3 · Stockholm / Mellansverige</button>
+        <button type="button" class="zone-pill active" data-zone="SE4">SE4 · Malmö / Sydsverige</button>
+      </div>
+
+      <div id="bess-zone-info" style="font-size: 0.9em; color: var(--muted); background: rgba(56, 189, 248, 0.05); padding: 0.75rem 1rem; border-radius: 6px; border-left: 3px solid #38bdf8;">
+        Laddar elområdesdata…
+      </div>
+    </section>
+
+    <!-- Sida vid sida offerttabell för färdiga paket -->
+    <section class="card">
+      <div class="section-title">
+        <h2>2. Sida-vid-sida-jämförelse av leverantörsspår</h2>
+      </div>
+      <p class="sub">Jämförelse av sex kommersiella paket simulerade för det valda elområdet. Klicka på en rad för att granska tekniska specifikationer, villkor och 15-årig kassaflödesprognos nedan.</p>
+
+      <div style="overflow-x: auto;">
+        <table class="data-table" style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Leverantör & Hårdvara</th>
+              <th>Kapacitet (Effekt / C-tal)</th>
+              <th>Bruttopris</th>
+              <th>Nettopris</th>
+              <th>Årsvärde</th>
+              <th>Återbetalningstid</th>
+              <th>Garanti</th>
+              <th>Inlåsning</th>
+            </tr>
+          </thead>
+          <tbody id="bess-table-body">
+            <tr><td colspan="9" style="text-align: center; padding: 2rem;">Läser in batteridata…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Detaljkort för vald offert -->
+    <div id="bess-detail-box"></div>
+
+    <!-- Köpguide: 4 frågor till installatören -->
+    <section class="card">
+      <div class="section-title">
+        <h2>Checklista: 4 kritiska frågor innan du skriver under batteriofferten</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">1. Hur många lagfarna ägare finns?</h3>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Grön teknik ger 50 % (schablon 48,5 %) men taket är strikt <strong>50 000 kr per person och år</strong>. Offerter över ca 103 000 kr brutto spränger taket vid 1 ägare. Se till att fakturan ställs på båda ägarna (100 000 kr tak) eller köp modulärt över två kalenderår.</p>
+        </div>
+
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">2. Vad är batteriets verkliga C-tal?</h3>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Låt dig inte luras av att växelriktaren har 10–12 kW effekt. Ett batteripaket med C-tal 0,5 (t.ex. SAJ HS3 15 kWh) kan bara leverera 7,5 kW kontinuerlig effekt. Detta stryper din budbara kapacitet till aggregatorn och minskar intäkterna.</p>
+        </div>
+
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">3. Vem bär garantin efter år 10?</h3>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Många installatörer lämnar 10 års garanti på battericellerna. Men kalkylen bygger ofta på 15 års livslängd. Fråga om växelriktarens garanti (ofta bara 5–10 år) och vad ett inverterbyte kostar vid år 10–12.</p>
+        </div>
+
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">4. Begär historisk prislista för FCR-D</h3>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Ingen aggregator lämnar fasta 15-åriga garantier på stödtjänster. Eftersom frekvensmarknaden snabbt mättas när ny batterikapacitet tillkommer måste kalkylen tåla att stödtjänstintäkten minskar med 50–70 % över tid.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script src="assets/bess.js"></script>
+</body>
+</html>
