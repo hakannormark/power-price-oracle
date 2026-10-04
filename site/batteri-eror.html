@@ -253,6 +253,16 @@
             <option value="energy_only">Enbart Soloptimering & Arbitrage</option>
           </select>
         </div>
+
+        <div style="min-width: 240px;">
+          <label for="bess-backtest-fcr-mode" style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 0.35rem;">
+            Stödtjänster (FCR-D) i backtest:
+          </label>
+          <select class="field" id="bess-backtest-fcr-mode" style="width: 100%;">
+            <option value="historic" selected>Faktisk marknadshistorik (0 kr t.o.m. 2020, topp 2023)</option>
+            <option value="flat">Hypotetisk schablon (Dagens 25 kr/kW alla år)</option>
+          </select>
+        </div>
       </div>
 
       <div class="zone-pills" id="bess-era-pills" style="margin-bottom: 1.25rem;">
@@ -331,6 +341,6 @@
   </div>
 </main>
 
-<script src="assets/bess.js?v=20261004d"></script>
+<script src="assets/bess.js?v=20261004e"></script>
 </body>
 </html>

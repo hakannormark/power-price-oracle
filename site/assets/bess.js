@@ -12,6 +12,7 @@
     selectedEra: "modern",
     backtestOfferId: "custom",
     backtestCompareOfferId: "solis_dyness_15",
+    backtestFcrMode: "historic",
 
     // Custom system settings
     custom: {
@@ -57,6 +58,7 @@
         if (saved.selectedOfferId) state.selectedOfferId = saved.selectedOfferId;
         if (saved.backtestOfferId) state.backtestOfferId = saved.backtestOfferId;
         if (saved.backtestCompareOfferId !== undefined) state.backtestCompareOfferId = saved.backtestCompareOfferId;
+        if (saved.backtestFcrMode) state.backtestFcrMode = saved.backtestFcrMode;
         if (saved.showCustomCf !== undefined) state.showCustomCf = !!saved.showCustomCf;
         if (saved.custom && typeof saved.custom === "object") {
           state.custom = Object.assign({}, state.custom, saved.custom);
@@ -80,6 +82,7 @@
         selectedOfferId: state.selectedOfferId,
         backtestOfferId: state.backtestOfferId,
         backtestCompareOfferId: state.backtestCompareOfferId,
+        backtestFcrMode: state.backtestFcrMode,
         showCustomCf: state.showCustomCf,
         custom: state.custom,
       }));
@@ -283,6 +286,16 @@
         if (mainStrat) mainStrat.value = state.strategy;
         saveState();
         renderAll();
+      });
+    }
+
+    const btFcrModeSelect = document.getElementById("bess-backtest-fcr-mode");
+    if (btFcrModeSelect) {
+      if (state.backtestFcrMode) btFcrModeSelect.value = state.backtestFcrMode;
+      btFcrModeSelect.addEventListener("change", (e) => {
+        state.backtestFcrMode = e.target.value;
+        saveState();
+        renderBacktest();
       });
     }
   }
@@ -819,9 +832,21 @@
     `;
   }
 
-  function getSystemBacktestYear(sysId, yData) {
+  function getHistoricalFcrMultiplier(year) {
+    const y = parseInt(year, 10);
+    if (y <= 2020) return 0.0;    // Hembatterier ej godkända på SvK:s marknad / inga aggregatorer fanns för villor
+    if (y === 2021) return 0.4;   // Tidiga piloter (ca 10 kr/kW/månad)
+    if (y === 2022) return 1.8;   // Energikris (ca 45–50 kr/kW/månad)
+    if (y === 2023) return 3.5;   // All-time high på FCR-D i Sverige (ca 85–90 kr/kW/månad)
+    if (y === 2024) return 1.4;   // Begynnande marknadsmättnad (ca 35 kr/kW/månad)
+    return 1.0;                   // 2025–2026: Dagens normaliserade basnivå (25 kr/kW/månad)
+  }
+
+  function getSystemBacktestYear(sysId, yData, year) {
     if (!yData) return { solar: 0, arb: 0, ancillary: 0, total: 0, name: "Okänt", shortName: "Okänt" };
     const strat = state.strategy === "energy_only" ? "energy_only" : "mixed";
+    const yNum = parseInt(year || (yData && yData.year) || 2024, 10);
+    const fcrMult = state.backtestFcrMode === "flat" ? 1.0 : getHistoricalFcrMultiplier(yNum);
 
     if (sysId === "custom") {
       const c = state.custom;
@@ -856,7 +881,8 @@
         // Solis baseline: 10 kW, 9 kW biddable
         const customBiddable = Math.min(c.p_kw, c.cap_kwh * 0.9) * 0.9;
         const rateRatio = (c.fcr_rate_month || 25) / 25;
-        ancillary = Math.round(solisAnc * (customBiddable / 9.0) * rateRatio);
+        const baseAnc = Math.round(solisAnc * (customBiddable / 9.0) * rateRatio);
+        ancillary = Math.round(baseAnc * fcrMult);
       }
 
       const total = solar + arb + ancillary;
@@ -878,8 +904,9 @@
     const offData = (yData.offers && yData.offers[sysId] && yData.offers[sysId][strat]) || {};
     const solar = Math.round(offData.solar_savings_sek || 0);
     const arb = Math.round(offData.arbitrage_profit_sek || 0);
-    const ancillary = Math.round(offData.ancillary_revenue_sek || 0);
-    const total = Math.round(offData.total_value_sek || (solar + arb + ancillary));
+    const baseAnc = Math.round(offData.ancillary_revenue_sek || 0);
+    const ancillary = Math.round(baseAnc * fcrMult);
+    const total = Math.round(solar + arb + ancillary);
 
     return {
       name: offerMeta.name,
@@ -911,8 +938,8 @@
     // Sample data to retrieve readable system names
     const sampleYearKey = Object.keys(yearsData)[0] || "2024";
     const sampleYData = yearsData[sampleYearKey] || {};
-    const primarySample = getSystemBacktestYear(primarySysId, sampleYData);
-    const compareSample = hasCompare ? getSystemBacktestYear(compareSysId, sampleYData) : null;
+    const primarySample = getSystemBacktestYear(primarySysId, sampleYData, sampleYearKey);
+    const compareSample = hasCompare ? getSystemBacktestYear(compareSysId, sampleYData, sampleYearKey) : null;
 
     if (btTitle) {
       btTitle.textContent = `3. Historiskt backtest i ${state.selectedZone}: ${primarySample.name} (${eraLabel})`;
@@ -942,6 +969,11 @@
       btStratSelect.value = state.strategy;
     }
 
+    const btFcrModeSelect = document.getElementById("bess-backtest-fcr-mode");
+    if (btFcrModeSelect) {
+      btFcrModeSelect.value = state.backtestFcrMode;
+    }
+
     let allYearKeys = Object.keys(yearsData).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
     let filteredYears = allYearKeys;
     if (state.selectedEra === "modern") {
@@ -953,8 +985,8 @@
     let rows = "";
     filteredYears.forEach((year) => {
       const yData = yearsData[year];
-      const prim = getSystemBacktestYear(primarySysId, yData);
-      const comp = hasCompare ? getSystemBacktestYear(compareSysId, yData) : null;
+      const prim = getSystemBacktestYear(primarySysId, yData, year);
+      const comp = hasCompare ? getSystemBacktestYear(compareSysId, yData, year) : null;
 
       const yNum = parseInt(year, 10);
       let eraBadge = "";
@@ -998,7 +1030,7 @@
         const yd = yearsData[yk];
         sumSpot += yd.mean_spot_sek_kwh || 0;
         sumSpread += yd.mean_daily_spread_sek_kwh || 0;
-        const p = getSystemBacktestYear(primarySysId, yd);
+        const p = getSystemBacktestYear(primarySysId, yd, yk);
         sumArb += p.arb;
         sumTot += p.total;
       });
@@ -1063,8 +1095,11 @@
           </tbody>
         </table>
       </div>
-      <p style="font-size: 0.8em; color: var(--muted); margin-top: 0.5rem; margin-bottom: 1rem;">
+      <p style="font-size: 0.8em; color: var(--muted); margin-top: 0.5rem; margin-bottom: 0.35rem;">
         * <strong>Totalt årsvärde (kr/år):</strong> Summan av årets ekonomiska nytta för det enskilda året = Solel (sparad nätel) + Spotarbitrage (vinst från dygnsspreadar) + Stödtjänster (ersättning via aggregator). Siffran visar utfallet för respektive år (ej ackumulerat).
+      </p>
+      <p style="font-size: 0.8em; color: var(--muted); margin-bottom: 1rem; line-height: 1.5;">
+        ⚡ <strong>Stödtjänsternas historiska förlopp:</strong> Före 2021 var hembatterier inte tillåtna på Svenska kraftnäts frekvensmarknad och inga aggregatorer existerade för villor (därav 0 kr). Under 2022–2023 rådde akut brist på frekvensreserver i Norden vilket gav en extrem intäktstopp (upp till 3,5× dagens nivå år 2023). Från 2024 har massiv utbyggnad av storskaliga batteriparker mättat marknaden, och ersättningen har stabiliserats på dagens normaliserade nivå (ca 25 kr/kW/mån).
       </p>
       ${summaryBlock}
     `;
