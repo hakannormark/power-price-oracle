@@ -104,12 +104,15 @@ def compute_lifecycle(
         # Arbitrage: scales with retention and extreme shock
         arb_rev = base_arb * retention * (m_ext if m_ext > 1.0 else 0.8)
 
-        # Ancillary services: subject to market saturation/cannibalization
-        if scenario in ("cannibalization", "nordic_frequency"):
-            fcr_decay = max(0.30, (1.0 - FCR_CANNIBALIZATION_DECAY) ** (y - 1))
+        # Ancillary services: subject to battery capacity fade (SoH) and market saturation/cannibalization
+        if scenario == "cannibalization":
+            fcr_decay = max(0.25, (1.0 - FCR_CANNIBALIZATION_DECAY) ** (y - 1))
+        elif scenario == "nordic_frequency":
+            # Realistic Nordic baseline: 5 % annual erosion as BESS volume enters, stabilizing at 40 % floor
+            fcr_decay = max(0.40, (0.95) ** (y - 1))
         else:
             fcr_decay = 1.0
-        fcr_rev = base_fcr * fcr_decay * (m_ext if m_ext > 1.0 else 0.6)
+        fcr_rev = base_fcr * retention * fcr_decay * (m_ext if m_ext > 1.0 else 0.8)
 
         tot_rev = solar_rev + arb_rev + fcr_rev
         net_cf = tot_rev

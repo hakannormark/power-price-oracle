@@ -192,8 +192,8 @@
             <span id="bess-cap-val" style="color: #38bdf8;">15 kWh</span>
           </label>
           <div class="bess-slider-wrap">
-            <input type="range" id="bess-cap-slider" min="5" max="30" step="1" value="15">
-            <input type="number" id="bess-cap-num" min="5" max="30" step="1" value="15">
+            <input type="range" id="bess-cap-slider" min="5" max="80" step="1" value="15">
+            <input type="number" id="bess-cap-num" min="5" max="80" step="1" value="15">
           </div>
           <span class="bess-hint" id="bess-cap-hint">Användbar kapacitet (90 % DoD): 13,5 kWh</span>
         </div>
@@ -205,8 +205,8 @@
             <span id="bess-p-val" style="color: #38bdf8;">10 kW</span>
           </label>
           <div class="bess-slider-wrap">
-            <input type="range" id="bess-p-slider" min="3" max="20" step="1" value="10">
-            <input type="number" id="bess-p-num" min="3" max="20" step="1" value="10">
+            <input type="range" id="bess-p-slider" min="3" max="40" step="1" value="10">
+            <input type="number" id="bess-p-num" min="3" max="40" step="1" value="10">
           </div>
           <span class="bess-hint" id="bess-c-rate-hint">C-tal: 0,67 C (Godkänd för full stödtjänstbudning)</span>
         </div>
@@ -218,10 +218,10 @@
             <span id="bess-load-val" style="color: #38bdf8;">8 000 kWh</span>
           </label>
           <div class="bess-slider-wrap">
-            <input type="range" id="bess-load-slider" min="3000" max="35000" step="500" value="8000">
-            <input type="number" id="bess-load-num" min="3000" max="35000" step="500" value="8000">
+            <input type="range" id="bess-load-slider" min="3000" max="60000" step="1000" value="8000">
+            <input type="number" id="bess-load-num" min="3000" max="60000" step="1000" value="8000">
           </div>
-          <span class="bess-hint">Kvälls- och nattbehov: ca 45 % av årsförbrukningen</span>
+          <span class="bess-hint" id="bess-load-hint">Kvälls- och nattbehov: ca 10 kWh/dygn i snitt (vinter upp till 20–25 kWh)</span>
         </div>
 
         <!-- Installerad solel -->
@@ -231,10 +231,10 @@
             <span id="bess-pv-val" style="color: #38bdf8;">10 kWp</span>
           </label>
           <div class="bess-slider-wrap">
-            <input type="range" id="bess-pv-slider" min="0" max="25" step="1" value="10">
-            <input type="number" id="bess-pv-num" min="0" max="25" step="1" value="10">
+            <input type="range" id="bess-pv-slider" min="0" max="50" step="1" value="10">
+            <input type="number" id="bess-pv-num" min="0" max="50" step="1" value="10">
           </div>
-          <span class="bess-hint" id="bess-pv-hint">Årsproduktion: ca 7 000 kWh (Sätt 0 vid enbart batteri)</span>
+          <span class="bess-hint" id="bess-pv-hint">Årsproduktion: ca 8 500 kWh (Sätt 0 vid enbart batteri)</span>
         </div>
 
         <!-- Bruttoinvestering -->
@@ -244,8 +244,8 @@
             <span id="bess-cost-val" style="color: #38bdf8;">65 000 kr</span>
           </label>
           <div class="bess-slider-wrap">
-            <input type="range" id="bess-cost-slider" min="20000" max="200000" step="2500" value="65000">
-            <input type="number" id="bess-cost-num" min="20000" max="200000" step="2500" value="65000">
+            <input type="range" id="bess-cost-slider" min="20000" max="400000" step="5000" value="65000">
+            <input type="number" id="bess-cost-num" min="20000" max="400000" step="5000" value="65000">
           </div>
           <span class="bess-hint" id="bess-cost-hint">Inkl. moms och installation före Grön teknik</span>
         </div>
@@ -335,25 +335,36 @@
       <!-- Fäll ut 15-årigt kassaflöde för anpassat system -->
       <div style="margin-top: 1.25rem;">
         <button type="button" class="field" id="bess-custom-toggle-cf" style="cursor: pointer; font-weight: 600; padding: 0.5rem 1rem;">
-          Visa 15-årigt kassaflöde för din anläggning ▼
+          Visa 15-årig Framtidsprognos för Kassaflöde (År 1–15 framåt) ▼
         </button>
       </div>
 
-      <div id="bess-custom-cf-box" style="display: none; margin-top: 1rem; overflow-x: auto;">
-        <table class="data-table" style="width: 100%; font-size: 0.9em;">
-          <thead>
-            <tr>
-              <th>År</th>
-              <th>Solelbesparing</th>
-              <th>Spotarbitrage</th>
-              <th>Stödtjänster</th>
-              <th>Totalt kassaflöde</th>
-              <th>Kapacitet</th>
-              <th>Ackumulerat netto</th>
-            </tr>
-          </thead>
-          <tbody id="bess-custom-cf-body"></tbody>
-        </table>
+      <div id="bess-custom-cf-box" style="display: none; margin-top: 1rem;">
+        <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; font-size: 0.9em; line-height: 1.5;">
+          <strong style="color: #38bdf8;">Framåtblickande investeringskalkyl (Framåt i tiden: År 1–15):</strong><br>
+          Denna tabell simulerar hur kassaflödet utvecklas <strong>framåt i tiden</strong> från det år anläggningen köps och installeras. Den tar hänsyn till batteriets fysiska degradering (-1,8 %/år SoH), förväntade framtida extremår/makrochocker, 5 % kalkylränta samt successiv marknadsmättnad på stödtjänster.<br>
+          <em>(Detta skiljer sig från Sektion 4 längre ner, som är ett <strong>Historiskt Backtest bakåt i tiden</strong> baserat på faktiska timpriser från verkliga år.)</em>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table" style="width: 100%; font-size: 0.9em;">
+            <thead>
+              <tr>
+                <th>År (Framåt)</th>
+                <th>Solelbesparing</th>
+                <th>Spotarbitrage</th>
+                <th>Stödtjänster (FCR-D)*</th>
+                <th>Totalt kassaflöde</th>
+                <th>Kapacitet</th>
+                <th>Ackumulerat netto</th>
+              </tr>
+            </thead>
+            <tbody id="bess-custom-cf-body"></tbody>
+          </table>
+        </div>
+        <p style="font-size: 0.8em; color: var(--muted); margin-top: 0.5rem;">
+          * Stödtjänstintäkter (FCR-D) är inte konstanta utan minskar över tid på grund av: (1) Batteriets kapacitetsförlust (-1,8 %/år SoH) som minskar godkänd budvolym, och (2) Förväntad marknadsmättnad/priserosion då Svenska kraftnäts begränsade frekvensmarknad (~350 MW) snabbt fylls när fler batterier installeras i Sverige.
+        </p>
       </div>
     </section>
 
@@ -392,10 +403,56 @@
     <!-- Backtestresultat -->
     <section class="card">
       <div class="section-title">
-        <h2 id="bess-backtest-title">4. Historiskt backtest (2022–2026)</h2>
+        <h2 id="bess-backtest-title">4. Historiskt backtest: Faktiskt utfall (2015–2026)</h2>
       </div>
-      <p class="sub">Faktiskt årligt utfall baserat på verkliga historiska spotpriser och solstrålning. Visar hur extremåret 2022 exploderade i värde, priskollapsen 2024 dämpade intäkterna, och hur 15-minutersavräkningen (2025) samt slopandet av 60-öringen (2026) lyfte lönsamheten.</p>
+      <p class="sub">Tittar <strong>bakåt i tiden</strong> och simulerar exakt vad samma batterianläggning hade genererat i intäkter och besparingar under verkliga historiska timpriser och solförhållanden i det valda elområdet.</p>
+
+      <div class="zone-pills" id="bess-era-pills" style="margin-bottom: 1.25rem;">
+        <button type="button" class="zone-pill active" data-era="modern">Moderna eran (2022–2026) · Rekommenderas för kalkyl</button>
+        <button type="button" class="zone-pill" data-era="all">Hela historiken (2015–2026) · 11 år</button>
+        <button type="button" class="zone-pill" data-era="classic">Gamla eran (2015–2020) · Hög baskraft & låg volatilitet</button>
+      </div>
+
       <div id="bess-backtest-box"></div>
+    </section>
+
+    <!-- Elmarknadens två epoker -->
+    <section class="card">
+      <div class="section-title">
+        <h2>Elmarknadens två epoker: Varför gamla kalkyler från 2015–2020 inte stämmer idag</h2>
+      </div>
+      <div style="font-size: 0.95em; color: var(--text); line-height: 1.6;">
+        <p>
+          En av de vanligaste fallgroparna när man bedömer batteriers lönsamhet är att titta på äldre elmarknadsstatistik från 2015–2020.
+          Under den perioden var batterier i princip ekonomiskt omöjliga att räkna hem. Men sedan 2022 har marknadens fundamenta genomgått ett oåterkalleligt systemskifte.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
+          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem;">
+            <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.15em;">Gamla eran (2015–2020): Den dämpade marknaden</h3>
+            <ul style="padding-left: 1.25rem; font-size: 0.9em; color: var(--muted); line-height: 1.6;">
+              <li><strong>Tung planerbar baskraft:</strong> Ringhals 1 & 2 och Oskarshamn 1 & 2 var i drift, och Tyskland hade massiv kärn- och kolkraft.</li>
+              <li><strong>Små dygnsspreadar:</strong> Prisskillnaden mellan dag och natt i SE4 var endast <strong>15–27 öre/kWh</strong>.</li>
+              <li><strong>Försumbart arbitrage:</strong> Ett 15 kWh batteri tjänade bara <strong>300–500 kr/år</strong> på spotprisskillnader. Teoretisk payback var över 40 år.</li>
+              <li><strong>Inga negativa priser:</strong> Negativa spotpriser förekom i princip aldrig (0–2 timmar/år).</li>
+            </ul>
+          </div>
+
+          <div style="background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 1.25rem;">
+            <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em;">Nya eran (2022–2026): Flexibilitetens tidsålder</h3>
+            <ul style="padding-left: 1.25rem; font-size: 0.9em; color: var(--text); line-height: 1.6;">
+              <li><strong>Väderberoende kraft & stängd baskraft:</strong> Över 15 GW vindkraft i Norden och nedlagd kärnkraft i söder har skapat kraftig intradagsvolatilitet.</li>
+              <li><strong>Vidgade dygnsspreadar:</strong> Dygnsspreaden i SE4 ligger på <strong>97–232 öre/kWh</strong> – en fyr- till tiodubbling!</li>
+              <li><strong>Exploderande arbitrage:</strong> Samma 15 kWh batteri genererar nu <strong>2 500–6 200 kr/år</strong> i rent spotarbitrage (6–12× mer!).</li>
+              <li><strong>15-minutersavräkning & slopad 60-öring:</strong> 15-minutersperioder (okt 2025) synliggör extrema spikar, och slopandet av 60-öringen (jan 2026) tredubblar värdet av att lagra egen solel (~1,65 kr/kWh istället för 0,50 kr).</li>
+            </ul>
+          </div>
+        </div>
+
+        <p style="color: var(--muted); font-size: 0.9em; margin-bottom: 0;">
+          <strong>Slutsats:</strong> Att använda data före 2022 för att beräkna framtida batterilönsamhet ger en djupt missvisande bild. Dagens flexibilitetsmarknad, nätavgifter och solcellskalkyler kräver att man utgår från den moderna erans prisdynamik.
+        </p>
+      </div>
     </section>
 
     <!-- Strategiska rådssektioner & Extremårsanalys -->
@@ -423,36 +480,35 @@
 
     <section class="card">
       <div class="section-title">
-        <h2>Extremårsanalys: Kan man lita på referensen?</h2>
+        <h2>Dimensionering: 10, 20 eller 60 kWh? – Anpassa efter hushållets årsförbrukning</h2>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; font-size: 0.95em;">
         <div>
-          <h3 style="color: #38bdf8; margin-top: 0;">Empirisk verifiering mot verklig elmarknadsdata</h3>
+          <h3 style="color: #38bdf8; margin-top: 0;">Normalvilla (8 000–15 000 kWh/år)</h3>
           <p style="color: var(--muted); line-height: 1.6;">
-            I investeringsunderlaget anges en tumregel om <strong>1,5 positiva och 0,5 negativa extremår per decennium</strong>.
-            Ett positivt extremår definieras som ett år där arbitrage- och energivärdet når &gt;2,0× normalt basår (orsakat av torka, gaskriser, kärnkraftsrevisioner eller kalla vinterdunkelflaute).
-            Ett negativt extremår definieras som &lt;0,6× normalt värde (orsakat av våtår, extrem hydrologisk dämpning eller låg volatilitet).
-          </p>
-          <p style="color: var(--muted); line-height: 1.6;">
-            Vår empiriska analys av svensk spotmarknadsdata (2011–2026) bekräftar detta:
-            Under de senaste 15 åren har Sverige haft 3 extrema positiva volatilitetsår (2018 års torka, 2021 års kontinentala gaskris, 2022 års energichock) vilket motsvarar <strong>2,0 positiva år per decennium</strong>.
-            År 2020 och 2024 utgjorde lågvolatila perioder med komprimerade spreadar.
-            Referensen är därmed <em>inte</em> en teoretisk konstruktion utan väl förankrad i den nordiska kraftmarknadens historiska svängningar.
+            <strong>Rekommendation: 10–13 kWh är sweet spot.</strong><br>
+            Ett normalt hushåll drar 8–11 kWh på kväll/natt på sommaren och 10–14 kWh på vintern.
+            Ett 10–13 kWh batteri fylls av solelen på dagen och töms under natten – en perfekt 100 % cykel per dygn.
+            All kapacitet utöver 13 kWh får svårt att tömmas i en vanlig villa under natten, och marginalnyttan på kilowattimme 14–20 ger ca 18 års payback i ren egenanvändning om man inte nyttjar aggressivt nätarbitrage.
           </p>
         </div>
 
         <div>
-          <h3 style="color: #facc15; margin-top: 0;">Dimensionering: 10 kWh eller 20 kWh?</h3>
+          <h3 style="color: #facc15; margin-top: 0;">Högförbrukare & Fastighet (25 000–60 000 kWh/år)</h3>
           <p style="color: var(--muted); line-height: 1.6;">
-            <strong>Slutsats: 10–13 kWh är sweet spot för de flesta villor.</strong><br>
-            Ett normalt hushålls natt- och kvällsbehov är 8–11 kWh på sommaren och 10–12 kWh på vintern.
-            All kapacitet utöver 10–13 kWh kräver nätarbitrage eller full biddning mot stödtjänster för att hålla cellerna i cykling.
-            Marginalnyttan på kilowattimme 11 till 20 ger ca <strong>18 års payback</strong> i ren egenanvändning.
+            <strong>Rekommendation: 20–60 kWh (och 15–30 kW inverter).</strong><br>
+            Här faller villatumregeln helt! Har fastigheten bergvärmepump, elbilsladdning, pool eller lantbruksdrift kan ett enskilt vinterdygn dra <strong>150–300 kWh</strong> (8–15 kW kontinuerlig medeleffekt).
+            Kvälls- och nattbehovet enbart ligger på <strong>50–120 kWh</strong>. Ett litet 10 kWh batteri är tomt på under två timmar!
           </p>
           <p style="color: var(--muted); line-height: 1.6;">
-            <strong>Skattetaktik:</strong> Att installera 10 kWh år 1 och komplettera med moduler år 2 sprider Grön teknik-avdraget över två beskattningsår och eliminerar risken att spränga 50 000 kr-taket.
+            Ett större system (20–60 kWh) ger full sysselsättning: det kan cyklas djupt varje dygn för att kapa nattförbrukningen, kan svälja stora solcellsanläggningar (20–40 kWp) utan att tvingas sälja till låga exportpriser, och maximerar spotarbitrage på dygnsprisskillnaderna.
+          </p>
+          <p style="color: var(--muted); line-height: 1.6;">
+            <strong>Skatteoptimering:</strong> Stora system (20–60 kWh) kostar ofta 140 000–280 000 kr brutto och spränger det individuella avdragstaket på 50 000 kr vid 1 ägare. Se till att ha 2 ägare på lagfarten (100 000 kr tak) eller köp batterimoduler modulärt fördelat över två kalenderår för att nyttja upp till 200 000 kr i totalt grönt avdrag.
           </p>
         </div>
+      </div>
+    </section>
       </div>
     </section>
 

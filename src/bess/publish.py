@@ -179,9 +179,10 @@ def build_bess_payload(
             },
         ],
         "dimensioning": {
-            "recommendation": "10–13 kWh nu, med möjlighet att komplettera modulärt.",
-            "rationale": "Kvälls- och nattbehovet är 8–11 kWh på sommaren. Bortom 10–13 kWh krävs export vid pristoppar eller stödtjänster för att hålla batteriet sysselsatt. Marginalnyttan på kilowattimme 11–20 ger ca 18 års payback.",
-            "tax_tip": "Att köpa 10 kWh år 1 och komplettera med moduler år 2 sprider grönt avdrag över två beskattningsår och kringgår 50 000 kr-taket.",
+            "villa_recommendation": "10–13 kWh för normalvilla (8 000–15 000 kWh/år).",
+            "high_load_recommendation": "20–60 kWh för storvilla, fastighet, lantbruk eller dubbla elbilar (25 000–60 000 kWh/år).",
+            "rationale": "I en normalvilla är kvällsbehovet 8–11 kWh, varför batterier över 13 kWh får låg marginalnytta i ren solel. I ett hushåll med 50 000 kWh förbrukning kan dock ett enda vinterdygn dra 200–300 kWh (varav 60–120 kWh kväll/natt). Där töms ett 10 kWh batteri på under två timmar, och ett 20–60 kWh system kan cyklas djupt för både solel, nätarbitrage och effektskydd.",
+            "tax_tip": "Stora system (20–60 kWh) kostar 140 000–300 000 kr brutto och spränger det individuella avdragstaket (50 000 kr). Se till att ha två ägare på lagfarten (100 000 kr tak) eller köp modulärt fördelat över två kalenderår för att nyttja upp till 200 000 kr i Grönt avdrag.",
         },
         "questions_before_signing": [
             "Hur många ägare finns på fastigheten, och hur mycket avdragsutrymme för grön teknik återstår i år?",

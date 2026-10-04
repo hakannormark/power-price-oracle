@@ -9,6 +9,7 @@
     scenario: "nordic_frequency",
     selectedOfferId: "solis_dyness_15",
     showCustomCf: false,
+    selectedEra: "modern",
 
     // Custom system settings
     custom: {
@@ -70,19 +71,30 @@
   }
 
   function bindControls() {
-    // 1. Zone pills
-    const pills = document.querySelectorAll(".zone-pill");
-    pills.forEach((btn) => {
+    // 1. Zone pills (scoped to #bess-zone-pills)
+    const zonePills = document.querySelectorAll("#bess-zone-pills .zone-pill");
+    zonePills.forEach((btn) => {
       btn.addEventListener("click", () => {
-        pills.forEach((p) => p.classList.remove("active"));
+        zonePills.forEach((p) => p.classList.remove("active"));
         btn.classList.add("active");
         state.selectedZone = btn.getAttribute("data-zone") || "SE4";
         renderAll();
       });
     });
 
-    // 2. Custom system inputs (sliders + number inputs sync)
-    function sync(sliderId, numId, stateKey, stepDecimals) {
+    // 2. Era pills (scoped to #bess-era-pills)
+    const eraPills = document.querySelectorAll("#bess-era-pills .zone-pill");
+    eraPills.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        eraPills.forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        state.selectedEra = btn.getAttribute("data-era") || "modern";
+        renderBacktest();
+      });
+    });
+
+    // 3. Custom system inputs (sliders + number inputs sync)
+    function sync(sliderId, numId, stateKey) {
       const sl = document.getElementById(sliderId);
       const nm = document.getElementById(numId);
       if (!sl || !nm) return;
@@ -110,7 +122,7 @@
     sync("bess-cost-slider", "bess-cost-num", "gross_price");
     sync("bess-fcr-slider", "bess-fcr-num", "fcr_rate_month");
 
-    // 3. Dropdowns
+    // 4. Dropdowns
     const ownersSelect = document.getElementById("bess-owners");
     if (ownersSelect) {
       ownersSelect.addEventListener("change", (e) => {
@@ -139,7 +151,7 @@
       });
     }
 
-    // 4. Toggle custom cash flow
+    // 5. Toggle custom cash flow
     const toggleCfBtn = document.getElementById("bess-custom-toggle-cf");
     if (toggleCfBtn) {
       toggleCfBtn.addEventListener("click", () => {
@@ -149,8 +161,8 @@
           box.style.display = state.showCustomCf ? "block" : "none";
         }
         toggleCfBtn.textContent = state.showCustomCf
-          ? "Dölj 15-årigt kassaflöde ▲"
-          : "Visa 15-årigt kassaflöde för din anläggning ▼";
+          ? "Dölj 15-årig Framtidsprognos ▲"
+          : "Visa 15-årig Framtidsprognos för Kassaflöde (År 1–15 framåt) ▼";
       });
     }
   }
@@ -179,8 +191,10 @@
     let storedSolarKwh = 0;
     let solarSavingsSek = 0;
     if (c.pv_kwp > 0) {
-      const annualPv = c.pv_kwp * 700;
-      const directPv = Math.min(annualPv * 0.35, c.load_kwh * 0.30);
+      const annualPv = c.pv_kwp * 850;
+      // In high-load households (25k - 60k kWh), daytime base load absorbs more direct solar
+      const daytimeLoadFrac = c.load_kwh >= 25000 ? 0.45 : 0.35;
+      const directPv = Math.min(annualPv * 0.40, c.load_kwh * daytimeLoadFrac);
       const surplusPv = Math.max(0, annualPv - directPv);
       const nightLoad = c.load_kwh * 0.45;
       storedSolarKwh = Math.min(surplusPv, usableKwh * 180, nightLoad);
@@ -188,12 +202,13 @@
     }
 
     // Spot arbitrage
-    const cycleKwh = Math.min(usableKwh * 0.75, c.p_kw * 2.5);
+    // Limit per cycle: battery usable capacity or inverter power * window (approx 3.5h)
+    const maxCycleKwh = Math.min(usableKwh * 0.85, c.p_kw * 3.5);
     const spreadMargin = Math.max(0, (dailySpread * 0.88) - 0.15);
-    const arbitrageKwh = Math.round(cycleKwh * 280);
-    const arbitrageProfitSek = Math.round(cycleKwh * spreadMargin * 280);
+    const arbitrageKwh = Math.round(maxCycleKwh * 280);
+    const arbitrageProfitSek = Math.round(maxCycleKwh * spreadMargin * 280);
 
-    // Ancillary services
+    // Ancillary services (FCR-D)
     let ancillaryRevSek = 0;
     if (state.strategy === "mixed") {
       const biddableKw = Math.min(c.p_kw, c.cap_kwh * (cRate >= 0.5 ? 0.8 : cRate * 1.6));
@@ -203,7 +218,7 @@
     const totalAnnualValue = solarSavingsSek + arbitrageProfitSek + ancillaryRevSek;
     const simplePayback = totalAnnualValue > 0 ? (netPrice / totalAnnualValue) : null;
 
-    // 15-year lifecycle
+    // 15-year lifecycle forecast (forward-looking Years 1 to 15)
     const cashFlows = [];
     let cumCash = -netPrice;
     let npv = -netPrice;
@@ -211,20 +226,28 @@
     let discPayback = null;
 
     for (let yr = 1; yr <= 15; yr++) {
-      const deg = 1.0 - (yr - 1) * 0.018; // 1.8% annual degradation
+      const deg = Math.max(0.65, 1.0 - (yr - 1) * 0.018); // 1.8% annual degradation
       let shock = 1.0;
       if (state.scenario === "nordic_frequency") {
-        if (yr === 4) shock = 1.8;      // Positive extreme shock
-        else if (yr === 9) shock = 1.5; // Moderate positive shock
-        else if (yr === 7) shock = 0.6; // Wet negative shock
+        if (yr === 3 || yr === 11) shock = 2.0;      // Positive extreme shock (gas/dry)
+        else if (yr === 7) shock = 0.6;              // Wet negative shock
       }
 
-      let yrAncillary = ancillaryRevSek;
-      if (state.scenario === "cannibalization") {
-        yrAncillary = Math.round(ancillaryRevSek * Math.pow(0.88, yr - 1));
+      // Ancillary services degrade with battery SoH AND market saturation/cannibalization
+      let yrAncillary = 0;
+      if (state.strategy === "mixed") {
+        let saturationDecay = 1.0;
+        if (state.scenario === "nordic_frequency") {
+          // Moderate market saturation: 5% erosion per year after year 1 down to 40% floor
+          saturationDecay = Math.max(0.40, Math.pow(0.95, yr - 1));
+        } else if (state.scenario === "cannibalization") {
+          // Rapid cannibalization: 12% erosion per year down to 25% floor
+          saturationDecay = Math.max(0.25, Math.pow(0.88, yr - 1));
+        }
+        yrAncillary = Math.round(ancillaryRevSek * deg * saturationDecay * (shock > 1 ? 1.2 : (shock < 1 ? 0.8 : 1.0)));
       }
 
-      const yrSolar = Math.round(solarSavingsSek * deg * (shock > 1 ? (1 + (shock - 1) * 0.3) : shock));
+      const yrSolar = Math.round(solarSavingsSek * deg * (shock > 1 ? (1 + (shock - 1) * 0.2) : shock));
       const yrArb = Math.round(arbitrageProfitSek * deg * shock);
       const yrTotal = yrSolar + yrArb + yrAncillary;
 
@@ -547,15 +570,19 @@
           • <strong>Ö-drift & Utomhus:</strong> Ö-drift: ${offer.islanding === "yes" ? "Integrerad" : offer.islanding === "option" ? "Tillval mot kostnad" : "Kräver extern brytare"}. Utomhusplacering: ${offer.outdoor_placement ? "Ja (IP65/IP66)" : "Nej (kräver frostfritt)"}.
         </div>
 
-        <h4>15-årigt kassaflöde (inkl. degradering & extremår)</h4>
+        <h4>15-årig Framtidsprognos för Kassaflöde (Framåt i tiden: År 1–15)</h4>
+        <div style="background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px; padding: 0.75rem 1rem; margin-top: 0.5rem; font-size: 0.85em; color: var(--muted); line-height: 1.5;">
+          <strong>Simulering framåt i tiden:</strong> Denna kalkyl simulerar förväntat framtida kassaflöde över 15 år med -1,8 %/år batterislitage, kalkylränta (5 %) och successiv priserosion på stödtjänstmarknaden. <em>(Jämför med Sektion 4 som visar verkliga historiska kalenderår bakåt i tiden.)</em>
+        </div>
+
         <div style="overflow-x: auto; margin-top: 0.75rem;">
           <table class="data-table" style="width: 100%; font-size: 0.9em;">
             <thead>
               <tr>
-                <th>År</th>
+                <th>År (Framåt)</th>
                 <th>Solelbesparing</th>
                 <th>Spotarbitrage</th>
-                <th>Stödtjänster</th>
+                <th>Stödtjänster (FCR-D)*</th>
                 <th>Totalt kassaflöde</th>
                 <th>Kapacitet</th>
                 <th>Ackumulerat netto</th>
@@ -566,6 +593,9 @@
             </tbody>
           </table>
         </div>
+        <p style="font-size: 0.8em; color: var(--muted); margin-top: 0.5rem;">
+          * Stödtjänstintäkter sjunker gradvis över 15 år på grund av minskad batterikapacitet (SoH) och marknadsmättnad på frekvensmarknaden.
+        </p>
       </div>
     `;
   }
@@ -578,29 +608,54 @@
     const zd = getZoneData();
     const btData = (zd && zd.backtest) || (state.data && state.data.backtest) || {};
     const yearsData = btData.years || {};
+    const erasSummary = btData.eras_summary || {};
+
+    let eraLabel = "Moderna eran (2022–2026)";
+    if (state.selectedEra === "classic") eraLabel = "Gamla eran (2015–2020)";
+    else if (state.selectedEra === "all") eraLabel = "Hela historiken (2015–2026)";
 
     if (btTitle) {
-      btTitle.textContent = `4. Historiskt backtest i ${state.selectedZone} (2022–2026)`;
+      btTitle.textContent = `4. Historiskt backtest i ${state.selectedZone}: Faktiskt utfall (${eraLabel})`;
+    }
+
+    let allYearKeys = Object.keys(yearsData).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    let filteredYears = allYearKeys;
+    if (state.selectedEra === "modern") {
+      filteredYears = allYearKeys.filter((y) => parseInt(y, 10) >= 2022);
+    } else if (state.selectedEra === "classic") {
+      filteredYears = allYearKeys.filter((y) => parseInt(y, 10) <= 2020);
     }
 
     let rows = "";
-    Object.keys(yearsData).sort().forEach((year) => {
+    filteredYears.forEach((year) => {
       const yData = yearsData[year];
       const solis = (yData.offers && yData.offers["solis_dyness_15"]) || {};
       const solisMixed = solis.mixed || {};
       const sig = (yData.offers && yData.offers["sigenergy_18"]) || {};
       const sigMixed = sig.mixed || {};
 
-      const isShockYear = year === "2022";
-      const yearBadge = isShockYear 
-        ? `<strong style="color: #facc15;">${year} (Extremår)</strong>` 
-        : `<strong>${year}</strong>`;
+      const yNum = parseInt(year, 10);
+      let eraBadge = "";
+      if (yNum <= 2020) {
+        eraBadge = `<span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #94a3b8;">Gamla eran</span>`;
+      } else if (yNum === 2022) {
+        eraBadge = `<span class="badge" style="background: rgba(250, 204, 21, 0.2); color: #facc15;">Energikris</span>`;
+      } else {
+        eraBadge = `<span class="badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">Moderna eran</span>`;
+      }
+
+      const spreadStr = yData.mean_daily_spread_sek_kwh 
+        ? `${(yData.mean_daily_spread_sek_kwh * 100).toFixed(1)} öre`
+        : "—";
+      const negHoursStr = (yData.neg_hours !== undefined) ? `${yData.neg_hours} h` : "—";
 
       rows += `
-        <tr ${isShockYear ? 'style="background: rgba(250, 204, 21, 0.08);"' : ""}>
-          <td>${yearBadge}</td>
+        <tr ${yNum === 2022 ? 'style="background: rgba(250, 204, 21, 0.08);"' : (yNum <= 2020 ? 'style="opacity: 0.85;"' : '')}>
+          <td><strong>${year}</strong></td>
+          <td>${eraBadge}</td>
           <td>${(yData.mean_spot_sek_kwh * 100).toFixed(1)} öre/kWh</td>
-          <td>${(yData.min_spot_sek_kwh * 100).toFixed(1)} / ${(yData.max_spot_sek_kwh * 100).toFixed(1)} öre</td>
+          <td style="color: #38bdf8; font-weight: 600;">${spreadStr}</td>
+          <td>${negHoursStr}</td>
           <td>${fmtKr(solisMixed.solar_savings_sek)}</td>
           <td>${fmtKr(solisMixed.arbitrage_profit_sek)}</td>
           <td style="color: #4ade80; font-weight: 600;">${fmtKr(solisMixed.total_value_sek)}</td>
@@ -609,14 +664,44 @@
       `;
     });
 
+    // Era summary metrics
+    const classicSummary = erasSummary.classic || {};
+    const modernSummary = erasSummary.modern || {};
+
+    let summaryBlock = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
+        <div style="background: rgba(148, 163, 184, 0.05); border: 1px solid var(--border); border-radius: 8px; padding: 1rem;">
+          <div style="font-weight: 600; color: #94a3b8; font-size: 0.95em; margin-bottom: 0.5rem;">Gamla eran (2015–2020) Snitt:</div>
+          <div style="font-size: 0.88em; color: var(--muted); line-height: 1.6;">
+            • Snittspot: <strong>${classicSummary.mean_spot_sek_kwh ? (classicSummary.mean_spot_sek_kwh * 100).toFixed(1) : "36,7"} öre/kWh</strong><br>
+            • Dygnsspread: <strong>${classicSummary.mean_daily_spread_sek_kwh ? (classicSummary.mean_daily_spread_sek_kwh * 100).toFixed(1) : "21,5"} öre/kWh</strong><br>
+            • Solis arbitrage: <strong>${classicSummary.solis_mean_arbitrage_sek ? fmtKr(classicSummary.solis_mean_arbitrage_sek) : "467 kr"}/år</strong><br>
+            • Slutsats: <em>För låg volatilitet. Batteri olönsamt (payback &gt;40 år).</em>
+          </div>
+        </div>
+
+        <div style="background: rgba(56, 189, 248, 0.06); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem;">
+          <div style="font-weight: 600; color: #38bdf8; font-size: 0.95em; margin-bottom: 0.5rem;">Moderna eran (2022–2026) Snitt:</div>
+          <div style="font-size: 0.88em; color: var(--text); line-height: 1.6;">
+            • Snittspot: <strong>${modernSummary.mean_spot_sek_kwh ? (modernSummary.mean_spot_sek_kwh * 100).toFixed(1) : "94,3"} öre/kWh</strong><br>
+            • Dygnsspread: <strong>${modernSummary.mean_daily_spread_sek_kwh ? (modernSummary.mean_daily_spread_sek_kwh * 100).toFixed(1) : "125,4"} öre/kWh</strong><br>
+            • Solis arbitrage: <strong>${modernSummary.solis_mean_arbitrage_sek ? fmtKr(modernSummary.solis_mean_arbitrage_sek) : "3 596 kr"}/år</strong><br>
+            • Slutsats: <em>7–10× högre arbitragevärde. Batteri når 5–8 års återbetalningstid.</em>
+          </div>
+        </div>
+      </div>
+    `;
+
     btContainer.innerHTML = `
       <div style="overflow-x: auto; margin-top: 1rem;">
         <table class="data-table" style="width: 100%; font-size: 0.9em;">
           <thead>
             <tr>
               <th>År</th>
-              <th>Snittpris ${state.selectedZone}</th>
-              <th>Min / Max spot</th>
+              <th>Marknadsepok</th>
+              <th>Snittspot</th>
+              <th>Dygnsspread</th>
+              <th>Neg. timmar</th>
               <th>Solel (Solis)</th>
               <th>Arbitrage (Solis)</th>
               <th>Summa Solis 15 kWh</th>
@@ -628,6 +713,7 @@
           </tbody>
         </table>
       </div>
+      ${summaryBlock}
     `;
   }
 
