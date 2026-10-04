@@ -140,19 +140,68 @@
     </section>
 
     <!-- Simulerad anläggning (sparad från kalkylatorn) -->
-    <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
-      <div>
-        <div style="font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; font-weight: 700;">Simulerad anläggning (synkad med Kalkylatorn)</div>
-        <div id="bess-active-config-summary" style="font-size: 1.05em; margin-top: 0.35rem;">
-          Laddar anläggningskonfiguration…
+    <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <div style="font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; font-weight: 700;">Simulerad anläggning (synkad med Kalkylatorn)</div>
+          <div id="bess-active-config-summary" style="font-size: 1.05em; margin-top: 0.35rem;">
+            Laddar anläggningskonfiguration…
+          </div>
+          <div style="font-size: 0.85em; color: var(--muted); margin-top: 0.25rem;">
+            Backtestet nedan simulerar hur just din sparade anläggning hade presterat under verkliga historiska timpriser för varje enskilt år 2015–2026.
+          </div>
         </div>
-        <div style="font-size: 0.85em; color: var(--muted); margin-top: 0.25rem;">
-          Backtestet nedan simulerar hur just din sparade anläggning hade presterat under verkliga historiska timpriser för varje enskilt år 2015–2026.
-        </div>
+        <a href="batteri.html" class="btn btn-secondary" style="font-size: 0.85em; padding: 0.5rem 1rem; white-space: nowrap; text-decoration: none;">
+          ⚙️ Gå till Kalkylatorn
+        </a>
       </div>
-      <a href="batteri.html" class="btn btn-secondary" style="font-size: 0.85em; padding: 0.5rem 1rem; white-space: nowrap; text-decoration: none;">
-        ⚙️ Ändra i Kalkylatorn
-      </a>
+
+      <!-- Snabbjustera direkt på sidan -->
+      <details style="margin-top: 0.75rem;">
+        <summary style="color: #38bdf8; cursor: pointer; font-size: 0.9em; font-weight: 600;">⚙️ Snabbjustera batteri & förbrukning direkt här ▼</summary>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 0.75rem; padding: 1rem; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border);">
+          <div>
+            <label for="bess-cap-slider" style="font-size: 0.85em; font-weight: 600; display: flex; justify-content: space-between;">
+              <span>Batterikapacitet</span>
+              <span id="bess-cap-val" style="color: #38bdf8;">15 kWh</span>
+            </label>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+              <input type="range" id="bess-cap-slider" min="5" max="80" step="1" value="15" style="flex: 1;">
+              <input type="number" id="bess-cap-num" min="5" max="80" step="1" value="15" style="width: 60px; font-size: 0.85em;" class="field">
+            </div>
+          </div>
+          <div>
+            <label for="bess-p-slider" style="font-size: 0.85em; font-weight: 600; display: flex; justify-content: space-between;">
+              <span>Växelriktareffekt</span>
+              <span id="bess-p-val" style="color: #38bdf8;">10 kW</span>
+            </label>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+              <input type="range" id="bess-p-slider" min="3" max="40" step="1" value="10" style="flex: 1;">
+              <input type="number" id="bess-p-num" min="3" max="40" step="1" value="10" style="width: 60px; font-size: 0.85em;" class="field">
+            </div>
+          </div>
+          <div>
+            <label for="bess-load-slider" style="font-size: 0.85em; font-weight: 600; display: flex; justify-content: space-between;">
+              <span>Årsförbrukning</span>
+              <span id="bess-load-val" style="color: #38bdf8;">8 000 kWh</span>
+            </label>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+              <input type="range" id="bess-load-slider" min="3000" max="60000" step="1000" value="8000" style="flex: 1;">
+              <input type="number" id="bess-load-num" min="3000" max="60000" step="1000" value="8000" style="width: 75px; font-size: 0.85em;" class="field">
+            </div>
+          </div>
+          <div>
+            <label for="bess-pv-slider" style="font-size: 0.85em; font-weight: 600; display: flex; justify-content: space-between;">
+              <span>Solceller</span>
+              <span id="bess-pv-val" style="color: #38bdf8;">10 kWp</span>
+            </label>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+              <input type="range" id="bess-pv-slider" min="0" max="50" step="1" value="10" style="flex: 1;">
+              <input type="number" id="bess-pv-num" min="0" max="50" step="1" value="10" style="width: 60px; font-size: 0.85em;" class="field">
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
 
     <!-- Historiskt backtest över 11 år -->
@@ -238,6 +287,6 @@
   </div>
 </main>
 
-<script src="assets/bess.js"></script>
+<script src="assets/bess.js?v=20261004c"></script>
 </body>
 </html>

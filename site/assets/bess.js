@@ -36,15 +36,23 @@
 
   function loadState() {
     try {
+      const ppoZone = localStorage.getItem("ppo.zone");
+      if (ppoZone && ["SE1", "SE2", "SE3", "SE4"].includes(ppoZone)) {
+        state.selectedZone = ppoZone;
+      }
+
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved.selectedZone) state.selectedZone = saved.selectedZone;
-        if (saved.numOwners !== undefined) state.numOwners = saved.numOwners;
+        if (saved.selectedZone && ["SE1", "SE2", "SE3", "SE4"].includes(saved.selectedZone)) {
+          state.selectedZone = saved.selectedZone;
+        }
+        if (saved.numOwners !== undefined) state.numOwners = parseInt(saved.numOwners, 10);
         if (saved.strategy) state.strategy = saved.strategy;
         if (saved.scenario) state.scenario = saved.scenario;
         if (saved.selectedEra) state.selectedEra = saved.selectedEra;
         if (saved.selectedOfferId) state.selectedOfferId = saved.selectedOfferId;
+        if (saved.showCustomCf !== undefined) state.showCustomCf = !!saved.showCustomCf;
         if (saved.custom && typeof saved.custom === "object") {
           state.custom = Object.assign({}, state.custom, saved.custom);
         }
@@ -56,6 +64,8 @@
 
   function saveState() {
     try {
+      localStorage.setItem("ppo.zone", state.selectedZone);
+
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         selectedZone: state.selectedZone,
         numOwners: state.numOwners,
@@ -63,6 +73,7 @@
         scenario: state.scenario,
         selectedEra: state.selectedEra,
         selectedOfferId: state.selectedOfferId,
+        showCustomCf: state.showCustomCf,
         custom: state.custom,
       }));
     } catch (e) {
@@ -643,6 +654,7 @@
     tbody.querySelectorAll("tr[data-offer-id]").forEach((tr) => {
       tr.addEventListener("click", () => {
         state.selectedOfferId = tr.getAttribute("data-offer-id");
+        saveState();
         renderAll();
       });
     });
@@ -874,5 +886,9 @@
     `;
   }
 
-  document.addEventListener("DOMContentLoaded", init);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();
