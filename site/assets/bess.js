@@ -367,7 +367,7 @@
       const deg = Math.max(0.65, 1.0 - (yr - 1) * 0.018); // 1.8% annual degradation
       let shock = 1.0;
       if (state.scenario === "nordic_frequency") {
-        if (yr === 3 || yr === 11) shock = 2.0;      // Positive extreme shock (gas/dry)
+        if (yr === 3 || yr === 11) shock = 2.3;      // Positive extreme shock (gas/dry)
         else if (yr === 7) shock = 0.6;              // Wet negative shock
       }
 
@@ -443,9 +443,12 @@
   }
 
   function getOfferLifecycle(offer) {
-    const key = `${state.scenario}_${state.numOwners === 1 ? "1_owner" : "2_owners"}`;
+    const ownerStr = state.numOwners === 1 ? "1_owner" : "2_owners";
+    const key = `${state.scenario}_${ownerStr}`;
+    if (offer.lifecycle && offer.lifecycle[key]) return offer.lifecycle[key];
     const altKey = `${state.scenario}_2_owners`;
-    return (offer.lifecycle && (offer.lifecycle[key] || offer.lifecycle[altKey])) || {};
+    if (offer.lifecycle && offer.lifecycle[altKey]) return offer.lifecycle[altKey];
+    return (offer.lifecycle && offer.lifecycle["nordic_frequency_2_owners"]) || {};
   }
 
   function renderAll() {
@@ -549,18 +552,31 @@
     if (pLabel) pLabel.textContent = `${c.p_kw} kW`;
     const cRateHint = document.getElementById("bess-c-rate-hint");
     if (cRateHint) {
+      let fuseMsg = "";
+      if (c.p_kw <= 11) {
+        fuseMsg = "Standard 16 A huvudsäkring (11 kW) räcker.";
+      } else if (c.p_kw <= 14) {
+        fuseMsg = "Kräver minst 20 A huvudsäkring (14 kW).";
+      } else if (c.p_kw <= 17) {
+        fuseMsg = "Kräver 25 A huvudsäkring (villa har ofta 16–20 A).";
+      } else if (c.p_kw <= 25) {
+        fuseMsg = "⚠️ Kräver 35 A huvudsäkring (dyrare fast nätavgift!).";
+      } else {
+        fuseMsg = "⚠️ Kräver 50–63 A huvudsäkring / industrianslutning.";
+      }
+
       let msg = "";
       let color = "var(--faint)";
       if (c.p_kw < 3) {
-        msg = `C-tal: ${res.cRate.toFixed(2)} C ⚠️ Under 3 kW: Aggregatorer kräver normalt minst 3 kW för att delta i stödtjänster.`;
+        msg = `C-tal: ${res.cRate.toFixed(2)} C ⚠️ Under 3 kW: Aggregatorer kräver normalt minst 3 kW för att delta i stödtjänster. ${fuseMsg}`;
         color = "#f87171";
       } else if (res.cRate > 1.2) {
         const minDuration = Math.round(60 / res.cRate);
-        msg = `C-tal: ${res.cRate.toFixed(2)} C ⚡ Hög urladdningstakt: Batteriet töms på ca ${minDuration} minuter. Kontrollera att BMS tillåter denna urladdningsström.`;
+        msg = `C-tal: ${res.cRate.toFixed(2)} C ⚡ Tömning på ca ${minDuration} min. ${fuseMsg}`;
         color = "#facc15";
       } else {
         const enduranceH = (1 / res.cRate).toFixed(1);
-        msg = `C-tal: ${res.cRate.toFixed(2)} C ✅ Hög uthållighet: ca ${enduranceH} timmar vid maxeffekt (godkänd för SvK:s 20-minuterskrav på FCR-D).`;
+        msg = `C-tal: ${res.cRate.toFixed(2)} C ✅ Ca ${enduranceH} h uthållighet vid maxeffekt (godkänd för SvK:s 20-min krav). ${fuseMsg}`;
         color = "var(--faint)";
       }
       cRateHint.textContent = msg;
@@ -569,13 +585,20 @@
 
     const loadLabel = document.getElementById("bess-load-val");
     if (loadLabel) loadLabel.textContent = `${c.load_kwh.toLocaleString("sv-SE")} kWh`;
+    const loadHint = document.getElementById("bess-load-hint");
+    if (loadHint) {
+      const avgNightKwh = Math.round((c.load_kwh / 365) * 0.45);
+      const winterNightKwh = Math.round((c.load_kwh / 365) * 1.8 * 0.50);
+      loadHint.textContent = `Kvälls- och nattbehov: ca ${avgNightKwh} kWh/dygn i snitt (vinter upp till ${winterNightKwh} kWh)`;
+    }
 
     const pvLabel = document.getElementById("bess-pv-val");
     if (pvLabel) pvLabel.textContent = `${c.pv_kwp} kWp`;
     const pvHint = document.getElementById("bess-pv-hint");
     if (pvHint) {
+      const annualPv = Math.round(c.pv_kwp * 850);
       pvHint.textContent = c.pv_kwp > 0
-        ? `Årsproduktion: ca ${(c.pv_kwp * 700).toLocaleString("sv-SE")} kWh · Lagrad solel: ca ${res.storedSolarKwh.toLocaleString("sv-SE")} kWh/år`
+        ? `Årsproduktion: ca ${annualPv.toLocaleString("sv-SE")} kWh · Lagrad solel: ca ${res.storedSolarKwh.toLocaleString("sv-SE")} kWh/år`
         : `Inga solceller: Batteriet kör ren nätarbitrage och stödtjänster`;
     }
 

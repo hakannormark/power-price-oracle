@@ -60,7 +60,19 @@ def _build_single_zone_data(
         lc_nordic_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="nordic_frequency")
         lc_nordic_1own = compute_lifecycle(offer, disp_mixed, num_owners=1, scenario="nordic_frequency")
         lc_base_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="base_only")
+        lc_base_1own = compute_lifecycle(offer, disp_mixed, num_owners=1, scenario="base_only")
         lc_cannibal_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="cannibalization")
+        lc_cannibal_1own = compute_lifecycle(offer, disp_mixed, num_owners=1, scenario="cannibalization")
+
+        def _fmt_lc(lc: Any) -> dict[str, Any]:
+            return {
+                "payback_years": lc.payback_years,
+                "discounted_payback_years": lc.discounted_payback_years,
+                "npv_10y": lc.npv_10y,
+                "npv_15y": lc.npv_15y,
+                "irr": lc.irr,
+                "cash_flows": [cf.__dict__ for cf in lc.annual_cash_flows],
+            }
 
         offer_entry = offer.to_dict(num_owners=2)
         offer_entry["annual_dispatch"] = {
@@ -83,31 +95,12 @@ def _build_single_zone_data(
             },
         }
         offer_entry["lifecycle"] = {
-            "nordic_frequency_2_owners": {
-                "payback_years": lc_nordic_2own.payback_years,
-                "discounted_payback_years": lc_nordic_2own.discounted_payback_years,
-                "npv_10y": lc_nordic_2own.npv_10y,
-                "npv_15y": lc_nordic_2own.npv_15y,
-                "irr": lc_nordic_2own.irr,
-                "cash_flows": [cf.__dict__ for cf in lc_nordic_2own.annual_cash_flows],
-            },
-            "nordic_frequency_1_owner": {
-                "payback_years": lc_nordic_1own.payback_years,
-                "discounted_payback_years": lc_nordic_1own.discounted_payback_years,
-                "npv_10y": lc_nordic_1own.npv_10y,
-                "npv_15y": lc_nordic_1own.npv_15y,
-                "irr": lc_nordic_1own.irr,
-            },
-            "base_only_2_owners": {
-                "payback_years": lc_base_2own.payback_years,
-                "discounted_payback_years": lc_base_2own.discounted_payback_years,
-                "npv_15y": lc_base_2own.npv_15y,
-            },
-            "cannibalization_2_owners": {
-                "payback_years": lc_cannibal_2own.payback_years,
-                "discounted_payback_years": lc_cannibal_2own.discounted_payback_years,
-                "npv_15y": lc_cannibal_2own.npv_15y,
-            },
+            "nordic_frequency_2_owners": _fmt_lc(lc_nordic_2own),
+            "nordic_frequency_1_owner": _fmt_lc(lc_nordic_1own),
+            "base_only_2_owners": _fmt_lc(lc_base_2own),
+            "base_only_1_owner": _fmt_lc(lc_base_1own),
+            "cannibalization_2_owners": _fmt_lc(lc_cannibal_2own),
+            "cannibalization_1_owner": _fmt_lc(lc_cannibal_1own),
         }
         offers_data.append(offer_entry)
 
