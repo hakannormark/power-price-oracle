@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20261004g">
 <style>
   .zone-pills {
     display: flex;
@@ -308,6 +308,28 @@
           </select>
           <span class="bess-hint">Modellerar prischocker vs marknadsmättnad</span>
         </div>
+
+        <!-- Huvudsäkring & Nätanslutning -->
+        <div class="bess-control-group">
+          <label for="bess-fuse">
+            <span>Befintlig huvudsäkring</span>
+          </label>
+          <select class="field" id="bess-fuse">
+            <option value="16" selected>16 A standardvilla (max 11 kW 3-fas)</option>
+            <option value="20">20 A villa (max 14 kW 3-fas)</option>
+            <option value="25">25 A storvilla (max 17 kW 3-fas)</option>
+            <option value="35">35 A fastighet / gård (max 24 kW 3-fas)</option>
+            <option value="50">50 A industri (max 35 kW 3-fas)</option>
+            <option value="63">63 A storanslutning (max 44 kW 3-fas)</option>
+          </select>
+          <div style="margin-top: 0.35rem;">
+            <label style="font-size: 0.82em; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+              <input type="checkbox" id="bess-fuse-deduct" checked>
+              Dra av uppsäkringens nätavgift från kalkylen
+            </label>
+          </div>
+          <span class="bess-hint" id="bess-fuse-hint">16 A räcker för vald växelriktare (10 kW). Ingen extra nätavgift.</span>
+        </div>
       </div>
 
       <!-- Kalkylresultat för din anläggning -->
@@ -341,9 +363,15 @@
         </div>
       </div>
 
-      <!-- Fäll ut 15-årigt kassaflöde för anpassat system -->
-      <div style="margin-top: 1.25rem;">
-        <button type="button" class="field" id="bess-custom-toggle-cf" style="cursor: pointer; font-weight: 600; padding: 0.5rem 1rem;">
+      <!-- Exportera & Fäll ut kassaflöde -->
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; align-items: center;" class="bess-export-actions">
+        <button type="button" class="btn btn-secondary" id="bess-btn-export-csv" style="cursor: pointer;">
+          📥 Ladda ner CSV-kalkyl
+        </button>
+        <button type="button" class="btn btn-secondary" id="bess-btn-print" style="cursor: pointer;">
+          📄 Skriv ut / Spara som PDF
+        </button>
+        <button type="button" class="field" id="bess-custom-toggle-cf" style="cursor: pointer; font-weight: 600; padding: 0.55rem 1rem;">
           Visa 15-årig Framtidsprognos för Kassaflöde (År 1–15 framåt) ▼
         </button>
       </div>
@@ -352,7 +380,7 @@
         <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; font-size: 0.9em; line-height: 1.5;">
           <strong style="color: #38bdf8;">Framåtblickande investeringskalkyl (Framåt i tiden: År 1–15):</strong><br>
           Denna tabell simulerar hur kassaflödet utvecklas <strong>framåt i tiden</strong> från det år anläggningen köps och installeras. Den tar hänsyn till batteriets fysiska degradering (-1,8 %/år SoH), förväntade framtida extremår/makrochocker, 5 % kalkylränta samt successiv marknadsmättnad på stödtjänster.<br>
-          <em>(Detta skiljer sig från Sektion 4 längre ner, som är ett <strong>Historiskt Backtest bakåt i tiden</strong> baserat på faktiska timpriser från verkliga år.)</em>
+          <em>(Detta skiljer sig från Elmarknadens Epoker, som är ett <strong>Historiskt Backtest bakåt i tiden</strong> baserat på faktiska timpriser från verkliga år.)</em>
         </div>
 
         <div style="overflow-x: auto;">
@@ -372,16 +400,35 @@
             <tbody id="bess-custom-cf-body"></tbody>
           </table>
         </div>
-        <p style="font-size: 0.8em; color: var(--muted); margin-top: 0.5rem;">
+        <p style="font-size: 0.8em; color: var(--muted); margin-top: 0.5rem;" id="bess-custom-cf-footnote">
           * Stödtjänstintäkter (FCR-D) är inte konstanta utan minskar över tid på grund av: (1) Batteriets kapacitetsförlust (-1,8 %/år SoH) som minskar godkänd budvolym, och (2) Förväntad marknadsmättnad/priserosion då Svenska kraftnäts begränsade frekvensmarknad (~350 MW) snabbt fylls när fler batterier installeras i Sverige.
         </p>
       </div>
     </section>
 
-    <!-- Dimensioneringsguide: Villa vs Högförbrukare -->
+    <!-- 3. Säsongsprofil: Vinter vs Sommar -->
+    <section class="card" id="bess-season-section">
+      <div class="section-title">
+        <h2>3. Säsongsprofil: Hur nyttan fördelas över året (Vinter vs Sommar)</h2>
+        <span class="meta">Dynamiskt beräknad för din valda anläggning i <span id="bess-season-zone-name">SE4</span></span>
+      </div>
+      <p class="sub">
+        I Sverige är elmarknaden extremt säsongsbetonad. Ett hembatteri arbetar på helt olika sätt beroende på årstid: på vintern genereras nästan 100 % av värdet via nätarbitrage och stödtjänster, medan våren och sommaren domineras av att lagra egenproducerad solel.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem;" id="bess-season-cards">
+        <!-- Genereras dynamiskt via renderSeasonalProfile() -->
+      </div>
+
+      <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 0.9rem; margin-top: 1.25rem; font-size: 0.85em; color: var(--muted); line-height: 1.5;">
+        💡 <strong>Säsongsinsikt:</strong> Utan solceller är batteriets intäkter kraftigt koncentrerade till vinter och höst (ca 60–65 % under Q1 och Q4) då elpriserna svänger som mest. Med solceller planar intäktsflödet ut jämnare över året då solöverskottet på våren och försommaren ersätter det lugnare sommararbitraget.
+      </div>
+    </section>
+
+    <!-- 4. Dimensioneringsguide: Villa vs Högförbrukare -->
     <section class="card">
       <div class="section-title">
-        <h2>3. Dimensionering: 10, 20 eller 60 kWh? – Anpassa efter hushållets årsförbrukning</h2>
+        <h2>4. Dimensionering: 10, 20 eller 60 kWh? – Anpassa efter hushållets årsförbrukning</h2>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; font-size: 0.95em;">
         <div>
@@ -414,7 +461,7 @@
     <!-- Spelreglerna 2026 -->
     <section class="card">
       <div class="section-title">
-        <h2>4. Spelreglerna 2026: Varför gamla tumregler inte längre gäller</h2>
+        <h2>5. Spelreglerna 2026: Varför gamla tumregler inte längre gäller</h2>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
@@ -442,7 +489,7 @@
     <!-- Fördjupa dig i batterikalkylen (Navigationspuffar) -->
     <section class="card">
       <div class="section-title">
-        <h2>5. Utforska mer: Fördjupa dig i batterianalysen</h2>
+        <h2>6. Utforska mer: Fördjupa dig i batterianalysen</h2>
       </div>
       <p class="sub">Vill du jämföra specifika hårdvarupaket, analysera elmarknadens historiska systemskifte eller stresstesta kalkylen mot framtida extremår?</p>
 
@@ -470,6 +517,6 @@
   </div>
 </main>
 
-<script src="assets/bess.js?v=20261004f"></script>
+<script src="assets/bess.js?v=20261004g"></script>
 </body>
 </html>

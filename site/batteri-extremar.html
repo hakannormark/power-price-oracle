@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20261004g">
 <style>
   .zone-pills {
     display: flex;
@@ -264,6 +264,16 @@
         </div>
       </div>
 
+      <!-- Exportera & Skriv ut -->
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; align-items: center;" class="bess-export-actions">
+        <button type="button" class="btn btn-secondary" id="bess-btn-export-csv" style="cursor: pointer;">
+          📥 Ladda ner CSV-kalkyl
+        </button>
+        <button type="button" class="btn btn-secondary" id="bess-btn-print" style="cursor: pointer;">
+          📄 Skriv ut / Spara som PDF
+        </button>
+      </div>
+
       <!-- 15-årigt kassaflöde direkt i scenariovyn -->
       <div style="margin-top: 1.5rem;">
         <h3 style="font-size: 1.1em; color: #fff; margin-bottom: 0.5rem;">15-årigt kassaflöde under valt scenario</h3>
@@ -346,6 +356,6 @@
   </div>
 </main>
 
-<script src="assets/bess.js?v=20261004f"></script>
+<script src="assets/bess.js?v=20261004g"></script>
 </body>
 </html>

@@ -806,3 +806,112 @@ pre code { background: none; border: 0; padding: 0; font-size: inherit; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* ------------------------------------------------------------ buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background: #38bdf8;
+  color: #0b1220;
+}
+.btn-primary:hover {
+  background: #7dd3fc;
+  color: #0b1220;
+  text-decoration: none;
+}
+.btn-secondary {
+  background: var(--bg-soft);
+  color: var(--text);
+  border-color: var(--border);
+}
+.btn-secondary:hover {
+  background: var(--card-hover);
+  border-color: var(--border-strong);
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------------ print */
+
+@media print {
+  .site-header,
+  .site-footer,
+  .portal-nav,
+  .site-nav,
+  .bess-slider-wrap,
+  .controls,
+  .btn,
+  button,
+  .bess-zone-pills,
+  .banner,
+  #degraded-banner,
+  .bess-export-actions,
+  #bess-custom-toggle-cf {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10pt !important;
+  }
+
+  .wrap {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    margin-bottom: 1rem !important;
+    color: #0f172a !important;
+  }
+
+  #bess-custom-cf-box {
+    display: block !important;
+  }
+
+  .data-table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    font-size: 8.5pt !important;
+  }
+
+  .data-table th,
+  .data-table td {
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    padding: 4px 6px !important;
+  }
+
+  .bess-result-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+
+  .bess-result-val {
+    color: #0f172a !important;
+  }
+
+  .bess-result-label,
+  .bess-result-sub {
+    color: #475569 !important;
+  }
+}

@@ -22,6 +22,8 @@
       pv_kwp: 10,
       gross_price: 65000,
       fcr_rate_month: 25,
+      current_fuse: 16,
+      deduct_fuse_upgrade: true,
     },
   };
 
@@ -34,6 +36,30 @@
     if (val === null || val === undefined || isNaN(val) || !isFinite(val)) return "> 15 år";
     if (val > 15) return "> 15 år";
     return val.toFixed(1).replace(".", ",") + " år";
+  }
+
+  function getRequiredFuse(p_kw) {
+    if (p_kw <= 11) return 16;
+    if (p_kw <= 13.8) return 20;
+    if (p_kw <= 17.3) return 25;
+    if (p_kw <= 24.2) return 35;
+    if (p_kw <= 34.5) return 50;
+    return 63;
+  }
+
+  function getFuseUpgradeAnnualCost(fromA, toA) {
+    if (fromA >= toA) return 0;
+    const annualBase = {
+      16: 0,
+      20: 1400,
+      25: 2600,
+      35: 5500,
+      50: 10500,
+      63: 16000,
+    };
+    const cFrom = annualBase[fromA] !== undefined ? annualBase[fromA] : 0;
+    const cTo = annualBase[toA] !== undefined ? annualBase[toA] : (16000 + (toA - 63) * 350);
+    return Math.max(0, cTo - cFrom);
   }
 
   const STORAGE_KEY = "bess_user_state_v1";
@@ -298,6 +324,40 @@
         renderBacktest();
       });
     }
+
+    // 7. Fuse controls
+    const fuseSelect = document.getElementById("bess-fuse");
+    if (fuseSelect) {
+      if (state.custom.current_fuse) fuseSelect.value = String(state.custom.current_fuse);
+      fuseSelect.addEventListener("change", (e) => {
+        state.custom.current_fuse = parseInt(e.target.value, 10);
+        saveState();
+        renderAll();
+      });
+    }
+
+    const fuseDeductCheck = document.getElementById("bess-fuse-deduct");
+    if (fuseDeductCheck) {
+      fuseDeductCheck.checked = state.custom.deduct_fuse_upgrade !== false;
+      fuseDeductCheck.addEventListener("change", (e) => {
+        state.custom.deduct_fuse_upgrade = e.target.checked;
+        saveState();
+        renderAll();
+      });
+    }
+
+    // 8. Export & Print actions
+    const csvBtn = document.getElementById("bess-btn-export-csv");
+    if (csvBtn) {
+      csvBtn.addEventListener("click", exportCustomSystemCSV);
+    }
+
+    const printBtn = document.getElementById("bess-btn-print");
+    if (printBtn) {
+      printBtn.addEventListener("click", () => {
+        window.print();
+      });
+    }
   }
 
   // Calculate dynamic custom battery system
@@ -319,6 +379,12 @@
     // Usable capacity & C-rate
     const usableKwh = c.cap_kwh * 0.90;
     const cRate = c.cap_kwh > 0 ? (c.p_kw / c.cap_kwh) : 0;
+
+    // Fuse upgrade requirements & grid tariffs
+    const requiredFuse = getRequiredFuse(c.p_kw);
+    const currentFuse = c.current_fuse || 16;
+    const fuseUpgradeAnnualCost = getFuseUpgradeAnnualCost(currentFuse, requiredFuse);
+    const effectiveFuseDeduction = c.deduct_fuse_upgrade !== false ? fuseUpgradeAnnualCost : 0;
 
     // Solar self-consumption
     let storedSolarKwh = 0;
@@ -353,7 +419,8 @@
       }
     }
 
-    const totalAnnualValue = solarSavingsSek + arbitrageProfitSek + ancillaryRevSek;
+    const grossAnnualValue = solarSavingsSek + arbitrageProfitSek + ancillaryRevSek;
+    const totalAnnualValue = Math.max(0, grossAnnualValue - effectiveFuseDeduction);
 
     // 15-year lifecycle forecast (forward-looking Years 1 to 15)
     const cashFlows = [];
@@ -387,7 +454,8 @@
 
       const yrSolar = Math.round(solarSavingsSek * deg * (shock > 1 ? (1 + (shock - 1) * 0.2) : shock));
       const yrArb = Math.round(arbitrageProfitSek * deg * shock);
-      const yrTotal = yrSolar + yrArb + yrAncillary;
+      const yrGross = yrSolar + yrArb + yrAncillary;
+      const yrTotal = Math.max(0, yrGross - effectiveFuseDeduction);
 
       const prevCumCash = cumCash;
       cumCash += yrTotal;
@@ -413,6 +481,7 @@
         solar_savings: yrSolar,
         arbitrage_profit: yrArb,
         ancillary_revenue: yrAncillary,
+        fuse_cost: effectiveFuseDeduction,
         total_revenue: yrTotal,
         capacity_retention: deg,
         prev_cumulative_cash_flow: prevCumCash,
@@ -428,6 +497,11 @@
       deductionLost,
       usableKwh,
       cRate,
+      requiredFuse,
+      currentFuse,
+      fuseUpgradeAnnualCost,
+      effectiveFuseDeduction,
+      grossAnnualValue,
       storedSolarKwh,
       solarSavingsSek,
       arbitrageKwh,
@@ -440,6 +514,162 @@
       npv10y: Math.round(npv10),
       cashFlows,
     };
+  }
+
+  function computeSeasonalProfile(res) {
+    const solarSplit = [0.06, 0.45, 0.40, 0.09];
+    const arbSplit = [0.38, 0.20, 0.14, 0.28];
+    const ancSplit = [0.28, 0.25, 0.22, 0.25];
+
+    const quarters = [
+      {
+        id: "q1",
+        name: "Q1: Vinter",
+        months: "Jan–Mar",
+        icon: "❄️",
+        highlight: "Hög elprisvolatilitet och kalla morgnar/kvällar ger årets starkaste spreadar. Högt nätbehov och god ersättning för FCR-D. Ytterst lite solel.",
+        primaryRole: "Nätarbitrage & Stödtjänster",
+        roleBadgeColor: "#38bdf8",
+      },
+      {
+        id: "q2",
+        name: "Q2: Vår",
+        months: "Apr–Jun",
+        icon: "🌱",
+        highlight: "Kraftigt solöverskott och snabbt stigande produktion. Batteriet cyklas dagligen med ren egenproducerad solel för att eliminera dyr nätimport.",
+        primaryRole: "Maximal Solellagring",
+        roleBadgeColor: "#4ade80",
+      },
+      {
+        id: "q3",
+        name: "Q3: Sommar",
+        months: "Jul–Sep",
+        icon: "☀️",
+        highlight: "Långa dagar med max solelproduktion. Batteriet laddas ofta fullt redan före kl 11. Lägre elförbrukning i samhället dämpar spotprisspreadar.",
+        primaryRole: "Solelmättnad & Basdrift",
+        roleBadgeColor: "#facc15",
+      },
+      {
+        id: "q4",
+        name: "Q4: Höst",
+        months: "Okt–Dec",
+        icon: "🍂",
+        highlight: "Snabbt avtagande sol och återvändande kyla. Höststormar ger kraftiga vindsvängningar. Batteriet skiftar åter till ren frekvensreglering och arbitrage.",
+        primaryRole: "Stödtjänster & Vindarbitrage",
+        roleBadgeColor: "#fb923c",
+      },
+    ];
+
+    const totalAnnual = res.totalAnnualValue || 1;
+    const fusePerQ = Math.round((res.effectiveFuseDeduction || 0) / 4);
+
+    return quarters.map((q, idx) => {
+      const solar = Math.round(res.solarSavingsSek * solarSplit[idx]);
+      const arb = Math.round(res.arbitrageProfitSek * arbSplit[idx]);
+      const anc = Math.round(res.ancillaryRevSek * ancSplit[idx]);
+      const total = Math.max(0, solar + arb + anc - fusePerQ);
+      const sharePct = totalAnnual > 0 ? Math.round((total / totalAnnual) * 100) : 25;
+
+      return {
+        ...q,
+        solar,
+        arb,
+        anc,
+        total,
+        sharePct,
+      };
+    });
+  }
+
+  function exportCustomSystemCSV() {
+    const c = state.custom;
+    const res = computeCustomSystem();
+    const zd = getZoneData();
+    const zoneName = zd ? zd.name : state.selectedZone;
+    const dateStr = new Date().toISOString().slice(0, 10);
+
+    const rows = [
+      ["# Power Price Oracle - Batterikalkyl & BESS Investeringsanalys"],
+      ["# Exporterad", dateStr],
+      ["# Elprisomrade", `${state.selectedZone} (${zoneName})`],
+      [],
+      ["PARAMETRAR", "VARDE", "ENHET"],
+      ["Batterikapacitet", c.cap_kwh, "kWh"],
+      ["Anvandbar kapacitet (90% DoD)", res.usableKwh.toFixed(1), "kWh"],
+      ["Invertereffekt", c.p_kw, "kW"],
+      ["C-tal", res.cRate.toFixed(2), "C"],
+      ["Befintlig huvudsakring", c.current_fuse || 16, "A"],
+      ["Kravd huvudsakring", res.requiredFuse, "A"],
+      ["Extra fast elnatsavgift vid uppsakring", res.effectiveFuseDeduction, "kr/ar"],
+      ["Hushallsets arliga forbrukning", c.load_kwh, "kWh/ar"],
+      ["Installerad solcellseffekt", c.pv_kwp, "kWp"],
+      ["Arlig solelproduktion (beraknad)", Math.round(c.pv_kwp * 850), "kWh/ar"],
+      ["Lagrad solel i batteri", res.storedSolarKwh, "kWh/ar"],
+      ["Bruttoinvestering", c.gross_price, "kr"],
+      ["Antal agare (Gron teknik)", state.numOwners, "personer"],
+      ["Skattereduktion Gron teknik", res.actualDeduction, "kr"],
+      ["Nettoinvestering efter avdrag", res.netPrice, "kr"],
+      ["Driftstrategi", state.strategy === "mixed" ? "Solel + Arbitrage + Stodtjanster" : "Enbart Sol + Arbitrage", ""],
+      ["Stodtjanstersattning", c.fcr_rate_month, "kr/kW/man"],
+      ["Aktivt framtidsscenario", state.scenario, ""],
+      [],
+      ["EKONOMISKT UTFALL (BASAR)", "VARDE", "ENHET"],
+      ["Solelbesparing", res.solarSavingsSek, "kr/ar"],
+      ["Spotarbitrage", res.arbitrageProfitSek, "kr/ar"],
+      ["Stodtjanster (FCR-D)", res.ancillaryRevSek, "kr/ar"],
+      ["Uppsakringskostnad elnat", -res.effectiveFuseDeduction, "kr/ar"],
+      ["Totalt nettoarsvarde (basar)", res.totalAnnualValue, "kr/ar"],
+      ["Enkel aterbetalningstid", res.simplePayback ? res.simplePayback.toFixed(1) : ">15", "ar"],
+      ["Diskonterad aterbetalningstid (5% kalkyrlanta)", res.discPayback ? res.discPayback.toFixed(1) : ">15", "ar"],
+      ["10-ars Nettonuvarde (NPV)", res.npv10y, "kr"],
+      ["15-ars Nettonuvarde (NPV)", res.npv15y, "kr"],
+      [],
+      ["15-ARIGT FRAMTIDA KASSAFLODE", "", "", "", "", "", "", "", ""],
+      [
+        "Ar framat",
+        "Handelse / Status",
+        "Solelbesparing (kr)",
+        "Spotarbitrage (kr)",
+        "Stodtjanster FCR-D (kr)",
+        "Nätavgift uppsakring (kr)",
+        "Totalt kassaflode (kr)",
+        "Kapacitetsretention (%)",
+        "Ackumulerat nettokassaflode (kr)"
+      ]
+    ];
+
+    res.cashFlows.forEach((cf) => {
+      const status = getYearStatusInfo(cf.year, state.scenario, cf.cumulative_cash_flow, cf.prev_cumulative_cash_flow);
+      const statusPlain = status.badgeHtml.replace(/<[^>]+>/g, "").trim();
+      rows.push([
+        `Ar ${cf.year}`,
+        statusPlain || "Normalt basar",
+        cf.solar_savings,
+        cf.arbitrage_profit,
+        cf.ancillary_revenue,
+        res.effectiveFuseDeduction,
+        cf.total_revenue,
+        (cf.capacity_retention * 100).toFixed(1) + "%",
+        cf.cumulative_cash_flow
+      ]);
+    });
+
+    const csvContent = "\uFEFF" + rows.map((r) => r.map((cell) => {
+      const s = String(cell ?? "");
+      return s.includes(";") || s.includes("\"") || s.includes("\n")
+        ? `"${s.replace(/"/g, '""')}"`
+        : s;
+    }).join(";")).join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `batterikalkyl_${state.selectedZone}_${c.cap_kwh}kwh_${dateStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   function getOfferLifecycle(offer) {
@@ -456,6 +686,7 @@
     renderZoneInfo();
     renderActiveConfigSummary();
     renderCustomSystem();
+    renderSeasonalProfile();
     renderOffersTable();
     renderOfferDetail();
     renderBacktest();
@@ -469,11 +700,54 @@
     summaryEl.innerHTML = `
       <span style="color: #38bdf8; font-weight: 700;">${c.cap_kwh} kWh</span> batteri · 
       <span style="color: #38bdf8; font-weight: 700;">${c.p_kw} kW</span> växelriktare (${res.cRate.toFixed(2)} C) · 
+      <span style="color: #38bdf8; font-weight: 700;">${c.current_fuse || 16} A</span> säkring · 
       <span style="color: #38bdf8; font-weight: 700;">${c.load_kwh.toLocaleString("sv-SE")} kWh/år</span> förbrukning · 
       <span style="color: #38bdf8; font-weight: 700;">${c.pv_kwp} kWp</span> solceller · 
       <span style="color: #38bdf8; font-weight: 700;">${fmtKr(c.gross_price)}</span> brutto · 
       Elområde <span style="color: #38bdf8; font-weight: 700;">${state.selectedZone}</span>
     `;
+  }
+
+  function renderSeasonalProfile() {
+    const container = document.getElementById("bess-season-cards");
+    const zoneNameEl = document.getElementById("bess-season-zone-name");
+    if (!container) return;
+
+    const zd = getZoneData();
+    if (zoneNameEl && zd) zoneNameEl.textContent = `${state.selectedZone} (${zd.name})`;
+
+    const res = computeCustomSystem();
+    const seasons = computeSeasonalProfile(res);
+
+    let html = "";
+    seasons.forEach((s) => {
+      html += `
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; font-size: 1.05em; color: #fff;">${s.icon} ${s.name} <small style="color: var(--muted); font-weight: normal;">(${s.months})</small></span>
+              <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: ${s.roleBadgeColor}; font-size: 0.78em;">${s.sharePct} % av året</span>
+            </div>
+            <div style="font-size: 1.35rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.25rem;">
+              ${fmtKr(s.total)}
+            </div>
+            <div style="font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.04em; color: ${s.roleBadgeColor}; font-weight: 600; margin-bottom: 0.6rem;">
+              ${s.primaryRole}
+            </div>
+            <p style="font-size: 0.85em; color: var(--muted); line-height: 1.5; margin-bottom: 0.75rem;">
+              ${s.highlight}
+            </p>
+          </div>
+          <div style="font-size: 0.82em; border-top: 1px solid var(--border); padding-top: 0.6rem; color: var(--muted); line-height: 1.6;">
+            <div>☀️ Egen solel: <strong>${fmtKr(s.solar)}</strong></div>
+            <div>⚡ Spotarbitrage: <strong>${fmtKr(s.arb)}</strong></div>
+            <div>🛡️ Stödtjänster: <strong>${fmtKr(s.anc)}</strong></div>
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
   }
 
   function getYearStatusInfo(year, scenario, cumCash, prevCumCash) {
@@ -608,6 +882,26 @@
     const fcrLabel = document.getElementById("bess-fcr-val");
     if (fcrLabel) fcrLabel.textContent = `${c.fcr_rate_month} kr/kW/mån`;
 
+    // Fuse controls & hint
+    const fuseSelect = document.getElementById("bess-fuse");
+    if (fuseSelect && state.custom.current_fuse) {
+      fuseSelect.value = String(state.custom.current_fuse);
+    }
+    const fuseDeductCheck = document.getElementById("bess-fuse-deduct");
+    if (fuseDeductCheck) {
+      fuseDeductCheck.checked = state.custom.deduct_fuse_upgrade !== false;
+    }
+    const fuseHint = document.getElementById("bess-fuse-hint");
+    if (fuseHint) {
+      if (res.requiredFuse > (c.current_fuse || 16)) {
+        fuseHint.innerHTML = `<span style="color: #facc15; font-weight: 600;">⚠️ Kräver uppsäkring från ${c.current_fuse || 16} A till minst ${res.requiredFuse} A för ${c.p_kw} kW.</span> ` +
+          `Beräknad extra fast elnätsavgift: <strong>ca +${fmtKr(res.fuseUpgradeAnnualCost)}/år</strong>` +
+          (c.deduct_fuse_upgrade !== false ? ` (avdragen i kalkylen).` : ` (ej avdragen i kalkylen).`);
+      } else {
+        fuseHint.innerHTML = `<span style="color: #4ade80;">✅ Befintlig ${c.current_fuse || 16} A säkring räcker för ${c.p_kw} kW växelriktare.</span> Ingen extra abonnemangsavgift.`;
+      }
+    }
+
     // KPI Results
     const netBox = document.getElementById("bess-res-net");
     if (netBox) netBox.textContent = fmtKr(res.netPrice);
@@ -624,7 +918,11 @@
     if (revBox) revBox.textContent = `${fmtKr(res.totalAnnualValue)}/år`;
     const revSplit = document.getElementById("bess-res-rev-split");
     if (revSplit) {
-      revSplit.textContent = `Sol: ${fmtKr(res.solarSavingsSek)} · Arb: ${fmtKr(res.arbitrageProfitSek)} · FCR: ${fmtKr(res.ancillaryRevSek)}`;
+      let splitText = `Sol: ${fmtKr(res.solarSavingsSek)} · Arb: ${fmtKr(res.arbitrageProfitSek)} · FCR: ${fmtKr(res.ancillaryRevSek)}`;
+      if (res.effectiveFuseDeduction > 0) {
+        splitText += ` · Nät: -${fmtKr(res.effectiveFuseDeduction)}`;
+      }
+      revSplit.textContent = splitText;
     }
 
     const pbBox = document.getElementById("bess-res-payback");
@@ -661,6 +959,15 @@
         `;
       });
       cfTbody.innerHTML = cfHtml;
+    }
+
+    const cfFootnote = document.getElementById("bess-custom-cf-footnote");
+    if (cfFootnote) {
+      let extraNote = "";
+      if (res.effectiveFuseDeduction > 0) {
+        extraNote = ` ⚡ Kassaflödet belastas med beräknad merkostnad för uppsäkring (-${fmtKr(res.effectiveFuseDeduction)}/år).`;
+      }
+      cfFootnote.textContent = `* Stödtjänstintäkter (FCR-D) minskar över tid på grund av batteriets kapacitetsförlust (-1,8 %/år SoH) och förväntad marknadsmättnad på SvK:s frekvensmarknad.${extraNote}`;
     }
   }
 
