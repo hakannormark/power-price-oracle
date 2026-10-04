@@ -139,6 +139,22 @@
       </div>
     </section>
 
+    <!-- Simulerad anläggning (sparad från kalkylatorn) -->
+    <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <div style="font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; font-weight: 700;">Simulerad anläggning (synkad med Kalkylatorn)</div>
+        <div id="bess-active-config-summary" style="font-size: 1.05em; margin-top: 0.35rem;">
+          Laddar anläggningskonfiguration…
+        </div>
+        <div style="font-size: 0.85em; color: var(--muted); margin-top: 0.25rem;">
+          Backtestet nedan simulerar hur just din sparade anläggning hade presterat under verkliga historiska timpriser för varje enskilt år 2015–2026.
+        </div>
+      </div>
+      <a href="batteri.html" class="btn btn-secondary" style="font-size: 0.85em; padding: 0.5rem 1rem; white-space: nowrap; text-decoration: none;">
+        ⚙️ Ändra i Kalkylatorn
+      </a>
+    </div>
+
     <!-- Historiskt backtest över 11 år -->
     <section class="card">
       <div class="section-title">
@@ -180,6 +196,42 @@
           <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">4. Slopad 60-öring (Jan 2026)</h3>
           <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Skattereduktionen för inmatad solel slopades 1 januari 2026. Att sälja el till nätet ger nu endast spotpris + nätnytta. Värdet av att lagra och använda sin egen solel steg därmed från ~0,50 kr till ~1,65 kr/kWh.</p>
         </div>
+      </div>
+    </section>
+
+    <!-- Geopolitik vs Strukturell förändring -->
+    <section class="card">
+      <div class="section-title">
+        <h2>5. Ukrainakriget och gaskrisen: Geopolitisk prischock vs strukturell era</h2>
+      </div>
+      <div style="background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.5rem; line-height: 1.6;">
+        <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em;">Beror inte allt på Ukraina och gaspriserna?</h3>
+        <p style="color: var(--text); font-size: 0.95em;">
+          Detta är en av de skarpaste och vanligaste frågorna från insatta konsumenter: <em>"Blev inte elpriserna höga bara för att Ryssland invaderade Ukraina och gaspriserna skenade under 2022?"</em>
+        </p>
+        <p style="color: var(--muted); font-size: 0.9em;">
+          <strong>Det enkla svaret:</strong> Jo, Ukrainakriget och den ryska gasstrypningen orsakade den akuta prischocken 2022. Men data från 2023–2026 bevisar att elmarknadens nya volatilitet <strong>inte</strong> försvann när gaspriserna sjönk.
+        </p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin: 1.25rem 0;">
+          <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+            <h4 style="color: #facc15; margin-top: 0;">2022: Den geopolitiska gaschocken</h4>
+            <p style="font-size: 0.88em; color: var(--muted); margin-bottom: 0;">
+              När Nord Stream ströps skenade gaspriserna (TTF) till över <strong>300 EUR/MWh</strong>. Eftersom gaskraft sätter marginalpriset under höglast drog det med sig elpriserna i Europa och södra Sverige. Snittspoten i SE4 nådde 172 öre/kWh och 15 kWh spotarbitrage exploderade till över 6 200 kr/år. Detta var ett <strong>geopolitiskt extremår</strong>, inte det nya normalläget.
+            </p>
+          </div>
+
+          <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+            <h4 style="color: #4ade80; margin-top: 0;">2023–2026: Beviset på systemskiftet</h4>
+            <p style="font-size: 0.88em; color: var(--muted); margin-bottom: 0;">
+              Under 2023–2025 föll de europeiska gaspriserna tillbaka med ca <strong>85 %</strong> (tillbaka till historiska 25–35 EUR/MWh). Om krisen bara berott på gas borde elmarknaden ha fallit tillbaka till 2015–2020 års spreadar (15–27 öre). Istället låg SE4-spreadarna kvar på <strong>97–139 öre/kWh</strong> och arbitraget på <strong>2 500–3 600 kr/år</strong> (6–8× högre än gamla eran).
+            </p>
+          </div>
+        </div>
+
+        <p style="color: var(--text); font-size: 0.9em; margin-bottom: 0;">
+          <strong>Slutsats för kalkylen:</strong> Vår framåtblickande kalkylator bygger <em>inte</em> på 2022 års extrema gaspriser, utan på det nya strukturella normalläget 2023–2026. Den höga lönsamheten för batterier drivs idag av <strong>väderberoende elproduktion (vind/sol), stängd baskraft och 15-minutersavräkning</strong> – inte av gasbrist.
+        </p>
       </div>
     </section>
 

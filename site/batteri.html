@@ -217,7 +217,7 @@
             <input type="range" id="bess-p-slider" min="3" max="40" step="1" value="10">
             <input type="number" id="bess-p-num" min="3" max="40" step="1" value="10">
           </div>
-          <span class="bess-hint" id="bess-c-rate-hint">C-tal: 0,67 C (Godkänd för full stödtjänstbudning)</span>
+          <span class="bess-hint" id="bess-c-rate-hint">C-tal: 0,67 C ✅ Hög uthållighet: ca 1,5 timmar vid maxeffekt (godkänd för SvK:s 20-minuterskrav)</span>
         </div>
 
         <!-- Årlig förbrukning -->
@@ -360,6 +360,7 @@
             <thead>
               <tr>
                 <th>År (Framåt)</th>
+                <th>Händelse / Status</th>
                 <th>Solelbesparing</th>
                 <th>Spotarbitrage</th>
                 <th>Stödtjänster (FCR-D)*</th>
@@ -429,6 +430,11 @@
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
           <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">3. Batteriavdragets tak (50 000 kr)</h3>
           <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Grön teknik ger fortsatt 50 % (schablon 48,5 %) på batterier. Men taket är strikt 50 000 kr per person och kalenderår. System över ca 103 000 kr brutto spränger taket om fastigheten bara har en ensam ägare på lagfarten.</p>
+        </div>
+
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">4. Stödtjänster: Effektkrav & C-tal</h3>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">SvK:s minimibud är 100 kW, vilket kräver anslutning via en aggregator (CheckWatt, Flower m.fl.). Aggregatorer kräver minst <strong>3–5 kW kontinuerlig effekt</strong>. SvK ställer <strong>uthållighetskrav</strong> (minst 20 minuters drift för FCR-D), vilket innebär att ett lågt C-tal (t.ex. 0,3–0,7 C) är en klar fördel med god energireserv. Se upp med hybridväxelriktare där batterimodulen begränsar urladdningen.</p>
         </div>
       </div>
     </section>

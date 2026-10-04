@@ -32,7 +32,46 @@
     return val.toFixed(1).replace(".", ",") + " år";
   }
 
+  const STORAGE_KEY = "bess_user_state_v1";
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved.selectedZone) state.selectedZone = saved.selectedZone;
+        if (saved.numOwners !== undefined) state.numOwners = saved.numOwners;
+        if (saved.strategy) state.strategy = saved.strategy;
+        if (saved.scenario) state.scenario = saved.scenario;
+        if (saved.selectedEra) state.selectedEra = saved.selectedEra;
+        if (saved.selectedOfferId) state.selectedOfferId = saved.selectedOfferId;
+        if (saved.custom && typeof saved.custom === "object") {
+          state.custom = Object.assign({}, state.custom, saved.custom);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load BESS state from localStorage:", e);
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        selectedZone: state.selectedZone,
+        numOwners: state.numOwners,
+        strategy: state.strategy,
+        scenario: state.scenario,
+        selectedEra: state.selectedEra,
+        selectedOfferId: state.selectedOfferId,
+        custom: state.custom,
+      }));
+    } catch (e) {
+      console.warn("Could not save BESS state to localStorage:", e);
+    }
+  }
+
   function init() {
+    loadState();
     fetch("data/bess.json")
       .then((r) => {
         if (!r.ok) throw new Error("Could not load data/bess.json");
@@ -74,10 +113,17 @@
     // 1. Zone pills (scoped to #bess-zone-pills)
     const zonePills = document.querySelectorAll("#bess-zone-pills .zone-pill");
     zonePills.forEach((btn) => {
+      const z = btn.getAttribute("data-zone");
+      if (z === state.selectedZone) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
       btn.addEventListener("click", () => {
         zonePills.forEach((p) => p.classList.remove("active"));
         btn.classList.add("active");
         state.selectedZone = btn.getAttribute("data-zone") || "SE4";
+        saveState();
         renderAll();
       });
     });
@@ -85,10 +131,17 @@
     // 2. Era pills (scoped to #bess-era-pills)
     const eraPills = document.querySelectorAll("#bess-era-pills .zone-pill");
     eraPills.forEach((btn) => {
+      const era = btn.getAttribute("data-era");
+      if (era === state.selectedEra) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
       btn.addEventListener("click", () => {
         eraPills.forEach((p) => p.classList.remove("active"));
         btn.classList.add("active");
         state.selectedEra = btn.getAttribute("data-era") || "modern";
+        saveState();
         renderBacktest();
       });
     });
@@ -99,10 +152,16 @@
       const nm = document.getElementById(numId);
       if (!sl || !nm) return;
 
+      if (state.custom[stateKey] !== undefined) {
+        sl.value = state.custom[stateKey];
+        nm.value = state.custom[stateKey];
+      }
+
       sl.addEventListener("input", (e) => {
         const val = parseFloat(e.target.value);
         nm.value = val;
         state.custom[stateKey] = val;
+        saveState();
         renderAll();
       });
 
@@ -111,6 +170,7 @@
         if (isNaN(val)) return;
         sl.value = val;
         state.custom[stateKey] = val;
+        saveState();
         renderAll();
       });
     }
@@ -125,28 +185,37 @@
     // 4. Dropdowns
     const ownersSelect = document.getElementById("bess-owners");
     if (ownersSelect) {
+      if (state.numOwners !== undefined) ownersSelect.value = String(state.numOwners);
       ownersSelect.addEventListener("change", (e) => {
         state.numOwners = parseInt(e.target.value, 10);
+        saveState();
         renderAll();
       });
     }
 
     const stratSelect = document.getElementById("bess-strategy");
     if (stratSelect) {
+      if (state.strategy) stratSelect.value = state.strategy;
+      const fcrGroup = document.getElementById("bess-fcr-group");
+      if (fcrGroup) {
+        fcrGroup.style.opacity = state.strategy === "energy_only" ? "0.4" : "1.0";
+      }
       stratSelect.addEventListener("change", (e) => {
         state.strategy = e.target.value;
-        const fcrGroup = document.getElementById("bess-fcr-group");
         if (fcrGroup) {
           fcrGroup.style.opacity = state.strategy === "energy_only" ? "0.4" : "1.0";
         }
+        saveState();
         renderAll();
       });
     }
 
     const scenSelect = document.getElementById("bess-scenario");
     if (scenSelect) {
+      if (state.scenario) scenSelect.value = state.scenario;
       scenSelect.addEventListener("change", (e) => {
         state.scenario = e.target.value;
+        saveState();
         renderAll();
       });
     }
@@ -211,8 +280,13 @@
     // Ancillary services (FCR-D)
     let ancillaryRevSek = 0;
     if (state.strategy === "mixed") {
-      const biddableKw = Math.min(c.p_kw, c.cap_kwh * (cRate >= 0.5 ? 0.8 : cRate * 1.6));
-      ancillaryRevSek = Math.round(biddableKw * c.fcr_rate_month * 12);
+      if (c.p_kw >= 3) {
+        // Aggregator requirement: at least 3 kW continuous power
+        // Biddable power is limited by inverter capacity and battery continuous discharge capability (with 10% SOC buffer)
+        const maxDischargeKw = Math.min(c.p_kw, c.cap_kwh * 0.9);
+        const biddableKw = Math.round(maxDischargeKw * 0.9);
+        ancillaryRevSek = Math.round(biddableKw * c.fcr_rate_month * 12);
+      }
     }
 
     const totalAnnualValue = solarSavingsSek + arbitrageProfitSek + ancillaryRevSek;
@@ -251,6 +325,7 @@
       const yrArb = Math.round(arbitrageProfitSek * deg * shock);
       const yrTotal = yrSolar + yrArb + yrAncillary;
 
+      const prevCumCash = cumCash;
       cumCash += yrTotal;
 
       const df = 1.0 / Math.pow(1.05, yr);
@@ -268,6 +343,7 @@
         ancillary_revenue: yrAncillary,
         total_revenue: yrTotal,
         capacity_retention: deg,
+        prev_cumulative_cash_flow: prevCumCash,
         cumulative_cash_flow: cumCash,
       });
     }
@@ -301,10 +377,73 @@
   function renderAll() {
     if (!state.data) return;
     renderZoneInfo();
+    renderActiveConfigSummary();
     renderCustomSystem();
     renderOffersTable();
     renderOfferDetail();
     renderBacktest();
+  }
+
+  function renderActiveConfigSummary() {
+    const summaryEl = document.getElementById("bess-active-config-summary");
+    if (!summaryEl) return;
+    const c = state.custom;
+    const res = computeCustomSystem();
+    summaryEl.innerHTML = `
+      <span style="color: #38bdf8; font-weight: 700;">${c.cap_kwh} kWh</span> batteri · 
+      <span style="color: #38bdf8; font-weight: 700;">${c.p_kw} kW</span> växelriktare (${res.cRate.toFixed(2)} C) · 
+      <span style="color: #38bdf8; font-weight: 700;">${c.load_kwh.toLocaleString("sv-SE")} kWh/år</span> förbrukning · 
+      <span style="color: #38bdf8; font-weight: 700;">${c.pv_kwp} kWp</span> solceller · 
+      <span style="color: #38bdf8; font-weight: 700;">${fmtKr(c.gross_price)}</span> brutto · 
+      Elområde <span style="color: #38bdf8; font-weight: 700;">${state.selectedZone}</span>
+    `;
+  }
+
+  function getYearStatusInfo(year, scenario, cumCash, prevCumCash) {
+    let badges = [];
+    let rowStyle = "";
+
+    // 1. Financial milestone: Break-even
+    const isBreakEven = prevCumCash < 0 && cumCash >= 0;
+    if (isBreakEven) {
+      badges.push(`<span style="background: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🎉 Break-even</span>`);
+    }
+
+    // 2. Scenario shocks
+    if (scenario === "nordic_frequency") {
+      if (year === 3) {
+        badges.push(`<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🔥 Positivt extremår (2,3×)</span>`);
+        rowStyle = "background: rgba(245, 158, 11, 0.08);";
+      } else if (year === 7) {
+        badges.push(`<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🌧️ Negativt extremår (0,6×)</span>`);
+        rowStyle = "background: rgba(56, 189, 248, 0.08);";
+      } else if (year === 11) {
+        badges.push(`<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🔥 Positivt extremår (2,3×)</span>`);
+        rowStyle = "background: rgba(245, 158, 11, 0.08);";
+      }
+    } else if (scenario === "cannibalization") {
+      if (year === 3 || year === 6 || year === 9) {
+        badges.push(`<span style="background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); padding: 2px 7px; border-radius: 4px; font-size: 0.82em;">⚠️ FCR-D mättnad</span>`);
+      }
+    }
+
+    // 3. Technical & lifecycle milestones
+    if (year === 1 && badges.length === 0) {
+      badges.push(`<span style="color: var(--muted); font-size: 0.82em;">Driftsättning (Basår)</span>`);
+    } else if (year === 10) {
+      badges.push(`<span style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 7px; border-radius: 4px; font-size: 0.82em;">🛡️ Slut på garanti (år 10)</span>`);
+    } else if (year === 15) {
+      badges.push(`<span style="color: var(--muted); font-size: 0.82em;">🏁 Slut på kalkyl (år 15)</span>`);
+    }
+
+    if (badges.length === 0) {
+      badges.push(`<span style="color: var(--muted); font-size: 0.82em;">Normalt basår</span>`);
+    }
+
+    return {
+      badgeHtml: badges.join(" "),
+      rowStyle,
+    };
   }
 
   function renderZoneInfo() {
@@ -336,11 +475,22 @@
     if (pLabel) pLabel.textContent = `${c.p_kw} kW`;
     const cRateHint = document.getElementById("bess-c-rate-hint");
     if (cRateHint) {
-      const cRateText = res.cRate >= 0.5 
-        ? `C-tal: ${res.cRate.toFixed(2)} C (Godkänd för full stödtjänstbudning)`
-        : `C-tal: ${res.cRate.toFixed(2)} C (Mindre än 0,5C: batteriet begränsar stödtjänstbudet till ${Math.round(c.cap_kwh * 0.5)} kW)`;
-      cRateHint.textContent = cRateText;
-      cRateHint.style.color = res.cRate >= 0.5 ? "var(--faint)" : "#f87171";
+      let msg = "";
+      let color = "var(--faint)";
+      if (c.p_kw < 3) {
+        msg = `C-tal: ${res.cRate.toFixed(2)} C ⚠️ Under 3 kW: Aggregatorer kräver normalt minst 3 kW för att delta i stödtjänster.`;
+        color = "#f87171";
+      } else if (res.cRate > 1.2) {
+        const minDuration = Math.round(60 / res.cRate);
+        msg = `C-tal: ${res.cRate.toFixed(2)} C ⚡ Hög urladdningstakt: Batteriet töms på ca ${minDuration} minuter. Kontrollera att BMS tillåter denna urladdningsström.`;
+        color = "#facc15";
+      } else {
+        const enduranceH = (1 / res.cRate).toFixed(1);
+        msg = `C-tal: ${res.cRate.toFixed(2)} C ✅ Hög uthållighet: ca ${enduranceH} timmar vid maxeffekt (godkänd för SvK:s 20-minuterskrav på FCR-D).`;
+        color = "var(--faint)";
+      }
+      cRateHint.textContent = msg;
+      cRateHint.style.color = color;
     }
 
     const loadLabel = document.getElementById("bess-load-val");
@@ -399,9 +549,11 @@
       let cfHtml = "";
       res.cashFlows.forEach((cf) => {
         const cumColor = cf.cumulative_cash_flow >= 0 ? "#4ade80" : "#f87171";
+        const status = getYearStatusInfo(cf.year, state.scenario, cf.cumulative_cash_flow, cf.prev_cumulative_cash_flow);
         cfHtml += `
-          <tr>
+          <tr style="${status.rowStyle}">
             <td><strong>År ${cf.year}</strong></td>
+            <td>${status.badgeHtml}</td>
             <td>${fmtKr(cf.solar_savings)}</td>
             <td>${fmtKr(cf.arbitrage_profit)}</td>
             <td>${fmtKr(cf.ancillary_revenue)}</td>
@@ -512,11 +664,15 @@
     const cashFlows = lc.cash_flows || [];
 
     let cashFlowRows = "";
+    let prevCum = -net;
     cashFlows.slice(0, 15).forEach((cf) => {
       const cumColor = cf.cumulative_cash_flow >= 0 ? "#4ade80" : "#f87171";
+      const status = getYearStatusInfo(cf.year, state.scenario, cf.cumulative_cash_flow, prevCum);
+      prevCum = cf.cumulative_cash_flow;
       cashFlowRows += `
-        <tr>
-          <td>År ${cf.year}</td>
+        <tr style="${status.rowStyle}">
+          <td><strong>År ${cf.year}</strong></td>
+          <td>${status.badgeHtml}</td>
           <td>${fmtKr(cf.solar_savings)}</td>
           <td>${fmtKr(cf.arbitrage_profit)}</td>
           <td>${fmtKr(cf.ancillary_revenue)}</td>
@@ -580,6 +736,7 @@
             <thead>
               <tr>
                 <th>År (Framåt)</th>
+                <th>Händelse / Status</th>
                 <th>Solelbesparing</th>
                 <th>Spotarbitrage</th>
                 <th>Stödtjänster (FCR-D)*</th>

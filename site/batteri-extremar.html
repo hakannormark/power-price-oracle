@@ -133,6 +133,22 @@
       </div>
     </section>
 
+    <!-- Simulerad anläggning (sparad från kalkylatorn) -->
+    <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <div style="font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; font-weight: 700;">Simulerad anläggning (synkad med Kalkylatorn)</div>
+        <div id="bess-active-config-summary" style="font-size: 1.05em; margin-top: 0.35rem;">
+          Laddar anläggningskonfiguration…
+        </div>
+        <div style="font-size: 0.85em; color: var(--muted); margin-top: 0.25rem;">
+          Alla scenarier, nuvärden (NPV) och 15-åriga kassaflöden nedan beräknas på denna batterikonfiguration och sparas automatiskt i din webbläsare.
+        </div>
+      </div>
+      <a href="batteri.html" class="btn btn-secondary" style="font-size: 0.85em; padding: 0.5rem 1rem; white-space: nowrap; text-decoration: none;">
+        ⚙️ Ändra i Kalkylatorn
+      </a>
+    </div>
+
     <!-- Scenarioväljare -->
     <section class="card">
       <div class="section-title">
@@ -211,6 +227,7 @@
             <thead>
               <tr>
                 <th>År (Framåt)</th>
+                <th>Händelse / Status</th>
                 <th>Solelbesparing</th>
                 <th>Spotarbitrage</th>
                 <th>Stödtjänster (FCR-D)*</th>
@@ -259,6 +276,21 @@
             Om och när ett framtida extremår väl inträffar fungerar det som en ren ekonomisk bonus (en "jackpot" som kortar återbetalningstiden med 1–3 år per chockår).
           </p>
         </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.25rem;">
+        <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">Ukrainakriget och gaskrisen 2022: En geopolitisk chock – inte vårt basår</h3>
+        <p style="font-size: 0.9em; color: var(--text); line-height: 1.6; margin-bottom: 0.75rem;">
+          En vanlig och helt rimlig fråga är: <em>"Berodde inte den nya erans höga elpriser på Rysslands invasion av Ukraina och skenande gaspriser?"</em><br>
+          <strong>Svaret är ett tydligt ja och nej:</strong>
+        </p>
+        <ul style="padding-left: 1.25rem; font-size: 0.9em; color: var(--muted); line-height: 1.6; margin-bottom: 0.75rem;">
+          <li><strong>2022 var ett geopolitiskt extremår:</strong> Rysslands gasstrypning fick de europeiska gaspriserna (TTF) att skena över 300 EUR/MWh. Gas sätter ofta marginalpriset i Europas elsystem, vilket drev upp SE4-snittet till 172 öre/kWh och gav 15 kWh-batterier över 6 200 kr/år i spotarbitrage. Detta var en extraordinär chock.</li>
+          <li><strong>2023–2026 bevisar det permanenta systemskiftet:</strong> Under 2023–2025 rasade gaspriserna med ca 85 % tillbaka till normala 25–35 EUR/MWh. Om den nya eran enbart berodde på gas/Ukraina borde batteriarbitraget ha kollapsat tillbaka till 2015–2020 års nivåer (300–500 kr/år). Men det gjorde det inte! I SE4 genererade batterier fortfarande <strong>2 500–3 600 kr/år</strong> (6–8 gånger mer än före 2021) därför att baskraften (Ringhals 1 & 2, tysk kärnkraft) lagts ner och över 15 GW väderberoende vindkraft dominerar marknaden.</li>
+        </ul>
+        <p style="font-size: 0.88em; color: var(--muted); line-height: 1.5; margin-bottom: 0;">
+          <strong>Hur modellen räknar:</strong> Vårt normala <em>basår</em> bygger uteslutande på det normaliserade 2023–2026-läget (med billig gas). Geopolitiska gaschocker som 2022 räknas däremot in som just <strong>positiva extremår</strong> i Scenario 1 (Nordisk basfrekvens) med 2,0× arbitragefaktor år 3 och 11.
+        </p>
       </div>
     </section>
 
