@@ -14,17 +14,40 @@
 <style>
   .bs-container {
     display: grid;
-    grid-template-columns: 380px minmax(0, 1fr) 380px;
-    gap: 1.25rem;
+    grid-template-columns: 460px minmax(0, 1fr);
+    gap: 1.5rem;
     align-items: start;
+    position: relative;
   }
-  @media (max-width: 1250px) {
-    .bs-container { grid-template-columns: 360px 1fr; }
-    .bs-right-col { grid-column: span 2; }
+  @media (max-width: 1080px) {
+    .bs-container {
+      grid-template-columns: 1fr;
+    }
   }
-  @media (max-width: 900px) {
-    .bs-container { grid-template-columns: 1fr; }
-    .bs-right-col { grid-column: span 1; }
+
+  /* Vänsterspalt med kontroller och beslutsunderlag */
+  .bs-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Högerspalt: Klistrad karta som alltid syns */
+  .bs-map-sticky-wrap {
+    position: sticky;
+    top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  #bs-map {
+    height: 75vh;
+    min-height: 580px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: #0a0f1a;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
   }
 
   .bs-card {
@@ -33,26 +56,43 @@
     border-radius: var(--radius);
     padding: 1.25rem;
     box-shadow: var(--shadow);
-    margin-bottom: 1.25rem;
   }
   .bs-card h3 {
-    font-size: 1.05em;
-    margin: 0 0 0.75rem;
+    font-size: 1.02em;
+    margin: 0 0 0.85rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 0.5rem;
+  }
+
+  .bs-ctrl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+  @media (max-width: 480px) {
+    .bs-ctrl-grid { grid-template-columns: 1fr; }
   }
 
   .bs-ctrl-group {
-    margin-bottom: 0.9rem;
+    margin-bottom: 0.85rem;
+  }
+  .bs-ctrl-group.full {
+    grid-column: span 2;
+  }
+  @media (max-width: 480px) {
+    .bs-ctrl-group.full { grid-column: span 1; }
   }
   .bs-ctrl-group label {
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
     font-size: 0.82em;
     color: var(--muted);
     font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.3rem;
   }
   .bs-ctrl-group input[type="range"] {
     width: 100%;
@@ -60,25 +100,18 @@
   }
   .bs-ctrl-group input[type="number"], .bs-ctrl-group select {
     width: 100%;
-    padding: 0.4rem 0.6rem;
+    padding: 0.45rem 0.6rem;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 6px;
     color: var(--text);
-    font-size: 0.9em;
+    font-size: 0.88em;
     font-weight: 600;
   }
   .bs-val {
     font-family: var(--mono);
     color: #38bdf8;
-  }
-
-  #bs-map {
-    height: 68vh;
-    min-height: 520px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: #0a0f1a;
+    font-size: 1.05em;
   }
 
   .bs-kpi-grid {
@@ -94,20 +127,20 @@
     padding: 0.75rem;
   }
   .bs-kpi-lbl {
-    font-size: 0.75em;
+    font-size: 0.72em;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
   .bs-kpi-val {
-    font-size: 1.45em;
+    font-size: 1.35em;
     font-weight: 700;
     font-family: var(--mono);
     color: #fff;
-    margin-top: 0.2rem;
+    margin-top: 0.15rem;
   }
   .bs-kpi-sub {
-    font-size: 0.75em;
+    font-size: 0.74em;
     color: var(--faint);
     margin-top: 0.15rem;
   }
@@ -128,7 +161,6 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    margin-bottom: 1rem;
   }
   .bs-btn-auto:hover {
     transform: translateY(-1px);
@@ -152,12 +184,11 @@
     font-size: 0.82em;
     color: #38bdf8;
     background: rgba(56, 189, 248, 0.08);
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 6px;
     cursor: pointer;
     text-decoration: none;
     border: 1px solid rgba(56, 189, 248, 0.2);
-    margin-top: 0.5rem;
   }
   .bs-explain-toggle:hover {
     background: rgba(56, 189, 248, 0.15);
@@ -256,161 +287,23 @@
       </div>
     </div>
 
-    <!-- Huvud-dashboard -->
+    <!-- Huvud-dashboard i 2-kolumns split-screen: Vänster paneler, Höger klistrad karta -->
     <div class="bs-container">
 
-      <!-- VÄNSTER PANEL: Investeringsparametrar -->
-      <aside class="bs-left-col">
-        <section class="bs-card">
-          <h3>
-            <span>1. Dimensionering &amp; System</span>
-            <span class="bs-badge green" id="badge-c-rate">0,5 C (2h)</span>
-          </h3>
+      <!-- VÄNSTER SPALT: Parametrar, Beslutsresultat och Topp 5 -->
+      <aside class="bs-sidebar">
 
-          <div class="bs-ctrl-group">
-            <label>Installerad Effekt: <span class="bs-val" id="val-power-mw">50 MW</span></label>
-            <input type="range" id="range-power-mw" min="5" max="300" step="5" value="50">
-          </div>
-
-          <div class="bs-ctrl-group">
-            <label>Lagringskapacitet: <span class="bs-val" id="val-capacity-mwh">100 MWh</span></label>
-            <input type="range" id="range-capacity-mwh" min="10" max="600" step="10" value="100">
-          </div>
-
-          <div class="bs-ctrl-group">
-            <label for="sel-target-zone">Målzon (eller sök i hela landet):</label>
-            <select id="sel-target-zone">
-              <option value="ALL" selected>Hela Sverige (Sök bästa zon)</option>
-              <option value="SE1">SE1 (Luleå / Norr)</option>
-              <option value="SE2">SE2 (Sundsvall / Vattenkraft)</option>
-              <option value="SE3">SE3 (Stockholm / Mellansverige)</option>
-              <option value="SE4">SE4 (Malmö / Sydsverige)</option>
-            </select>
-          </div>
-        </section>
-
-        <section class="bs-card">
-          <h3><span>2. CAPEX, Effekt &amp; Anslutning</span></h3>
-
-          <div class="bs-ctrl-group">
-            <label>Batteri Energidel (per kWh): <span class="bs-val" id="val-capex-kwh">1 800 kr</span></label>
-            <input type="range" id="range-capex-kwh" min="1000" max="3500" step="50" value="1800">
-            <div style="font-size:0.75em; color:var(--faint); margin-top:2px;">Cellstackar, moduler, kylsystem (skalar med MWh).</div>
-          </div>
-
-          <div class="bs-ctrl-group">
-            <label>Batteri Effektdel / PCS (per kW): <span class="bs-val" id="val-capex-kw">1 000 kr</span></label>
-            <input type="range" id="range-capex-kw" min="500" max="2500" step="50" value="1000">
-            <div style="font-size:0.75em; color:var(--faint); margin-top:2px;">Växelriktare (PCS), transformatorer, ställverk (skalar med MW).</div>
-          </div>
-
-          <div class="bs-ctrl-group">
-            <label>Kabelkostnad per km anslutning: <span class="bs-val" id="val-cable-cost">4,5 MSEK/km</span></label>
-            <input type="range" id="range-cable-cost" min="1.0" max="10.0" step="0.5" value="4.5">
-            <div style="font-size:0.75em; color:var(--faint); margin-top:2px;">Inkl. markarrende, schaktning och högspänningskabel mot station.</div>
-          </div>
-
-          <div class="bs-ctrl-group">
-            <label>Fast transformatorfack (station): <span class="bs-val" id="val-substation-bay">35 MSEK</span></label>
-            <input type="range" id="range-substation-bay" min="10" max="150" step="5" value="35">
-            <div style="font-size:0.75em; color:var(--faint); margin-top:2px;">Stationär anslutningsavgift till nätägarens ställverk.</div>
-          </div>
-        </section>
-
-        <section class="bs-card">
-          <h3><span>3. Budstrategi &amp; Scenarier</span></h3>
-
-          <div class="bs-ctrl-group">
-            <label for="sel-bess-strategy">Budprioritering:</label>
-            <select id="sel-bess-strategy">
-              <option value="co_optimized" selected>Samoptimerad (Stödtjänster + Arbitrage)</option>
-              <option value="ancillary_focus">Fokus Frekvensreglering (mFRR/aFRR)</option>
-              <option value="arbitrage_focus">Fokus Dygnsarbitrage (Spot)</option>
-            </select>
-          </div>
-
-          <div class="bs-ctrl-group">
-            <label for="sel-history-dataset">Historisk Datasetperiod (Spot &amp; Spread):</label>
-            <select id="sel-history-dataset">
-              <option value="last12m" selected>Senaste 12 månaderna (Aktuell marknad)</option>
-              <option value="3y">Senaste 3 åren (2023–2026 rullande snitt)</option>
-              <option value="5y">Senaste 5 åren (2021–2026 inkl. energikris)</option>
-              <option value="10y">10-års historiskt snitt (2015–2026, 350k+ timmar)</option>
-              <option value="2022">Extremår 2022 (Historisk peak, gas- &amp; elkris)</option>
-              <option value="2024">Lågvolatilt år 2024 (Konservativ bottennivå)</option>
-            </select>
-            <div style="font-size:0.75em; color:var(--faint); margin-top:2px;" id="lbl-dataset-desc">Körs mot faktiska timpriser från Nord Pool &amp; ENTSO-E.</div>
-          </div>
-
-          <div class="bs-ctrl-group">
-            <label for="sel-market-year">Framtidsutsikt (SvK Marknadsvolymer):</label>
-            <select id="sel-market-year">
-              <option value="2026" selected>2026 (Aktuellt läge: mFRR 81 % av marknaden)</option>
-              <option value="2030">2030 (SvK FNA2026: Högre aFRR &amp; 4h-behov)</option>
-            </select>
-          </div>
-
-          <div class="bs-ctrl-group">
-            <label for="sel-extreme-years">Extremår under 10-årsperioden:</label>
-            <select id="sel-extreme-years">
-              <option value="0">0 st (Endast basår / konservativ)</option>
-              <option value="1" selected>1 st extremår (t.ex. Som 2022, 3,95x EBITDA)</option>
-              <option value="2">2 st extremår (Högre klimat/geopolitisk risk)</option>
-            </select>
-          </div>
-
-          <div class="bs-ctrl-group">
-            <label><input type="checkbox" id="chk-hybrid-solar"> Samlokalisera med 40 MW solpark (sparar 45M anslutning)</label>
-          </div>
-        </section>
-      </aside>
-
-      <!-- MITTPANEL: Kartan -->
-      <section class="bs-center-col">
-        <button type="button" class="bs-btn-auto" id="btn-find-best">
-          <span>🎯 Hitta &amp; Zooma till Sveriges Mest Lönsamma Plats</span>
-        </button>
-
-        <div id="bs-map" role="application" aria-label="Karta över BESS Investeringslönsamhet"></div>
-
-        <!-- KARTLAGER-KONTROLLER -->
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.9rem; margin-top: 0.75rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.4rem;">
-            <strong style="font-size:0.82em; text-transform:uppercase; color:var(--muted); letter-spacing:0.04em;">🗺️ Aktiva Kartlager</strong>
-            <div style="font-size:0.8em; color:var(--muted);">
-              Färgskala:
-              <span class="bs-badge green">&lt; 7 år Payback</span>
-              <span class="bs-badge yellow">7–10 år</span>
-              <span class="bs-badge red">&gt; 10 år</span>
-            </div>
-          </div>
-          <div style="display: flex; gap: 1rem 1.4rem; flex-wrap: wrap; font-size: 0.84em;">
-            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-cells" checked> 10 km Analysrutor</label>
-            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-lines" checked> Ledningar ≥ 130 kV</label>
-            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-subs" checked> Transformatorstationer (1 132 st)</label>
-            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-conc"> Nätkoncessioner (Ei DSO)</label>
-            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-flex" checked> Lokala flexmarknader</label>
-            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-failed"> Visa filtrerad mark</label>
-          </div>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; font-size:0.8em; color:var(--muted); flex-wrap:wrap; gap:0.5rem;">
-          <div id="bs-map-status">Laddar 4 612 nätanalysrutor och 1 132 stationer…</div>
-        </div>
-      </section>
-
-      <!-- HÖGER PANEL: Beslutsunderlag för vald ruta -->
-      <aside class="bs-right-col">
+        <!-- KORT: Beslutsunderlag för Vald Plats -->
         <section class="bs-card" id="card-site-decision">
           <h3>
-            <span>Investeringskalkyl: Vald Plats</span>
+            <span>📊 Resultat: Vald Plats</span>
             <span class="bs-badge green" id="badge-decision-roi">6,8 år</span>
           </h3>
 
           <div id="box-best-recommendation" style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.3); border-radius:8px; padding:0.75rem; margin-bottom:1rem;">
-            <div style="font-size:0.8em; color:#38bdf8; font-weight:700;">🌟 REKOMMENDERAD TOPP-PLATS:</div>
-            <div style="font-size:0.92em; font-weight:600; color:#fff; margin:0.2rem 0;" id="txt-best-location">Ruta 380_6130 (SE4 · Trelleborgs Elnät)</div>
-            <p style="font-size:0.8em; color:var(--muted); margin:0;" id="txt-best-reason">Högst EBITDA (SE4) kombinerat med endast 0,2 km till 130 kV-station vilket minimerar kabel-CAPEX.</p>
+            <div style="font-size:0.78em; color:#38bdf8; font-weight:700;">🌟 REKOMMENDERAD TOPP-PLATS:</div>
+            <div style="font-size:0.95em; font-weight:600; color:#fff; margin:0.2rem 0;" id="txt-best-location">Ruta 380_6130 (SE4 · Trelleborgs Elnät)</div>
+            <p style="font-size:0.8em; color:var(--muted); margin:0;" id="txt-best-reason">Högst EBITDA kombinerat med kort avstånd till 130 kV-station vilket minimerar kabel-CAPEX.</p>
           </div>
 
           <div class="bs-kpi-grid">
@@ -436,40 +329,186 @@
             </div>
           </div>
 
-          <h4 style="font-size:0.85em; text-transform:uppercase; color:var(--muted); margin:1rem 0 0.4rem;">Kostnads- &amp; Nätfördelning:</h4>
-          <dl class="bm-kv">
-            <dt>Elområde</dt><dd id="det-zone">SE4</dd>
-            <dt>Nätägare (DSO)</dt><dd id="det-dso">Trelleborgs Elnät AB</dd>
-            <dt>Närmaste station</dt><dd id="det-station">namnlös (130 kV)</dd>
-            <dt>Fysiskt avstånd</dt><dd id="det-dist">0,2 km</dd>
-            <dt>Batteri Energidel (MWh)</dt><dd id="det-energy-capex">180,0 MSEK</dd>
-            <dt>PCS Effektdel (MW)</dt><dd id="det-power-capex">50,0 MSEK</dd>
-            <dt>Transformatorfack (station)</dt><dd id="det-station-capex">35,0 MSEK</dd>
-            <dt>Kabelinvestering</dt><dd id="det-cable-cost">0,9 MSEK</dd>
-            <dt>Skyddad natur i rutan</dt><dd id="det-prot">1 % (Låg risk)</dd>
-            <dt>Lokal flexmarknad</dt><dd id="det-flex">E.ON Skåne (Tillgänglig)</dd>
-          </dl>
-
-          <h4 style="font-size:0.85em; text-transform:uppercase; color:var(--muted); margin:1rem 0 0.4rem;">Intäktsfördelning per år (Normalår):</h4>
-          <dl class="bm-kv">
-            <dt>mFRR Kapacitet</dt><dd id="rev-mfrr">24,2 MSEK</dd>
-            <dt>aFRR Kapacitet</dt><dd id="rev-afrr">8,5 MSEK</dd>
-            <dt>FCR Reserver</dt><dd id="rev-fcr">6,1 MSEK</dd>
-            <dt>Spotarbitrage (Netto)</dt><dd id="rev-arb">9,4 MSEK</dd>
-            <dt>Solparkshybrid-bonus</dt><dd id="rev-solar">0,0 MSEK</dd>
-          </dl>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:0.75rem;">
+            <div>
+              <h4 style="font-size:0.8em; text-transform:uppercase; color:var(--muted); margin:0 0 0.4rem;">Nät &amp; CAPEX:</h4>
+              <dl class="bm-kv">
+                <dt>Elområde</dt><dd id="det-zone">SE4</dd>
+                <dt>Nätägare</dt><dd id="det-dso" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">Trelleborg</dd>
+                <dt>Närmaste station</dt><dd id="det-station">namnlös</dd>
+                <dt>Avstånd station</dt><dd id="det-dist">0,2 km</dd>
+                <dt>Batteri (MWh)</dt><dd id="det-energy-capex">180 M</dd>
+                <dt>PCS (MW)</dt><dd id="det-power-capex">50 M</dd>
+                <dt>Transformatorfack</dt><dd id="det-station-capex">35 M</dd>
+                <dt>Kabelinvestering</dt><dd id="det-cable-cost">0,9 M</dd>
+              </dl>
+            </div>
+            <div>
+              <h4 style="font-size:0.8em; text-transform:uppercase; color:var(--muted); margin:0 0 0.4rem;">Intäkt per år:</h4>
+              <dl class="bm-kv">
+                <dt>mFRR Kapacitet</dt><dd id="rev-mfrr">24,2 MSEK</dd>
+                <dt>aFRR Kapacitet</dt><dd id="rev-afrr">8,5 MSEK</dd>
+                <dt>FCR Reserver</dt><dd id="rev-fcr">6,1 MSEK</dd>
+                <dt>Spotarbitrage</dt><dd id="rev-arb">9,4 MSEK</dd>
+                <dt>Sol-hybrid</dt><dd id="rev-solar">0,0 MSEK</dd>
+                <dt>Skyddad natur</dt><dd id="det-prot">1 %</dd>
+                <dt>Lokal flex</dt><dd id="det-flex" style="font-size:0.75em;">E.ON Skåne</dd>
+              </dl>
+            </div>
+          </div>
 
           <button type="button" class="bs-btn-auto" id="btn-inspect-dispatch" style="margin-top: 1rem; background: linear-gradient(135deg, #1e293b, #334155); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4); box-shadow: none;">
             <span>⏱️ Inspektera Kronologisk Tim-Dispatch (SoC &amp; Bud)</span>
           </button>
         </section>
 
-        <!-- TOPP 5 RANKING -->
+        <!-- KORT 1: Dimensionering & System -->
         <section class="bs-card">
-          <h3><span>Topp 5 Platser i Sverige</span></h3>
+          <h3>
+            <span>1. Dimensionering &amp; Zonsökning</span>
+            <span class="bs-badge green" id="badge-c-rate">0,5 C (2h)</span>
+          </h3>
+
+          <div class="bs-ctrl-grid">
+            <div class="bs-ctrl-group">
+              <label>Effekt: <span class="bs-val" id="val-power-mw">50 MW</span></label>
+              <input type="range" id="range-power-mw" min="5" max="300" step="5" value="50">
+            </div>
+
+            <div class="bs-ctrl-group">
+              <label>Kapacitet: <span class="bs-val" id="val-capacity-mwh">100 MWh</span></label>
+              <input type="range" id="range-capacity-mwh" min="10" max="600" step="10" value="100">
+            </div>
+
+            <div class="bs-ctrl-group full">
+              <label for="sel-target-zone">Målzon (eller sök i hela landet):</label>
+              <select id="sel-target-zone">
+                <option value="ALL" selected>Hela Sverige (Sök bästa zon)</option>
+                <option value="SE1">SE1 (Luleå / Norr)</option>
+                <option value="SE2">SE2 (Sundsvall / Vattenkraft)</option>
+                <option value="SE3">SE3 (Stockholm / Mellansverige)</option>
+                <option value="SE4">SE4 (Malmö / Sydsverige)</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- KORT 2: CAPEX & Anslutning -->
+        <section class="bs-card">
+          <h3><span>2. CAPEX, Effekt &amp; Anslutning</span></h3>
+
+          <div class="bs-ctrl-grid">
+            <div class="bs-ctrl-group">
+              <label>Batteri (kr/kWh): <span class="bs-val" id="val-capex-kwh">1 800 kr</span></label>
+              <input type="range" id="range-capex-kwh" min="1000" max="3500" step="50" value="1800">
+            </div>
+
+            <div class="bs-ctrl-group">
+              <label>PCS / Ställverk (kr/kW): <span class="bs-val" id="val-capex-kw">1 000 kr</span></label>
+              <input type="range" id="range-capex-kw" min="500" max="2500" step="50" value="1000">
+            </div>
+
+            <div class="bs-ctrl-group">
+              <label>Kabel (MSEK/km): <span class="bs-val" id="val-cable-cost">4,5 M/km</span></label>
+              <input type="range" id="range-cable-cost" min="1.0" max="10.0" step="0.5" value="4.5">
+            </div>
+
+            <div class="bs-ctrl-group">
+              <label>Station (fack): <span class="bs-val" id="val-substation-bay">35 MSEK</span></label>
+              <input type="range" id="range-substation-bay" min="10" max="150" step="5" value="35">
+            </div>
+          </div>
+        </section>
+
+        <!-- KORT 3: Budstrategi & Historisk Referens -->
+        <section class="bs-card">
+          <h3><span>3. Strategi &amp; Historisk Backtest</span></h3>
+
+          <div class="bs-ctrl-group">
+            <label for="sel-bess-strategy">Budprioritering:</label>
+            <select id="sel-bess-strategy">
+              <option value="co_optimized" selected>Samoptimerad (Stödtjänster + Arbitrage)</option>
+              <option value="ancillary_focus">Fokus Frekvensreglering (mFRR/aFRR)</option>
+              <option value="arbitrage_focus">Fokus Dygnsarbitrage (Spot)</option>
+            </select>
+          </div>
+
+          <div class="bs-ctrl-group">
+            <label for="sel-history-dataset">Historisk Datasetperiod (Spot &amp; Spread):</label>
+            <select id="sel-history-dataset">
+              <option value="last12m" selected>Senaste 12 månaderna (Aktuell marknad)</option>
+              <option value="3y">Senaste 3 åren (2023–2026 rullande snitt)</option>
+              <option value="5y">Senaste 5 åren (2021–2026 inkl. krisår)</option>
+              <option value="10y">10-års historiskt snitt (2015–2026, 350k+ timmar)</option>
+              <option value="2022">Extremår 2022 (Historisk peak, gas- &amp; elkris)</option>
+              <option value="2024">Lågvolatilt år 2024 (Konservativ bottennivå)</option>
+            </select>
+            <div style="font-size:0.75em; color:var(--faint); margin-top:2px;" id="lbl-dataset-desc">Körs mot faktiska timpriser från Nord Pool &amp; ENTSO-E.</div>
+          </div>
+
+          <div class="bs-ctrl-grid">
+            <div class="bs-ctrl-group">
+              <label for="sel-market-year">Marknadsvolymer:</label>
+              <select id="sel-market-year">
+                <option value="2026" selected>2026 (Aktuellt läge)</option>
+                <option value="2030">2030 (SvK FNA: Högre aFRR)</option>
+              </select>
+            </div>
+
+            <div class="bs-ctrl-group">
+              <label for="sel-extreme-years">Extremår (10 år):</label>
+              <select id="sel-extreme-years">
+                <option value="0">0 st (Konservativ)</option>
+                <option value="1" selected>1 st (Som 2022, 3,95x)</option>
+                <option value="2">2 st (Högre risk)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="bs-ctrl-group" style="margin-bottom:0;">
+            <label style="cursor:pointer;"><input type="checkbox" id="chk-hybrid-solar"> Samlokalisera med 40 MW solpark (sparar 45M)</label>
+          </div>
+        </section>
+
+        <!-- KORT 4: TOPP 5 RANKING -->
+        <section class="bs-card">
+          <h3><span>🏆 Topp 5 Platser i Sverige</span></h3>
           <ol class="bm-top" id="list-top-sites" style="margin:0; padding:0;"></ol>
         </section>
+
       </aside>
+
+      <!-- HÖGER SPALT: ALLTID SYNLIG KLISTRAD KARTA -->
+      <section class="bs-map-sticky-wrap">
+        <button type="button" class="bs-btn-auto" id="btn-find-best">
+          <span>🎯 Hitta &amp; Zooma till Sveriges Mest Lönsamma Plats</span>
+        </button>
+
+        <div id="bs-map" role="application" aria-label="Karta över BESS Investeringslönsamhet"></div>
+
+        <!-- KARTLAGER-KONTROLLER -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 0.9rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.4rem;">
+            <strong style="font-size:0.82em; text-transform:uppercase; color:var(--muted); letter-spacing:0.04em;">🗺️ Aktiva Kartlager</strong>
+            <div style="font-size:0.78em; color:var(--muted);">
+              Färgskala:
+              <span class="bs-badge green">&lt; 7 år</span>
+              <span class="bs-badge yellow">7–10 år</span>
+              <span class="bs-badge red">&gt; 10 år</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.75rem 1.25rem; flex-wrap: wrap; font-size: 0.82em;">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-cells" checked> 10 km Analysrutor</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-lines" checked> Ledningar ≥ 130 kV</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-subs" checked> Stationer (1 132 st)</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-conc"> Koncessioner (DSO)</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-flex" checked> Flexmarknader</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-failed"> Visa filtrerad mark</label>
+          </div>
+        </div>
+
+        <div style="font-size:0.8em; color:var(--muted); text-align:right;" id="bs-map-status">Laddar 4 612 nätanalysrutor och 1 132 stationer…</div>
+      </section>
 
     </div>
 
