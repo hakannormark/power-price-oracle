@@ -322,7 +322,7 @@
       <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
         <div>
           <h1>Storskalig BESS & Nätbatterier (MW / MWh)</h1>
-          <p class="lede">Interaktiv intäkts- och investeringskalkyl för storskaliga energilager, nätanslutna batteriparker och industriell flexibilitet. Bygger på Svenska kraftnäts <em>Balancing Market Outlook 2030 (2026-uppdateringen)</em> med empiriska utfall t.o.m. 2025.</p>
+          <p class="lede">Interaktiv intäkts- och investeringskalkyl för storskaliga energilager, nätanslutna batteriparker och industriell flexibilitet. Bygger på Svenska kraftnäts <em>Balancing Market Outlook 2030 (2026-uppdateringen)</em> med empiriska utfall t.o.m. 2025. <a href="#bess-references" style="color: #38bdf8; font-weight: 600; text-decoration: underline; white-space: nowrap;">📚 Vetenskapligt underlag & referenser ↓</a></p>
         </div>
         <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 0.6rem 1rem; font-size: 0.85em; max-width: 300px;">
           <span style="color: #38bdf8; font-weight: 700;">⚡ SvK Marknadsstatus:</span> mFRR står nu för 81 % av stödtjänstkostnaderna (6,5 mdr kr). FCR-D har sjunkit till ~6 €/MW pga kraftig överetablering.
@@ -685,6 +685,18 @@
             Ligger den marginella paybacken över anläggningens tekniska livslängd är den extra energin <em>inte motiverad</em>. För att nå samma payback som 2-timmarsfallet skulle energidelen behöva kosta under <strong id="dim-required-cost" style="color: #fff;">857 kr/kWh</strong>. I SE2 är vattenkraftens prisutjämning för stark för att 4h ska löna sig. I SE4 ser kalkylen betydligt bättre ut.
           </p>
         </div>
+
+        <!-- Extern validering: SvK FNA2026 -->
+        <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 1.15rem; margin-top: 1.25rem;">
+          <h4 style="color: #38bdf8; margin: 0 0 0.4rem; font-size: 1.05em;">Extern validering: Svenska kraftnäts FNA2026 (När 4h kan bli rätt)</h4>
+          <p style="font-size: 0.88em; color: var(--text); margin: 0 0 0.5rem; line-height: 1.5;">
+            I Svenska kraftnäts officiella <em>Nationell bedömning av elsystemets behov av flexibilitet (FNA2026, ärende 2025/4663)</em> pekas SE2 ut som dimensionerande i Sverige:
+            tillkommande kortsiktigt uppregleringsbehov uppgår till <strong>1 150 MW år 2030</strong> och <strong>1 400 MW år 2035</strong>.
+          </p>
+          <p style="font-size: 0.85em; color: var(--muted); margin: 0; line-height: 1.5;">
+            Rapporten visar att de dimensionerande obalanserna i SE2 varar <strong>4,1 timmar i genomsnitt</strong> (inte 2h!). I dagens produktutbud premieras inte uthållighet, vilket gör att de extra timmarna bara ger ~1,4 MSEK/år i spotarbitrage. Men om Svenska kraftnät i framtiden inför flexibilitets- eller kapacitetsprodukter med längre uthållighetskrav förändras kalkylen radikalt till fördel för 4-timmars BESS.
+          </p>
+        </div>
       </section>
     </div>
 
@@ -820,6 +832,82 @@
             <p style="font-size: 0.85em; color: var(--muted); margin: 0.25rem 0 0;">Svenskt behov mer än fördubblas från dagens 100 MW. Den enda kapacitetsmarknaden med bekräftad stark volymtillväxt till 2030.</p>
           </div>
         </div>
+
+        <!-- De 3 Familjerna av Extremår -->
+        <h4 style="font-size: 1.05em; margin: 2.25rem 0 0.75rem;">De 3 Familjerna av Extremår – Mekanismer & Förvarning:</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-top: 3px solid #f87171; border-radius: 8px; padding: 1.1rem;">
+            <div style="font-weight: 700; color: #f87171; font-size: 0.95em; margin-bottom: 0.25rem;">A. Fundamentala Chocker</div>
+            <div style="font-size: 0.75em; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.04em;">Ingen förvarning · Riskmarginal</div>
+            <p style="font-size: 0.85em; color: var(--text); margin: 0 0 0.5rem; line-height: 1.45;">
+              Väder (Dunkelflaute, extremkyla), hydrologiska torrår, gasprischocker (TTF) och oplanerade produktionsavbrott i kärnkraft. Höjer den generella spotprisnivån och vattenkraftens alternativkostnad.
+            </p>
+            <div style="font-size: 0.8em; color: var(--muted); line-height: 1.4;"><strong>Exempel:</strong> 2022 års europeiska gaskris och franska korrosionsstopp. Multiplikator 2–4× mot basåret.</div>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-top: 3px solid #38bdf8; border-radius: 8px; padding: 1.1rem;">
+            <div style="font-weight: 700; color: #38bdf8; font-size: 0.95em; margin-bottom: 0.25rem;">B. Designdrivna Knappheter</div>
+            <div style="font-size: 0.75em; color: #38bdf8; text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.04em;">Åratal förvarning · Positionering</div>
+            <p style="font-size: 0.85em; color: var(--text); margin: 0 0 0.5rem; line-height: 1.45;">
+              Uppstår när systemoperatören höjer volymkravet eller skärper tekniska krav innan marknaden hunnit prekvalificera tillräckligt med utbud (täckningskvot <em>K</em> &lt; 1,5).
+            </p>
+            <div style="font-size: 0.8em; color: var(--muted); line-height: 1.4;"><strong>Exempel:</strong> FCR-D ned 2023 (topp 197 €/MW), mFRR 2025, och aFRR-fördubbling 2028. Premiens halveringstid är 1–2 år.</div>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-top: 3px solid #fbbf24; border-radius: 8px; padding: 1.1rem;">
+            <div style="font-weight: 700; color: #fbbf24; font-size: 0.95em; margin-bottom: 0.25rem;">C. Institutionella Brott</div>
+            <div style="font-size: 0.75em; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.04em;">Permanenta nivåskiften · Jämvikt</div>
+            <p style="font-size: 0.85em; color: var(--text); margin: 0 0 0.5rem; line-height: 1.45;">
+              Politiska intäktstak, ändrad avräkning eller kannibalisering (Schmalensee 2022). Kan även ge permanent lyft uppåt vid jättelaster som ansluter i samma elområde.
+            </p>
+            <div style="font-size: 0.8em; color: var(--muted); line-height: 1.4;"><strong>Exempel:</strong> FCR-D-kollapsen 2024 (kannibalisering nedåt); Torsboda 650–1 000 MW i SE2 (strukturellt lyft uppåt).</div>
+          </div>
+        </div>
+
+        <!-- Historiska referensklasser -->
+        <h4 style="font-size: 1.05em; margin: 2.25rem 0 0.75rem;">Historiska Bevis: När svansen i fördelningen bär kalkylen</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <strong style="color: #fff;">Sverige SE2 (Gaskrisen 2022)</strong>
+              <span class="badge success">55 % av CAPEX</span>
+            </div>
+            <p style="font-size: 0.84em; color: var(--muted); margin: 0; line-height: 1.45;">
+              Tre månader (sep, nov, dec) stod för <strong>54 % av summan av årets spotmedel</strong>. Ett 150 MW BESS hade genererat <strong>461 MSEK i EBITDA</strong> på ett enda år — vilket ensamt betalar mer än halva anläggningens totala CAPEX (840 MSEK).
+            </p>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <strong style="color: #fff;">Hornsdale Power Reserve (Australien)</strong>
+              <span class="badge success">Tesla 100 MW BESS</span>
+            </div>
+            <p style="font-size: 0.84em; color: var(--muted); margin: 0; line-height: 1.45;">
+              När South Australia kopplades bort från övriga nätet vid blackout och ö-drift tjänade Hornsdale-batteriet in <strong>en tredjedel av hela sin anläggningsinvestering</strong> på bara några få veckors extrem drift på FCAS-frekvensmarknaden.
+            </p>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <strong style="color: #fff;">ERCOT Texas (Winter Storm Uri 2021)</strong>
+              <span class="badge success">9 000 USD/MWh</span>
+            </div>
+            <p style="font-size: 0.84em; color: var(--muted); margin: 0; line-height: 1.45;">
+              Priset låg vid marknadstaket 9 000 USD/MWh i flera dygn. Batterier med tillgänglig laddning (SOC) och flexibel budgivning tjänade mångdubbelt sin årsbudget på några dagar.
+            </p>
+          </div>
+
+          <div style="background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <strong style="color: #38bdf8;">Infrastrukturparallell: NorNed (2008)</strong>
+              <span class="badge success">8,3 % på 2 mån</span>
+            </div>
+            <div style="font-size: 0.78em; color: #38bdf8; font-weight: 600; margin-bottom: 0.4rem;">Tid-arbitrage vs. Rums-arbitrage</div>
+            <p style="font-size: 0.84em; color: var(--muted); margin: 0; line-height: 1.45;">
+              Ett batteri flyttar el i <em>tid</em> (mellan timmar), medan en överföringskabel flyttar el i <em>rum</em> (mellan elområden). Båda lever på prisspreadar. När NorNed (580 km HVDC, 600 MEUR CAPEX) driftsattes drog den in <strong>50 miljoner euro på bara sina två första månader</strong> tack vare extrema prisskillnader Norge–Nederländerna.
+            </p>
+          </div>
+        </div>
       </section>
     </div>
 
@@ -903,6 +991,73 @@
         </div>
       </section>
     </div>
+
+    <!-- SEKTION: Vetenskapligt Underlag & Referensbibliotek -->
+    <section class="bess-card" id="bess-references" style="margin-top: 1.5rem; border-top: 3px solid #38bdf8;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+        <div>
+          <h3 style="font-size: 1.2em; margin: 0 0 0.35rem;">📚 Vetenskapligt Underlag & Referensbibliotek</h3>
+          <p style="font-size: 0.88em; color: var(--muted); margin: 0;">
+            Kalkylatorn och analysmodellen vilar på peer-reviewad energiekonomisk forskning, officiella rapporter från Svenska kraftnät samt empiriska europeiska marknadsdata.
+          </p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 1.5rem;">
+        <div>
+          <h4 style="font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; margin: 0 0 0.75rem;">1. Marknadsoptimering & SOC-konflikter</h4>
+          <ul style="font-size: 0.85em; color: var(--text); padding-left: 1.2rem; line-height: 1.6; margin: 0;">
+            <li style="margin-bottom: 0.6rem;">
+              <strong>Löhndorf, N. & Wozabal, D. (2023)</strong>: <em>The Value of Coordination in Multimarket Bidding of Grid Energy Storage</em>, <strong>Operations Research</strong> 71(1), 1–22.  
+              <span style="color: var(--muted); display: block;">Matematiskt bevis för att samoptimerad budgivning över day-ahead, intradag och reserver med SOC som länk slår sekventiell budgivning, särskilt vid hög volatilitet.</span>
+            </li>
+            <li style="margin-bottom: 0.6rem;">
+              <strong>Wang, H. m.fl. (2026)</strong>: <em>Capacity Subsidy Design for Battery Energy Storage Under Availability Opportunity Costs</em>, <strong>Sustainability</strong> 18(17).  
+              <span style="color: var(--muted); display: block;">Kvantifierar hur kapacitetsåtaganden tränger undan spotarbitrage (spotintäktens andel faller från 1,00 till 0,27 när tillgänglighetskraven skärps).</span>
+            </li>
+            <li>
+              <strong>Xia, Y. m.fl. (2026)</strong>: <em>Lifetime Profit-Maximising Co-optimisation of Multi-Service Stacking for Battery Storage</em>, arXiv:2609.03767.  
+              <span style="color: var(--muted); display: block;">Optimerar intäktsstacking med hänsyn till batteridegradering och garantins genomsatta MWh-tak.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.05em; color: #fbbf24; margin: 0 0 0.75rem;">2. Extremer, Väderår & Marknadsjämvikt</h4>
+          <ul style="font-size: 0.85em; color: var(--text); padding-left: 1.2rem; line-height: 1.6; margin: 0;">
+            <li style="margin-bottom: 0.6rem;">
+              <strong>Kittel, M., Roth, A. & Schill, W.-P. (2026)</strong>: <em>Long-duration electricity storage needs for coping with Dunkelflaute events in Europe</em>, <strong>Nature Communications</strong> 17:4210.  
+              <span style="color: var(--muted); display: block;">Visar ur 38 väderår att Dunkelflaute-händelser kräver 351 TWh långtidslagring i Europa och driver investeringsbehovet.</span>
+            </li>
+            <li style="margin-bottom: 0.6rem;">
+              <strong>Schmalensee, R. (2022)</strong>: <em>Competitive Energy Storage and the Duck Curve</em>, <strong>The Energy Journal</strong> 43(2).  
+              <span style="color: var(--muted); display: block;">Bevisar att batterikannibalisering (prisspread-komprimering när lagerkapacitet byggs ut) är en ofrånkomlig jämviktsegenskap som eroderar marginalerna.</span>
+            </li>
+            <li>
+              <strong>Kittel, M. & Schill, W.-P. (2026)</strong>: <em>Multi-threshold time series analysis of variable renewable energy droughts</em>, <strong>Communications Earth & Environment</strong> 7:242.
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.05em; color: #34d399; margin: 0 0 0.75rem;">3. TSO & Officiella Marknadsdata</h4>
+          <ul style="font-size: 0.85em; color: var(--text); padding-left: 1.2rem; line-height: 1.6; margin: 0;">
+            <li style="margin-bottom: 0.6rem;">
+              <strong>Svenska kraftnät (2026)</strong>: <em>Balancing Market Outlook 2030 (2026 Update)</em> samt <em>Mimer marknadsdata</em>.  
+              <span style="color: var(--muted); display: block;">Underlag för volymbehov till 2030, mFRR-skiftet (81 % av marknadskostnaden 2025) och aFRR-fördubblingen.</span>
+            </li>
+            <li style="margin-bottom: 0.6rem;">
+              <strong>Svenska kraftnät (2026)</strong>: <em>Nationell bedömning av elsystemets behov av flexibilitet (FNA2026)</em>, Ärende 2025/4663.  
+              <span style="color: var(--muted); display: block;">Visar 1 150 MW tillkommande uppregleringsbehov i SE2 år 2030 med 4,1 timmars medelvaraktighet.</span>
+            </li>
+            <li>
+              <strong>ACER (2026) & IEA (2026)</strong>: <em>Key Developments in Electricity Wholesale Markets</em> och <em>Electricity 2026</em>.  
+              <span style="color: var(--muted); display: block;">Dokumenterar att dygnsspreaden i EU femdubblats (28 → 109 €/MWh) och negativa timmar tiofaldigats.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
   </div>
 </main>
