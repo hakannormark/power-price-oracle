@@ -10,6 +10,7 @@
   let cellsData = [];
   let marketData = null;
   let metaData = null;
+  let dispatchData = null;
   let map = null;
   let cellLayerGroup = null;
   let subsLayerGroup = null;
@@ -82,6 +83,16 @@
   const btnCloseMethod = document.getElementById('btn-close-method');
   const btnModalOk = document.getElementById('btn-modal-ok');
 
+  // Dispatch Inspection Modal
+  const modalDispatch = document.getElementById('modal-dispatch');
+  const btnInspectDispatch = document.getElementById('btn-inspect-dispatch');
+  const btnCloseDispatch = document.getElementById('btn-close-dispatch');
+  const btnModalDispatchOk = document.getElementById('btn-modal-dispatch-ok');
+  const dispKpiEpoch = document.getElementById('disp-kpi-epoch');
+  const dispKpiCycles = document.getElementById('disp-kpi-cycles');
+  const dispKpiRevenue = document.getElementById('disp-kpi-revenue');
+  const dispTableBody = document.getElementById('disp-table-body');
+
   function initModal() {
     btnOpenMethod.addEventListener('click', () => modalMethod.style.display = 'flex');
     btnCloseMethod.addEventListener('click', () => modalMethod.style.display = 'none');
@@ -89,6 +100,21 @@
     modalMethod.addEventListener('click', (e) => {
       if (e.target === modalMethod) modalMethod.style.display = 'none';
     });
+
+    if (btnInspectDispatch) {
+      btnInspectDispatch.addEventListener('click', openDispatchModal);
+    }
+    if (btnCloseDispatch) {
+      btnCloseDispatch.addEventListener('click', () => modalDispatch.style.display = 'none');
+    }
+    if (btnModalDispatchOk) {
+      btnModalDispatchOk.addEventListener('click', () => modalDispatch.style.display = 'none');
+    }
+    if (modalDispatch) {
+      modalDispatch.addEventListener('click', (e) => {
+        if (e.target === modalDispatch) modalDispatch.style.display = 'none';
+      });
+    }
   }
 
   function initInputs() {
@@ -225,11 +251,12 @@
     }
     if (distKm === null) distKm = 30.0; // fallback
 
-    // 1. CAPEX-komponenter
+    // 1. CAPEX-komponenter (med 1,3x realistisk kabeldragningsfaktor för terräng & vägsträckning)
     const bessEnergyCapex = mwh * 1000 * capexPerKwh;
     const bessPowerCapex = mw * 1000 * capexPerKw;
     const bessCapex = bessEnergyCapex + bessPowerCapex;
-    let cableCapex = distKm * cableCostPerKm;
+    const routingFactor = 1.30; // Realistisk schakt- och terrängsträckning
+    let cableCapex = distKm * routingFactor * cableCostPerKm;
     let stationCapex = substationBay;
 
     // Solparkshybrid sparar upp till 45 MSEK i delat transformatorfack
@@ -243,51 +270,82 @@
     const z = cell.zone;
     const period = selHistoryDataset?.value || 'last12m';
     const duration = mwh / mw;
-    const arbRate = getZoneSpotArbRate(z, period, duration);
+    const dKey = duration >= 3.0 ? '4.0h' : (duration <= 1.5 ? '1.0h' : '2.0h');
 
-    // SvK marknadsdata (mFRR & aFRR)
-    let mfrrUp = marketData?.capacity.mfrr_cm?.[z]?.up?.value_eur_mw_yr || 0;
-    let mfrrDown = marketData?.capacity.mfrr_cm?.[z]?.down?.value_eur_mw_yr || 0;
-    let afrrDown = marketData?.capacity.afrr_cm?.[z]?.down?.value_eur_mw_yr || 0;
+    let mfrrRevSek = 0.0;
+    let afrrRevSek = 0.0;
+    let fcrRevSek = 0.0;
+    let arbRevSek = 0.0;
 
-    // Om framtidsscenario 2030 är valt (SvK FNA2026: aFRR ökar, mFRR komprimeras något)
+    // Om kronologisk 8 760h dispatch-matris finns laddad: använd exakt simultan dispatch
+    const epochDispatch = dispatchData?.epochs?.[period]?.[z]?.[dKey];
+    if (epochDispatch) {
+      arbRevSek = epochDispatch.spot_rev_eur_mw_yr * mw * fx;
+      mfrrRevSek = epochDispatch.mfrr_rev_eur_mw_yr * mw * fx;
+      afrrRevSek = epochDispatch.afrr_rev_eur_mw_yr * mw * fx;
+      fcrRevSek = epochDispatch.fcr_rev_eur_mw_yr * mw * fx;
+
+      // Strategijustering om användaren valt renodlat fokus
+      if (strategy === 'ancillary_focus') {
+        mfrrRevSek *= 1.20;
+        afrrRevSek *= 1.15;
+        arbRevSek *= 0.35;
+      } else if (strategy === 'arbitrage_focus') {
+        arbRevSek *= 1.35;
+        mfrrRevSek *= 0.40;
+        afrrRevSek *= 0.30;
+      }
+    } else {
+      // Fallback till formelbaserad modell om dispatchData inte laddats än
+      const arbRate = getZoneSpotArbRate(z, period, duration);
+      let mfrrUp = marketData?.capacity.mfrr_cm?.[z]?.up?.value_eur_mw_yr || 0;
+      let mfrrDown = marketData?.capacity.mfrr_cm?.[z]?.down?.value_eur_mw_yr || 0;
+      let afrrDown = marketData?.capacity.afrr_cm?.[z]?.down?.value_eur_mw_yr || 0;
+
+      let mfrrAccept = 0.40;
+      let afrrAccept = 0.30;
+      let arbShare = 0.60;
+
+      if (strategy === 'ancillary_focus') {
+        mfrrAccept = 0.55;
+        afrrAccept = 0.40;
+        arbShare = 0.20;
+      } else if (strategy === 'arbitrage_focus') {
+        mfrrAccept = 0.20;
+        afrrAccept = 0.10;
+        arbShare = 0.85;
+      }
+
+      const fcrBasePrice = getPeriodFcrPrice(period);
+      fcrRevSek = fcrBasePrice * 8760 * 0.42 * (mw * 0.5) * fx;
+      mfrrRevSek = (mfrrUp + mfrrDown) * mfrrAccept * mw * fx;
+      afrrRevSek = afrrDown * afrrAccept * mw * fx;
+      arbRevSek = arbRate * arbShare * mw * fx;
+    }
+
+    // Framtidsutsikt 2030 (SvK FNA2026: aFRR ökar, mFRR komprimeras något)
     if (selMarketYear.value === '2030') {
-      afrrDown = afrrDown * 1.45;
-      mfrrUp = mfrrUp * 0.90;
-      mfrrDown = mfrrDown * 0.90;
+      afrrRevSek *= 1.45;
+      mfrrRevSek *= 0.90;
     }
 
-    // Budstrategi-vikter
-    let mfrrAccept = 0.40;
-    let afrrAccept = 0.30;
-    let arbShare = 0.60;
-
-    if (strategy === 'ancillary_focus') {
-      mfrrAccept = 0.55;
-      afrrAccept = 0.40;
-      arbShare = 0.20;
-    } else if (strategy === 'arbitrage_focus') {
-      mfrrAccept = 0.20;
-      afrrAccept = 0.10;
-      arbShare = 0.85;
-    }
-
-    // FCR-pris anpassat efter vald datasetperiod (fcr_n var t.ex. 64 €/MWh 2022 vs 26,85 € 2025)
-    const fcrBasePrice = getPeriodFcrPrice(period);
-    const fcrRevSek = fcrBasePrice * 8760 * 0.42 * (mw * 0.5) * fx;
-
-    const mfrrRevSek = (mfrrUp + mfrrDown) * mfrrAccept * mw * fx;
-    const afrrRevSek = afrrDown * afrrAccept * mw * fx;
-    const arbRevSek = arbRate * arbShare * mw * fx;
     const solarRevSek = isSolar ? 1100000 : 0; // 1,1 MSEK/år i räddad solel
-
-    // Total bruttointäkt
     const grossRev = mfrrRevSek + afrrRevSek + fcrRevSek + arbRevSek + solarRevSek;
 
-    // OPEX: BSP-arvode (3%), O&M (45 000 kr/MW), Nätavgift (40 000 kr/MW), Cykelslitage (80 kr/MWh)
+    // OPEX: Differentierad nätavgift baserat på DSO-kategori (35–55 kkr/MW beroende på nätägare)
+    let dsoTariffRate = 40000;
+    const dsoName = (cell.dso || '').toLowerCase();
+    if (dsoName.includes('vattenfall') || dsoName.includes('ellevio')) {
+      dsoTariffRate = 46000; // Stora regionnätsägare med fastare effekttariff
+    } else if (dsoName.includes('e.on')) {
+      dsoTariffRate = 48000;
+    } else if (dsoName.includes('skellefteå') || dsoName.includes('luleå') || dsoName.includes('umeå')) {
+      dsoTariffRate = 34000; // Norrländska kommunala nät med lägre nätkostnad
+    }
+
     const bspFee = grossRev * 0.03;
     const omCost = mw * 45000;
-    const gridCost = mw * 40000;
+    const gridCost = mw * dsoTariffRate;
     const wearCost = mwh * 280 * 80;
 
     const normalEbitda = Math.max(0, grossRev - bspFee - omCost - gridCost - wearCost);
@@ -498,17 +556,73 @@
     revSolar.textContent = (f.breakdown.solarRevSek / 1000000).toFixed(1).replace('.', ',') + ' MSEK';
   }
 
+  function openDispatchModal() {
+    if (!modalDispatch) return;
+    const cell = cellsData.find(c => c.id === selectedCellId) || cellsData[0];
+    const z = cell?.zone || 'SE4';
+    const period = selHistoryDataset?.value || 'last12m';
+    const mw = parseFloat(rPowerMw.value);
+    const mwh = parseFloat(rCapMwh.value);
+    const duration = mw > 0 ? (mwh / mw) : 2.0;
+    const dKey = duration >= 3.0 ? '4.0h' : (duration <= 1.5 ? '1.0h' : '2.0h');
+
+    const epochDisp = dispatchData?.epochs?.[period]?.[z]?.[dKey];
+
+    if (dispKpiEpoch) {
+      const periodNames = {
+        'last12m': 'Senaste 12 månaderna (Aktuell marknad)',
+        '3y': '3 års snitt (2023–2026)',
+        '5y': '5 års snitt (2021–2026)',
+        '10y': '10 års snitt (Nord Pool 2015–2026)',
+        '2022': 'Extremåret 2022 (Energikrisen)',
+        '2024': 'Konservativt år 2024'
+      };
+      dispKpiEpoch.textContent = `${periodNames[period] || period} · ${z} (${dKey})`;
+    }
+
+    if (epochDisp) {
+      if (dispKpiCycles) dispKpiCycles.textContent = `${epochDisp.equivalent_cycles} cykler/år`;
+      if (dispKpiRevenue) dispKpiRevenue.textContent = `${Math.round(epochDisp.total_rev_eur_mw_yr).toLocaleString('sv-SE')} €/MW/år`;
+
+      if (dispTableBody) {
+        dispTableBody.innerHTML = '';
+        const week = epochDisp.sample_week || [];
+        // Visa första 48 timmarna av sample week i tabellen
+        week.slice(0, 48).forEach((row, i) => {
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+          tr.innerHTML = `
+            <td style="padding:6px 8px; text-align:left; color:var(--muted);">T+${i + 1}h</td>
+            <td style="padding:6px 8px; font-weight:600;">${row.spot.toFixed(1)}</td>
+            <td style="padding:6px 8px; color:#38bdf8;">${row.soc_pct.toFixed(0)} %</td>
+            <td style="padding:6px 8px; color:#34d399;">${row.spot_charge_mw > 0 ? (row.spot_charge_mw * mw).toFixed(1) + ' MW' : '–'}</td>
+            <td style="padding:6px 8px; color:#fbbf24;">${row.spot_discharge_mw > 0 ? (row.spot_discharge_mw * mw).toFixed(1) + ' MW' : '–'}</td>
+            <td style="padding:6px 8px; color:#38bdf8;">${row.mfrr_up_mw > 0 ? (row.mfrr_up_mw * mw).toFixed(1) + ' MW' : '–'}</td>
+            <td style="padding:6px 8px; color:#a855f7;">${row.afrr_down_mw > 0 ? (row.afrr_down_mw * mw).toFixed(1) + ' MW' : '–'}</td>
+          `;
+          dispTableBody.appendChild(tr);
+        });
+      }
+    }
+
+    modalDispatch.style.display = 'flex';
+  }
+
   async function loadData() {
     try {
-      const [rCells, rMarket, rMeta] = await Promise.all([
+      const [rCells, rMarket, rMeta, rDisp] = await Promise.all([
         fetch('data/bess-map/cells.json'),
         fetch('data/bess-map/market.json'),
-        fetch('data/bess-map/meta.json')
+        fetch('data/bess-map/meta.json'),
+        fetch('data/bess-map/dispatch_backtest.json').catch(() => null)
       ]);
 
       cellsData = await rCells.json();
       marketData = await rMarket.json();
       metaData = await rMeta.json();
+      if (rDisp && rDisp.ok) {
+        dispatchData = await rDisp.json();
+      }
 
       mapStatus.textContent = `${cellsData.length.toLocaleString('sv-SE')} nätanalysrutor och 1 132 transformatorstationer laddade.`;
 

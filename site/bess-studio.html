@@ -443,6 +443,10 @@
             <dt>Spotarbitrage (Netto)</dt><dd id="rev-arb">9,4 MSEK</dd>
             <dt>Solparkshybrid-bonus</dt><dd id="rev-solar">0,0 MSEK</dd>
           </dl>
+
+          <button type="button" class="bs-btn-auto" id="btn-inspect-dispatch" style="margin-top: 1rem; background: linear-gradient(135deg, #1e293b, #334155); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4); box-shadow: none;">
+            <span>⏱️ Inspektera Kronologisk Tim-Dispatch (SoC &amp; Bud)</span>
+          </button>
         </section>
 
         <!-- TOPP 5 RANKING -->
@@ -560,6 +564,56 @@
 
     <div style="text-align: right; margin-top: 1.5rem;">
       <button type="button" class="bs-btn-auto" style="display:inline-flex; width:auto; padding:0.6rem 1.5rem;" id="btn-modal-ok">Jag förstår</button>
+    </div>
+  </div>
+</div>
+
+<!-- TIM-DISPATCH INSPEKTIONS-MODAL -->
+<div class="bs-modal-backdrop" id="modal-dispatch" style="display:none;">
+  <div class="bs-modal" style="max-width: 920px;">
+    <button type="button" class="bs-modal-close" id="btn-close-dispatch">&times;</button>
+    <h2>⏱️ Kronologisk Tim-Dispatch: Fysisk Simulering (8 760 timmar)</h2>
+    <p>
+      Här visas hur anläggningen optimerar sina intäkter och laddningsgrad timme för timme under en representativ högvärdesvecka i vald zon och historisk epok, med hänsyn tagen till <strong>faktiska timpriser, 88 % RTE verkningsgrad och samtidighetsspärr</strong>.
+    </p>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:0.75rem; margin:1rem 0;">
+      <div class="bs-kpi">
+        <div class="bs-kpi-lbl">Simulerad Epok</div>
+        <div class="bs-kpi-val" style="font-size:1.15em;" id="disp-kpi-epoch">Senaste 12 månaderna</div>
+      </div>
+      <div class="bs-kpi">
+        <div class="bs-kpi-lbl">Optimal Årscykling</div>
+        <div class="bs-kpi-val" style="font-size:1.15em; color:#38bdf8;" id="disp-kpi-cycles">162 cykler/år</div>
+      </div>
+      <div class="bs-kpi">
+        <div class="bs-kpi-lbl">Exakt Årsintäkt</div>
+        <div class="bs-kpi-val" style="font-size:1.15em; color:#34d399;" id="disp-kpi-revenue">77 700 €/MW/år</div>
+      </div>
+    </div>
+
+    <h4 style="font-size:0.9em; text-transform:uppercase; color:var(--muted); margin:1.25rem 0 0.5rem;">Representativ Vintervecka (Timme 300–468): Tim-för-tim utfall</h4>
+    <div style="overflow-x:auto; max-height:360px; border:1px solid var(--border); border-radius:8px;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.82em; font-family:var(--mono); text-align:right;">
+        <thead style="position:sticky; top:0; background:#0f172a; color:var(--muted); font-size:0.85em; text-transform:uppercase;">
+          <tr>
+            <th style="padding:8px; text-align:left;">Timme</th>
+            <th style="padding:8px;">Spot (€/MWh)</th>
+            <th style="padding:8px;">SoC (%)</th>
+            <th style="padding:8px; color:#34d399;">Laddning Spot</th>
+            <th style="padding:8px; color:#fbbf24;">Urladdning Spot</th>
+            <th style="padding:8px; color:#38bdf8;">mFRR Upp</th>
+            <th style="padding:8px; color:#a855f7;">aFRR Ned</th>
+          </tr>
+        </thead>
+        <tbody id="disp-table-body">
+          <!-- Renderas dynamiskt i JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <div style="text-align: right; margin-top: 1.5rem;">
+      <button type="button" class="bs-btn-auto" style="display:inline-flex; width:auto; padding:0.6rem 1.5rem;" id="btn-modal-dispatch-ok">Stäng inspektion</button>
     </div>
   </div>
 </div>
