@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BESS-karta Sverige — geografisk screening av batterilager</title>
+<meta name="description" content="Interaktiv karta som sållar fram var i Sverige ett batterilager (BESS) kan vara anslutningsbart och kommersiellt intressant: elområdenas historiska intäkter, nätägare, närhet till högre spänning, skyddad mark och lokala flexmarknader.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="assets/style.css?v=20261005a">
+<style>
+  .bm-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.4rem; box-shadow: var(--shadow); }
+  .bm-subnav { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 0.5rem; }
+  .bm-subnav a { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); font-weight: 600; font-size: 0.88em; text-decoration: none; }
+  .bm-subnav a.active { background: #38bdf8; color: #0b1220; border-color: #38bdf8; }
+  .bm-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; align-items: end; }
+  .bm-ctl label { display: block; font-size: 0.8em; color: var(--muted); font-weight: 600; margin-bottom: 0.3rem; }
+  .bm-ctl select, .bm-ctl input[type=number] { width: 100%; padding: 0.45rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9em; font-weight: 600; }
+  .bm-ctl input[type=range] { width: 100%; accent-color: #38bdf8; }
+  .bm-ctl .val { font-family: var(--mono); color: var(--text); }
+  .bm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1rem; }
+  @media (max-width: 960px) { .bm-layout { grid-template-columns: 1fr; } }
+  #bm-map { height: 72vh; min-height: 520px; border-radius: var(--radius); border: 1px solid var(--border); background: #0a0f1a; }
+  .bm-side { display: flex; flex-direction: column; gap: 1rem; max-height: 72vh; overflow-y: auto; }
+  @media (max-width: 960px) { .bm-side { max-height: none; } }
+  .bm-side h3 { font-size: 1em; margin: 0 0 0.5rem; }
+  .bm-kv { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.75rem; font-size: 0.85em; }
+  .bm-kv dt { color: var(--muted); }
+  .bm-kv dd { margin: 0; text-align: right; font-family: var(--mono); color: var(--text); }
+  .bm-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; }
+  .bm-bar > span { display: block; height: 100%; background: #38bdf8; }
+  .bm-sub { display: grid; grid-template-columns: 120px 1fr 44px; gap: 0.5rem; align-items: center; font-size: 0.82em; margin: 0.25rem 0; }
+  .bm-sub .w { color: var(--faint); font-family: var(--mono); text-align: right; }
+  .bm-verdict { font-weight: 700; padding: 0.4rem 0.7rem; border-radius: 6px; display: inline-block; font-size: 0.9em; }
+  .bm-verdict.hi { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+  .bm-verdict.mid { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.4); }
+  .bm-verdict.lo { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.35); }
+  .bm-verdict.fail { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); }
+  .bm-top { list-style: none; padding: 0; margin: 0; font-size: 0.84em; }
+  .bm-top li { display: grid; grid-template-columns: 26px 1fr 44px; gap: 0.4rem; padding: 0.4rem 0.3rem; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .bm-top li:hover { background: rgba(56,189,248,0.07); }
+  .bm-top .s { font-family: var(--mono); text-align: right; color: #34d399; }
+  .bm-top .m { color: var(--faint); font-size: 0.92em; }
+  .bm-legend { background: rgba(11,18,32,0.88); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); color: var(--text); font-size: 12px; line-height: 1.5; }
+  .bm-legend i { display: inline-block; width: 14px; height: 10px; margin-right: 6px; vertical-align: middle; border-radius: 2px; }
+  .bm-zones { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+  .bm-zone { border: 1px solid var(--border); border-radius: 10px; padding: 1rem; background: rgba(255,255,255,0.02); }
+  .bm-zone h4 { margin: 0 0 0.5rem; display: flex; justify-content: space-between; align-items: baseline; }
+  .bm-zone .big { font-size: 1.5em; font-weight: 700; font-family: var(--mono); color: #38bdf8; }
+  .bm-note { font-size: 0.8em; color: var(--faint); line-height: 1.45; }
+  .bm-warn { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.35); color: #fde68a; border-radius: 8px; padding: 0.8rem 1rem; font-size: 0.86em; line-height: 1.5; }
+  .bm-table { width: 100%; border-collapse: collapse; font-size: 0.84em; }
+  .bm-table th, .bm-table td { padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  .bm-table th { color: var(--muted); font-weight: 600; }
+  .bm-layers label { display: block; font-size: 0.84em; margin: 0.2rem 0; cursor: pointer; }
+  details.bm-adv summary { cursor: pointer; color: #38bdf8; font-weight: 600; font-size: 0.88em; margin-top: 0.75rem; }
+  .leaflet-container { font-family: var(--sans); }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #121a2b; color: var(--text); border: 1px solid var(--border); }
+  .leaflet-popup-content { font-size: 12.5px; line-height: 1.45; }
+  .leaflet-control-attribution { background: rgba(11,18,32,0.8) !important; color: var(--faint) !important; }
+  .leaflet-control-attribution a { color: #93c5fd !important; }
+</style>
+</head>
+<body data-page="bess-karta">
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="header-top-row">
+      <a class="brand" href="batteri.html"><span class="dot" style="background: #38bdf8; box-shadow: 0 0 12px #38bdf8;"></span>Batterikalkyl <small>BESS-karta</small></a>
+      <nav class="portal-nav" aria-label="Huvudsystem">
+        <a href="index.html" class="portal-tab">
+          <span class="portal-tab-icon">⚡</span>
+          <span>Spotprisprognos</span>
+        </a>
+        <a href="batteri.html" class="portal-tab">
+          <span class="portal-tab-icon">🏡</span>
+          <span>Hembatteri</span>
+        </a>
+        <a href="bess-storskalig.html" class="portal-tab active">
+          <span class="portal-tab-icon">🏭</span>
+          <span>Storskalig BESS</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack" style="max-width: 1400px;">
+
+    <nav class="bm-subnav" aria-label="Storskalig BESS">
+      <a href="bess-storskalig.html">🧮 Intäkts- &amp; investeringskalkyl</a>
+      <a href="bess-karta.html" class="active">🗺️ BESS-karta (var lönar det sig?)</a>
+    </nav>
+
+    <div class="page-head">
+      <h1>BESS-karta: var i Sverige kan ett batterilager löna sig?</h1>
+      <p class="lede">Geografisk screening som väger ihop <strong>elområdets historiska intäkter</strong> (spotarbitrage, mFRR- och aFRR-kapacitet senaste 12 månaderna) med <strong>anslutningsförutsättningar</strong> (nätägare, avstånd till högre spänning) och <strong>markbegränsningar</strong> (skyddad natur) i 10&nbsp;×&nbsp;10&nbsp;km-rutor. Klicka på en ruta för att se varför den fick sin poäng.</p>
+    </div>
+
+    <div class="bm-warn" id="bm-disclaimer">
+      <strong>Indikativ screening från öppna källor.</strong> Visar inte ledig effekt i en station och ersätter inte förfrågan till nätägare. Marknadsintäkt är elområdets historiska pris, inte anläggningens intäkt. Träffgrad och stackning är antaganden. Kartan säger aldrig ”bygg här” – den säger var en förfrågan kan vara värd att skicka.
+    </div>
+
+    <section class="bm-card">
+      <div class="bm-controls">
+        <div class="bm-ctl">
+          <label for="bm-size">Projektstorlek (styr spänningsnivå)</label>
+          <select id="bm-size">
+            <option value="local">1–5 MW · lokalnät (≥ 40 kV-station)</option>
+            <option value="region" selected>5–40 MW · regionnät (≥ 70 kV)</option>
+            <option value="tso">&gt; 40 MW · region/stam (≥ 130 kV)</option>
+          </select>
+        </div>
+        <div class="bm-ctl">
+          <label for="bm-profile">Affärsmodell (viktprofil)</label>
+          <select id="bm-profile">
+            <option value="balanced" selected>Balanserad</option>
+            <option value="capacity">Kapacitets-BESS (stödtjänster)</option>
+            <option value="arbitrage">Arbitrage / hybrid med sol-vind</option>
+            <option value="flex">Lokal flexibilitet</option>
+          </select>
+        </div>
+        <div class="bm-ctl">
+          <label for="bm-radius">Sökradie till station: <span class="val" id="bm-radius-val">15 km</span></label>
+          <input type="range" id="bm-radius" min="3" max="30" step="1" value="15">
+        </div>
+        <div class="bm-ctl">
+          <label for="bm-duration">Lagringstid</label>
+          <select id="bm-duration">
+            <option value="2" selected>2 timmar</option>
+            <option value="4">4 timmar</option>
+          </select>
+        </div>
+        <div class="bm-ctl">
+          <label for="bm-mw">Effekt för intäktsindikation (MW)</label>
+          <input type="number" id="bm-mw" min="1" max="500" step="1" value="20">
+        </div>
+      </div>
+      <details class="bm-adv">
+        <summary>Antaganden: träffgrad och stackning (ändra själv)</summary>
+        <div class="bm-controls" style="margin-top: 0.75rem;">
+          <div class="bm-ctl"><label for="cap-mfrr">Träffgrad mFRR-kapacitet: <span class="val" id="cap-mfrr-val"></span></label><input type="range" id="cap-mfrr" min="0.1" max="1" step="0.05" value="0.4"></div>
+          <div class="bm-ctl"><label for="cap-afrr">Träffgrad aFRR-kapacitet: <span class="val" id="cap-afrr-val"></span></label><input type="range" id="cap-afrr" min="0.1" max="1" step="0.05" value="0.4"></div>
+          <div class="bm-ctl"><label for="cap-arb">Andel av perfekt arbitrage: <span class="val" id="cap-arb-val"></span></label><input type="range" id="cap-arb" min="0.3" max="1" step="0.05" value="0.7"></div>
+          <div class="bm-ctl"><label for="cap-stack">Restintäkt från andra strömmen: <span class="val" id="cap-stack-val"></span></label><input type="range" id="cap-stack" min="0" max="0.6" step="0.05" value="0.25"></div>
+        </div>
+        <p class="bm-note" style="margin-top: 0.6rem;">Träffgrad 1,0 = budade alltid till eller under marginalpriset och hade effekten ledig. Samma MW kan inte säljas två gånger samma timme: intäkten räknas som den bästa strömmen (stödtjänst <em>eller</em> arbitrage) plus en restandel av den andra, för timmar då effekten inte var bunden.</p>
+      </details>
+    </section>
+
+    <div class="bm-layout">
+      <div>
+        <div id="bm-map" role="application" aria-label="Karta över BESS-screening"></div>
+        <p class="bm-note" style="margin-top: 0.5rem;" id="bm-map-sources">Laddar källor…</p>
+      </div>
+      <aside class="bm-side">
+        <section class="bm-card">
+          <h3>Kartlager</h3>
+          <div class="bm-layers">
+            <label><input type="checkbox" id="lyr-cells" checked> Poäng per 10 km-ruta</label>
+            <label><input type="checkbox" id="lyr-zones" checked> Elområden SE1–SE4</label>
+            <label><input type="checkbox" id="lyr-lines" checked> Ledningar ≥ 130 kV (OSM)</label>
+            <label><input type="checkbox" id="lyr-subs"> Stationer ≥ 130 kV (OSM)</label>
+            <label><input type="checkbox" id="lyr-conc"> Nätägare (Ei områdeskoncession)</label>
+            <label><input type="checkbox" id="lyr-flex" checked> Lokala flexmarknader</label>
+            <label><input type="checkbox" id="lyr-failed" checked> Visa rutor som föll på hårda filter</label>
+          </div>
+        </section>
+        <section class="bm-card" id="bm-detail">
+          <h3>Vald ruta</h3>
+          <p class="bm-note">Klicka på en ruta i kartan för poäng, delpoäng, nätägare, närmaste station och varför den eventuellt föll bort.</p>
+        </section>
+        <section class="bm-card">
+          <h3>Topp 15 rutor med nuvarande inställningar</h3>
+          <ol class="bm-top" id="bm-top"></ol>
+          <p class="bm-note" style="margin-top: 0.5rem;" id="bm-stats"></p>
+        </section>
+      </aside>
+    </div>
+
+    <section class="bm-card">
+      <h2 style="font-size: 1.15em; margin: 0 0 0.35rem;">Elområdenas intäktsbild – senaste 12 månaderna</h2>
+      <p class="bm-note" style="margin: 0 0 1rem;" id="bm-zone-sub">All marknadsintäkt är per elområde. Ingen öppen serie finns per kommun, station eller anläggning – därför är marknadsdelen av poängen lika i hela zonen och det är anslutning, mark och lokal flex som skiljer rutorna åt inom en zon.</p>
+      <div class="bm-zones" id="bm-zones"></div>
+      <div style="margin-top: 1.25rem;">
+        <h3 style="font-size: 1em; margin: 0 0 0.35rem;">Tidigare lönsamhet: perfekt dygnsarbitrage per år (EUR/MW, <span id="bm-hist-dur">2 h</span>)</h3>
+        <p class="bm-note" style="margin: 0 0 0.6rem;">Visar hur extremåret 2022 och den ökade volatiliteten sedan dess slagit olika hårt i zonerna. 2021 saknas i prisarkivet. Delår markeras med *.</p>
+        <div id="bm-history" style="overflow-x: auto;"></div>
+      </div>
+    </section>
+
+    <section class="bm-card">
+      <h2 style="font-size: 1.15em; margin: 0 0 0.75rem;">Så räknas poängen</h2>
+      <table class="bm-table">
+        <thead><tr><th>Steg</th><th>Regel</th><th>Källa</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1. Hårda filter</strong></td><td>Rutan måste ha känd nätägare (Ei-koncession), en OSM-station med rätt spänning inom sökradien och får inte till ≥ 90 % bestå av nationalpark, naturreservat eller annat strikt skydd. Faller ett filter räknas ingen poäng – orsaken visas.</td><td>Ei, OpenStreetMap, Naturvårdsregistret</td></tr>
+          <tr><td><strong>2. Anslutning</strong></td><td>Avståndsavtagande närhet till station i vald spänningsklass (1 vid 0 km → 0 vid sökradien), +0,1 om flera ≥ 130 kV-stationer finns inom 15 km (redundans). <em>Närhet, inte ledig effekt.</em></td><td>OpenStreetMap</td></tr>
+          <tr><td><strong>3. Stödtjänst</strong></td><td>Bästa av mFRR-kapacitet (upp + ned) och aFRR-kapacitet (upp + ned) × träffgrad, senaste 365 dygnen per elområde, relativt bästa zon. FCR ingår inte: marknaden är gemensam för SE + DK2 och skiljer inte zonerna åt.</td><td>Svenska kraftnät Data Service</td></tr>
+          <tr><td><strong>4. Arbitrage</strong></td><td>En cykel per dygn: sälj de 2 (4) dyraste timmarna, köp de 2 (4) billigaste, verkningsgrad 88 %, perfekt framförhållning, relativt bästa zon.</td><td>ENTSO-E / Nord Pool day-ahead</td></tr>
+          <tr><td><strong>5. Lokal flex</strong></td><td>1 om rutan ligger inom en känd lokal flexmarknad, annars 0. Saknad marknad är inte noll intäkt från Svenska kraftnät, bara noll lokal flex.</td><td>Power Circle, NODES</td></tr>
+          <tr><td><strong>6. Markrisk</strong></td><td>1 − andel strikt skyddad mark − halva andelen vattenskyddsområde. Ersätter specens tariff/kö-del tills nättariffer är kopplade.</td><td>Naturvårdsregistret</td></tr>
+          <tr><td><strong>Tolkning</strong></td><td>≥ 0,70 <span class="bm-verdict hi">värd indikativ förfrågan</span> · 0,40–0,70 <span class="bm-verdict mid">möjlig, granska</span> · &lt; 0,40 <span class="bm-verdict lo">lägg åt sidan</span></td><td></td></tr>
+        </tbody>
+      </table>
+      <h3 style="font-size: 1em; margin: 1.25rem 0 0.4rem;">Viktprofiler</h3>
+      <table class="bm-table" id="bm-weights"></table>
+    </section>
+
+    <section class="bm-card">
+      <h2 style="font-size: 1.15em; margin: 0 0 0.75rem;">Vad kartan inte vet – och var du kollar nästa steg</h2>
+      <ul style="font-size: 0.9em; line-height: 1.6; margin: 0; padding-left: 1.2rem;">
+        <li><strong>Ledig kapacitet:</strong> Det finns ingen öppen GIS-modell med ledig MW per station. Kontrollera <a href="https://www.svk.se/aktorsportalen/anslut-till-transmissionsnatet/kapacitetskarta-transmissionsnatet/" target="_blank" rel="noopener">Svenska kraftnäts kapacitetskarta (län för län)</a>, <a href="https://www.vattenfalleldistribution.se/var-verksamhet/om-elnatet/kapacitet/kapacitetskarta/" target="_blank" rel="noopener">Vattenfall Eldistributions kapacitetskarta</a> och <a href="https://www.ellevio.se/om-oss/elnat/elnatskapacitet-i-ellevios-regionnat/" target="_blank" rel="noopener">Ellevios regionnätskapacitet</a>. Saknad uppgift räknas aldrig som ”stängt”.</li>
+        <li><strong>Anslutningskö:</strong> Per 1 september 2026 låg ca 2 260 MW energilager som produktion och 2 206 MW som användning i transmissionsnätets kö (exkl. havsvind) – <a href="https://www.svk.se/aktorsportalen/anslut-till-transmissionsnatet/information-om-pagaende-anslutningsarenden/" target="_blank" rel="noopener">SvK:s köstatistik</a>. Det är en zonrisk, inte en punktrisk.</li>
+        <li><strong>Nätutvecklingsplaner:</strong> Där nätägaren redan beskriver flexibilitetsbehov är villkorad anslutning mer sannolik – <a href="https://ei.se/bransch/natutvecklingsplaner/karttjanst-natutvecklingsplaner" target="_blank" rel="noopener">Ei:s karttjänst</a>.</li>
+        <li><strong>Nättariff:</strong> Effektavgiften kan äta upp arbitraget i vissa nät. Tariffer per nätägare finns hos <a href="https://ei.se/om-oss/statistik-och-oppna-data/natavgifter---elnat" target="_blank" rel="noopener">Ei</a> men är ännu inte kopplade till kartan.</li>
+        <li><strong>Mark &amp; plan:</strong> Riksintressen, detaljplan och totalförsvarets intressen ingår inte. Kontakta kommunen.</li>
+        <li><strong>Kannibalisering:</strong> När förkvalificerad lagervolym växer pressas kapacitetspriserna (FCR-D föll från ~63 €/MW 2022 till ~6 €/MW 2025). Jämför projektets effekt med zonens medelvolym – visas i rutans detaljer.</li>
+      </ul>
+    </section>
+
+    <section class="bm-card">
+      <h2 style="font-size: 1.15em; margin: 0 0 0.75rem;">Källor och datum</h2>
+      <table class="bm-table" id="bm-sources"></table>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer" style="margin-top: 3rem; padding: 2rem 0; border-top: 1px solid var(--border); font-size: 0.85em; color: var(--muted); text-align: center;">
+  <div class="wrap">Indikativ screening · Kartdata © OpenStreetMap-bidragsgivare (ODbL) · Koncessioner © Energimarknadsinspektionen · Skyddade områden © Naturvårdsverket · Marknadsdata © Svenska kraftnät, ENTSO-E</div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="assets/bess-karta.js?v=20261005a"></script>
+</body>
+</html>

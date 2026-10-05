@@ -1,0 +1,5 @@
+# Optional: only for rebuilding the static BESS map layers (python -m src.geo.build_static).
+# The scheduled pipeline does not need these.
+pyshp>=2.3
+shapely>=2.0
+pyproj>=3.6

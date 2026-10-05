@@ -278,6 +278,15 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
         bess_payload = bess_publish.build_bess_payload(actuals, fx_rate=fx, zone="SE4", now=now)
         bess_publish.write_bess(bess_payload)
         sources["bess"] = {"ok": True, "offers": len(bess_payload.get("offers", []))}
+
+        try:
+            from .geo import market as geo_market
+            geo_payload = geo_market.build_market(actuals, fx_rate=fx, now=now, fetch=True)
+            geo_market.write_market(geo_payload)
+            sources["bess_map_market"] = {"ok": True}
+        except Exception as geo_exc:  # noqa: BLE001
+            log.warning("BESS map market refresh failed: %s", geo_exc)
+            sources["bess_map_market"] = {"ok": False, "error": str(geo_exc)[:200]}
     except Exception as exc:  # noqa: BLE001
         log.exception("BESS valuation failed: %s", exc)
         sources["bess"] = {"ok": False, "error": str(exc)[:200]}
