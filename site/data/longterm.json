@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-06T00:01:35+02:00",
+ "generated_at": "2026-10-06T00:12:33+02:00",
  "unit": "EUR/MWh",
  "horizon_months": 3,
  "default_model": "lt_damped",
@@ -76,11 +76,7 @@
      },
      "last_year": 33.632,
      "nuclear_out_mw": 1719.6,
-     "outlook": {
-      "month": "2026-11",
-      "temp_anomaly_c": 1.2,
-      "precip_anomaly_mm": -2.0
-     }
+     "outlook": null
     },
     {
      "month": "2026-12",
@@ -101,11 +97,7 @@
      },
      "last_year": 28.976,
      "nuclear_out_mw": 0.0,
-     "outlook": {
-      "month": "2026-12",
-      "temp_anomaly_c": 2.0,
-      "precip_anomaly_mm": 5.9
-     }
+     "outlook": null
     },
     {
      "month": "2027-01",
@@ -138,11 +130,7 @@
      },
      "last_year": 87.914,
      "nuclear_out_mw": 0.0,
-     "outlook": {
-      "month": "2027-01",
-      "temp_anomaly_c": 0.6,
-      "precip_anomaly_mm": -5.0
-     }
+     "outlook": null
     }
    ],
    "drivers_sv": [
@@ -150,8 +138,7 @@
     "Terminsmarknaden prissätter november 2026 till 44,9 EUR/MWh, 1,0 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 8 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
     "Planerade kärnkraftsstopp tar i snitt bort 1 720 MW i november, 0 MW i december och 0 MW i januari, mot 3 368 MW de senaste 30 dagarna.",
-    "Gas (TTF) kostar 73,3 EUR/MWh och en utsläppsrätt 79,8 EUR/ton. Ett gaskraftverk behöver då ungefär 176 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
-    "Säsongsprognosen för vädret i SE1, jämfört med det normala: november +1,2 °C och -2 mm nederbörd; december +2,0 °C och +6 mm nederbörd; januari +0,6 °C och -5 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
+    "Gas (TTF) kostar 73,3 EUR/MWh och en utsläppsrätt 79,8 EUR/ton. Ett gaskraftverk behöver då ungefär 176 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna."
    ],
    "fundamental_coefficients": {
     "seasonal_diff": -0.245,
@@ -197,11 +184,7 @@
      },
      "last_year": 31.234,
      "nuclear_out_mw": 1719.6,
-     "outlook": {
-      "month": "2026-11",
-      "temp_anomaly_c": 0.7,
-      "precip_anomaly_mm": 0.6
-     }
+     "outlook": null
     },
     {
      "month": "2026-12",
@@ -222,11 +205,7 @@
      },
      "last_year": 29.389,
      "nuclear_out_mw": 0.0,
-     "outlook": {
-      "month": "2026-12",
-      "temp_anomaly_c": 1.7,
-      "precip_anomaly_mm": 3.1
-     }
+     "outlook": null
     },
     {
      "month": "2027-01",
@@ -259,11 +238,7 @@
      },
      "last_year": 88.14,
      "nuclear_out_mw": 0.0,
-     "outlook": {
-      "month": "2027-01",
-      "temp_anomaly_c": 0.5,
-      "precip_anomaly_mm": -1.1
-     }
+     "outlook": null
     }
    ],
    "drivers_sv": [
@@ -271,8 +246,7 @@
     "Terminsmarknaden prissätter november 2026 till 42,5 EUR/MWh, 4,8 under vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 8 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
     "Planerade kärnkraftsstopp tar i snitt bort 1 720 MW i november, 0 MW i december och 0 MW i januari, mot 3 368 MW de senaste 30 dagarna.",
-    "Gas (TTF) kostar 73,3 EUR/MWh och en utsläppsrätt 79,8 EUR/ton. Ett gaskraftverk behöver då ungefär 176 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
-    "Säsongsprognosen för vädret i SE2, jämfört med det normala: november +0,7 °C och +1 mm nederbörd; december +1,7 °C och +3 mm nederbörd; januari +0,5 °C och -1 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
+    "Gas (TTF) kostar 73,3 EUR/MWh och en utsläppsrätt 79,8 EUR/ton. Ett gaskraftverk behöver då ungefär 176 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna."
    ],
    "fundamental_coefficients": {
     "seasonal_diff": -1.45,
@@ -318,11 +292,7 @@
      },
      "last_year": 63.353,
      "nuclear_out_mw": 1719.6,
-     "outlook": {
-      "month": "2026-11",
-      "temp_anomaly_c": 0.6,
-      "precip_anomaly_mm": 1.8
-     }
+     "outlook": null
     },
     {
      "month": "2026-12",
@@ -343,11 +313,7 @@
      },
      "last_year": 47.393,
      "nuclear_out_mw": 0.0,
-     "outlook": {
-      "month": "2026-12",
-      "temp_anomaly_c": 1.7,
-      "precip_anomaly_mm": 11.7
-     }
+     "outlook": null
     },
     {
      "month": "2027-01",
@@ -380,11 +346,7 @@
      },
      "last_year": 101.471,
      "nuclear_out_mw": 0.0,
-     "outlook": {
-      "month": "2027-01",
-      "temp_anomaly_c": 0.4,
-      "precip_anomaly_mm": 2.4
-     }
+     "outlook": null
     }
    ],
    "drivers_sv": [
@@ -392,8 +354,7 @@
     "Terminsmarknaden prissätter november 2026 till 93,5 EUR/MWh, 13,5 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 8 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
     "Planerade kärnkraftsstopp tar i snitt bort 1 720 MW i november, 0 MW i december och 0 MW i januari, mot 3 368 MW de senaste 30 dagarna.",
-    "Gas (TTF) kostar 73,3 EUR/MWh och en utsläppsrätt 79,8 EUR/ton. Ett gaskraftverk behöver då ungefär 176 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
-    "Säsongsprognosen för vädret i SE3, jämfört med det normala: november +0,6 °C och +2 mm nederbörd; december +1,7 °C och +12 mm nederbörd; januari +0,4 °C och +2 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
+    "Gas (TTF) kostar 73,3 EUR/MWh och en utsläppsrätt 79,8 EUR/ton. Ett gaskraftverk behöver då ungefär 176 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna."
    ],
    "fundamental_coefficients": {
     "seasonal_diff": 5.423,
@@ -439,11 +400,7 @@
      },
      "last_year": 73.398,
      "nuclear_out_mw": 1719.6,
-     "outlook": {
-      "month": "2026-11",
-      "temp_anomaly_c": 0.5,
-      "precip_anomaly_mm": -0.8
-     }
+     "outlook": null
     },
     {
      "month": "2026-12",
@@ -464,11 +421,7 @@
      },
      "last_year": 59.513,
      "nuclear_out_mw": 0.0,
-     "outlook": {
-      "month": "2026-12",
-      "temp_anomaly_c": 1.6,
-      "precip_anomaly_mm": 13.2
-     }
+     "outlook": null
     },
     {
      "month": "2027-01",
@@ -501,11 +454,7 @@
      },
      "last_year": 105.707,
      "nuclear_out_mw": 0.0,
-     "outlook": {
-      "month": "2027-01",
-      "temp_anomaly_c": 0.7,
-      "precip_anomaly_mm": 8.4
-     }
+     "outlook": null
     }
    ],
    "drivers_sv": [
@@ -513,8 +462,7 @@
     "Terminsmarknaden prissätter november 2026 till 124,5 EUR/MWh, 10,5 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 8 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
     "Planerade kärnkraftsstopp tar i snitt bort 1 720 MW i november, 0 MW i december och 0 MW i januari, mot 3 368 MW de senaste 30 dagarna.",
-    "Gas (TTF) kostar 73,3 EUR/MWh och en utsläppsrätt 79,8 EUR/ton. Ett gaskraftverk behöver då ungefär 176 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
-    "Säsongsprognosen för vädret i SE4, jämfört med det normala: november +0,5 °C och -1 mm nederbörd; december +1,6 °C och +13 mm nederbörd; januari +0,7 °C och +8 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
+    "Gas (TTF) kostar 73,3 EUR/MWh och en utsläppsrätt 79,8 EUR/ton. Ett gaskraftverk behöver då ungefär 176 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna."
    ],
    "fundamental_coefficients": {
     "seasonal_diff": 1.705,
@@ -820,7 +768,7 @@
   "scored": 0,
   "models": {},
   "first_issue": "2026-09-10",
-  "logged_issues": 26,
+  "logged_issues": 27,
   "first_scoreable_month": "2026-10",
   "first_scoreable_month_label": "oktober 2026"
  }
