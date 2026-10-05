@@ -136,11 +136,10 @@
       maxZoom: 13
     });
 
-    // Standard open tiles without API keys
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> bidragsgivare',
-      subdomains: 'abc',
-      maxZoom: 18
+    // Esri Dark Gray Canvas (öppen, hög prestanda, fungerar med både http och file://)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+      maxZoom: 16
     }).addTo(map);
 
     zoneLayerGroup = L.layerGroup().addTo(map);
