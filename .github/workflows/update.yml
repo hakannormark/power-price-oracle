@@ -132,10 +132,30 @@ jobs:
             echo "Nothing changed."
           else
             git commit -m "chore: update forecast ${{ steps.pipeline.outputs.run_id }}"
-            # The schedule can overlap a manual push; rebase rather than fail.
-            git pull --rebase --autostash origin ${{ github.ref_name }}
-            git push origin HEAD:${{ github.ref_name }}
+            # The schedule can overlap a manual push; rebase with -X theirs so newly
+            # computed forecast data is cleanly merged on top of manual code commits.
+            pushed=false
+            for attempt in 1 2 3; do
+              if git pull --rebase --autostash -X theirs origin ${{ github.ref_name }}; then
+                if git push origin HEAD:${{ github.ref_name }}; then
+                  pushed=true
+                  echo "Successfully pushed forecast update on attempt $attempt."
+                  break
+                fi
+              fi
+              echo "Rebase/push attempt $attempt encountered concurrent push. Retrying in 3 seconds..."
+              sleep 3
+            done
+
+            if [ "$pushed" = false ]; then
+              echo "Concurrent push conflict could not be automatically merged right now."
+              echo "Aborting rebase and resetting to origin/${{ github.ref_name }} to maintain clean state."
+              git rebase --abort 2>/dev/null || true
+              git reset --hard "origin/${{ github.ref_name }}"
+              echo "Safely deferred to next scheduled run (polls every 15 minutes)."
+            fi
           fi
+
 
       - uses: actions/configure-pages@v5
         if: steps.due.outputs.due == 'true'
