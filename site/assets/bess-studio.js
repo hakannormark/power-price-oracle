@@ -34,6 +34,8 @@
 
   const selZone = document.getElementById('sel-target-zone');
   const selStrategy = document.getElementById('sel-bess-strategy');
+  const selHistoryDataset = document.getElementById('sel-history-dataset');
+  const lblDatasetDesc = document.getElementById('lbl-dataset-desc');
   const selMarketYear = document.getElementById('sel-market-year');
   const selExtremeYears = document.getElementById('sel-extreme-years');
   const chkSolar = document.getElementById('chk-hybrid-solar');
@@ -72,6 +74,7 @@
   const revFcr = document.getElementById('rev-fcr');
   const revArb = document.getElementById('rev-arb');
   const revSolar = document.getElementById('rev-solar');
+  const histSpreadBox = document.getElementById('hist-spread-box');
 
   // Modal
   const modalMethod = document.getElementById('modal-method');
@@ -107,7 +110,18 @@
     };
 
     [rPowerMw, rCapMwh, rCapexKwh, rCapexKw, rCableCost, rSubBay].forEach(el => el.addEventListener('input', updateInputs));
-    [selZone, selStrategy, selMarketYear, selExtremeYears, chkSolar].forEach(el => el.addEventListener('change', recalculateAll));
+    [selZone, selStrategy, selHistoryDataset, selMarketYear, selExtremeYears, chkSolar].forEach(el => el.addEventListener('change', () => {
+      if (lblDatasetDesc && selHistoryDataset) {
+        const val = selHistoryDataset.value;
+        if (val === 'last12m') lblDatasetDesc.textContent = 'Faktiska timpriser från senaste 12 månaderna (Nord Pool / ENTSO-E).';
+        else if (val === '3y') lblDatasetDesc.textContent = '3 års historiskt snitt (2023–2026), balanserar post-kris.';
+        else if (val === '5y') lblDatasetDesc.textContent = '5 års historik (2021–2026), fångar både extrema och lugna marknader.';
+        else if (val === '10y') lblDatasetDesc.textContent = 'Fullständig 10-årig Nord Pool-historik (350 000+ timmar sedan 2015).';
+        else if (val === '2022') lblDatasetDesc.textContent = 'Energikrisåret 2022: Maximala spreadar (upp till 238 000 €/MW/år i SE4).';
+        else if (val === '2024') lblDatasetDesc.textContent = 'Lågvolatilt år 2024: Mycket konservativt stresstest.';
+      }
+      recalculateAll();
+    }));
 
     btnFindBest.addEventListener('click', () => {
       const best = findBestCell();
@@ -139,6 +153,46 @@
     linesLayerGroup = L.layerGroup().addTo(map);
     cellLayerGroup = L.layerGroup().addTo(map);
     subsLayerGroup = L.layerGroup().addTo(map);
+  }
+
+  // Beräknar spotarbitrage per zon och vald datasetperiod
+  function getZoneSpotArbRate(zone, period, duration) {
+    if (!marketData?.spot?.[zone]) return 0;
+    const is4h = duration >= 3.5;
+    const zSpot = marketData.spot[zone];
+
+    if (period === 'last12m') {
+      return is4h ? (zSpot.last12m?.arb_4h_eur_mw_yr || 0) : (zSpot.last12m?.arb_2h_eur_mw_yr || 0);
+    }
+
+    const years = zSpot.years || {};
+    if (period === '2022') {
+      const yr = years['2022'];
+      return is4h ? (yr?.arb_4h_eur_mw_yr || 0) : (yr?.arb_2h_eur_mw_yr || 0);
+    }
+    if (period === '2024') {
+      const yr = years['2024'];
+      return is4h ? (yr?.arb_4h_eur_mw_yr || 0) : (yr?.arb_2h_eur_mw_yr || 0);
+    }
+
+    let targetYears = [];
+    if (period === '3y') targetYears = ['2023', '2024', '2025'];
+    else if (period === '5y') targetYears = ['2020', '2022', '2023', '2024', '2025'];
+    else if (period === '10y') targetYears = ['2015', '2016', '2017', '2018', '2019', '2022', '2023', '2024', '2025'];
+
+    const vals = targetYears.map(y => is4h ? years[y]?.arb_4h_eur_mw_yr : years[y]?.arb_2h_eur_mw_yr)
+                            .filter(v => typeof v === 'number');
+    return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : (is4h ? zSpot.last12m.arb_4h_eur_mw_yr : zSpot.last12m.arb_2h_eur_mw_yr);
+  }
+
+  // Anpassar FCR-prisnivå utifrån vald historisk period
+  function getPeriodFcrPrice(period) {
+    const baseFcr = 6.0; // normaliserat 2025–2026 läge (€/MW/h)
+    if (period === '2022') return baseFcr * 2.4; // Historisk peak under energikrisen
+    if (period === '3y') return baseFcr * 1.5;   // 2023–2025 övergång
+    if (period === '5y') return baseFcr * 1.7;   // Inkluderar 2022–2023
+    if (period === '10y') return baseFcr * 1.2;  // Långsiktigt historiskt
+    return baseFcr;
   }
 
   // Finansiell beräkning för en enskild ruta
@@ -185,15 +239,23 @@
 
     const totalCapex = bessCapex + cableCapex + stationCapex;
 
-    // 2. Marknadsintäkter per elområde
+    // 2. Marknadsintäkter per elområde baserat på vald historisk datasetperiod
     const z = cell.zone;
-    const spot = marketData?.spot[z]?.last12m;
+    const period = selHistoryDataset?.value || 'last12m';
     const duration = mwh / mw;
-    const arbRate = (duration >= 3.5) ? (spot?.arb_4h_eur_mw_yr || 0) : (spot?.arb_2h_eur_mw_yr || 0);
+    const arbRate = getZoneSpotArbRate(z, period, duration);
 
-    const mfrrUp = marketData?.capacity.mfrr_cm?.[z]?.up?.value_eur_mw_yr || 0;
-    const mfrrDown = marketData?.capacity.mfrr_cm?.[z]?.down?.value_eur_mw_yr || 0;
-    const afrrDown = marketData?.capacity.afrr_cm?.[z]?.down?.value_eur_mw_yr || 0;
+    // SvK marknadsdata (mFRR & aFRR)
+    let mfrrUp = marketData?.capacity.mfrr_cm?.[z]?.up?.value_eur_mw_yr || 0;
+    let mfrrDown = marketData?.capacity.mfrr_cm?.[z]?.down?.value_eur_mw_yr || 0;
+    let afrrDown = marketData?.capacity.afrr_cm?.[z]?.down?.value_eur_mw_yr || 0;
+
+    // Om framtidsscenario 2030 är valt (SvK FNA2026: aFRR ökar, mFRR komprimeras något)
+    if (selMarketYear.value === '2030') {
+      afrrDown = afrrDown * 1.45;
+      mfrrUp = mfrrUp * 0.90;
+      mfrrDown = mfrrDown * 0.90;
+    }
 
     // Budstrategi-vikter
     let mfrrAccept = 0.40;
@@ -210,9 +272,12 @@
       arbShare = 0.85;
     }
 
+    // FCR-pris anpassat efter vald datasetperiod (fcr_n var t.ex. 64 €/MWh 2022 vs 26,85 € 2025)
+    const fcrBasePrice = getPeriodFcrPrice(period);
+    const fcrRevSek = fcrBasePrice * 8760 * 0.42 * (mw * 0.5) * fx;
+
     const mfrrRevSek = (mfrrUp + mfrrDown) * mfrrAccept * mw * fx;
     const afrrRevSek = afrrDown * afrrAccept * mw * fx;
-    const fcrRevSek = 6.0 * 8760 * 0.42 * (mw * 0.5) * fx; // Normaliserat FCR-läge
     const arbRevSek = arbRate * arbShare * mw * fx;
     const solarRevSek = isSolar ? 1100000 : 0; // 1,1 MSEK/år i räddad solel
 
@@ -278,6 +343,23 @@
 
     renderMapLayers();
     updateRankingList();
+
+    // Uppdatera transparensrutan för spotspreadar baserat på vald datasetperiod
+    if (histSpreadBox && marketData?.spot) {
+      const p = selHistoryDataset?.value || 'last12m';
+      const a4 = parseFloat(rCapMwh.value) / parseFloat(rPowerMw.value) >= 3.5;
+      const hType = a4 ? '4h arbitrage' : '2h arbitrage';
+      const se4 = Math.round(getZoneSpotArbRate('SE4', p, a4 ? 4 : 2)).toLocaleString('sv-SE');
+      const se3 = Math.round(getZoneSpotArbRate('SE3', p, a4 ? 4 : 2)).toLocaleString('sv-SE');
+      const se2 = Math.round(getZoneSpotArbRate('SE2', p, a4 ? 4 : 2)).toLocaleString('sv-SE');
+      const se1 = Math.round(getZoneSpotArbRate('SE1', p, a4 ? 4 : 2)).toLocaleString('sv-SE');
+      histSpreadBox.innerHTML = `
+        SE4: ${se4} €/MW/år (${hType})<br>
+        SE3: ${se3} €/MW/år (${hType})<br>
+        SE2: ${se2} €/MW/år (${hType})<br>
+        SE1: ${se1} €/MW/år (${hType})
+      `;
+    }
 
     // Uppdatera vald ruta om den finns, annars välj bästa
     let target = cellsData.find(c => c.id === selectedCellId && c.fin.passed);
