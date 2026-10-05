@@ -20,12 +20,14 @@
   const rPowerMw = document.getElementById('range-power-mw');
   const rCapMwh = document.getElementById('range-capacity-mwh');
   const rCapexKwh = document.getElementById('range-capex-kwh');
+  const rCapexKw = document.getElementById('range-capex-kw');
   const rCableCost = document.getElementById('range-cable-cost');
   const rSubBay = document.getElementById('range-substation-bay');
 
   const vPowerMw = document.getElementById('val-power-mw');
   const vCapMwh = document.getElementById('val-capacity-mwh');
   const vCapexKwh = document.getElementById('val-capex-kwh');
+  const vCapexKw = document.getElementById('val-capex-kw');
   const vCableCost = document.getElementById('val-cable-cost');
   const vSubBay = document.getElementById('val-substation-bay');
   const badgeCRate = document.getElementById('badge-c-rate');
@@ -57,8 +59,10 @@
   const detDso = document.getElementById('det-dso');
   const detStation = document.getElementById('det-station');
   const detDist = document.getElementById('det-dist');
+  const detEnergyCapex = document.getElementById('det-energy-capex');
+  const detPowerCapex = document.getElementById('det-power-capex');
+  const detStationCapex = document.getElementById('det-station-capex');
   const detCableCost = document.getElementById('det-cable-cost');
-  const detBessCapex = document.getElementById('det-bess-capex');
   const detProt = document.getElementById('det-prot');
   const detFlex = document.getElementById('det-flex');
 
@@ -94,6 +98,7 @@
       vPowerMw.textContent = mw + ' MW';
       vCapMwh.textContent = mwh + ' MWh';
       vCapexKwh.textContent = Math.round(rCapexKwh.value).toLocaleString('sv-SE') + ' kr';
+      vCapexKw.textContent = Math.round(rCapexKw.value).toLocaleString('sv-SE') + ' kr';
       vCableCost.textContent = parseFloat(rCableCost.value).toFixed(1).replace('.', ',') + ' MSEK/km';
       vSubBay.textContent = Math.round(rSubBay.value) + ' MSEK';
 
@@ -101,7 +106,7 @@
       recalculateAll();
     };
 
-    [rPowerMw, rCapMwh, rCapexKwh, rCableCost, rSubBay].forEach(el => el.addEventListener('input', updateInputs));
+    [rPowerMw, rCapMwh, rCapexKwh, rCapexKw, rCableCost, rSubBay].forEach(el => el.addEventListener('input', updateInputs));
     [selZone, selStrategy, selMarketYear, selExtremeYears, chkSolar].forEach(el => el.addEventListener('change', recalculateAll));
 
     btnFindBest.addEventListener('click', () => {
@@ -141,6 +146,7 @@
     const mw = parseFloat(rPowerMw.value);
     const mwh = parseFloat(rCapMwh.value);
     const capexPerKwh = parseFloat(rCapexKwh.value);
+    const capexPerKw = parseFloat(rCapexKw.value);
     const cableCostPerKm = parseFloat(rCableCost.value) * 1000000;
     const substationBay = parseFloat(rSubBay.value) * 1000000;
     const strategy = selStrategy.value;
@@ -166,11 +172,13 @@
     if (distKm === null) distKm = 30.0; // fallback
 
     // 1. CAPEX-komponenter
-    const bessCapex = mwh * 1000 * capexPerKwh;
+    const bessEnergyCapex = mwh * 1000 * capexPerKwh;
+    const bessPowerCapex = mw * 1000 * capexPerKw;
+    const bessCapex = bessEnergyCapex + bessPowerCapex;
     let cableCapex = distKm * cableCostPerKm;
     let stationCapex = substationBay;
 
-    // Solparkshybrid sparar 45 MSEK i delat transformatorfack
+    // Solparkshybrid sparar upp till 45 MSEK i delat transformatorfack
     if (isSolar) {
       stationCapex = Math.max(0, stationCapex - 45000000);
     }
@@ -233,6 +241,8 @@
       passed: true,
       totalCapex,
       bessCapex,
+      bessEnergyCapex,
+      bessPowerCapex,
       cableCapex,
       stationCapex,
       normalEbitda,
@@ -321,7 +331,27 @@
   function updateRankingList() {
     listTopSites.innerHTML = '';
     const valid = cellsData.filter(c => c.fin && c.fin.passed).sort((a, b) => a.fin.scenarioPayback - b.fin.scenarioPayback);
-    const top5 = valid.slice(0, 5);
+    
+    // Välj de 5 främsta unika platserna (prioritera olika nätägare eller skilda geografiska kluster)
+    const top5 = [];
+    const seenDso = new Set();
+    for (const c of valid) {
+      const key = `${c.zone}_${c.dso}`;
+      if (!seenDso.has(key) || top5.length < 3) {
+        seenDso.add(key);
+        top5.push(c);
+        if (top5.length >= 5) break;
+      }
+    }
+    // Om färre än 5 unika nätägare hittades, fyll på med de absolut bästa rutorna
+    if (top5.length < 5) {
+      for (const c of valid) {
+        if (!top5.includes(c)) {
+          top5.push(c);
+          if (top5.length >= 5) break;
+        }
+      }
+    }
 
     top5.forEach((c, idx) => {
       const li = document.createElement('li');
@@ -372,8 +402,10 @@
     detDso.textContent = cell.dso;
     detStation.textContent = f.stationName || '–';
     detDist.textContent = f.distKm.toFixed(1) + ' km';
+    detEnergyCapex.textContent = (f.bessEnergyCapex / 1000000).toFixed(1).replace('.', ',') + ' MSEK';
+    detPowerCapex.textContent = (f.bessPowerCapex / 1000000).toFixed(1).replace('.', ',') + ' MSEK';
+    detStationCapex.textContent = (f.stationCapex / 1000000).toFixed(1).replace('.', ',') + ' MSEK';
     detCableCost.textContent = (f.cableCapex / 1000000).toFixed(1).replace('.', ',') + ' MSEK';
-    detBessCapex.textContent = (f.bessCapex / 1000000).toFixed(1).replace('.', ',') + ' MSEK';
     detProt.textContent = `${Math.round(cell.prot * 100)} % ${cell.prot_name ? '(' + cell.prot_name + ')' : ''}`;
     detFlex.textContent = cell.flex?.length ? cell.flex.join(', ') : 'Ej aktiv flexmarknad';
 
