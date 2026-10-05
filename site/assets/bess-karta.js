@@ -105,7 +105,30 @@
       updateScores();
     });
 
-    elSize.addEventListener('change', updateScores);
+    elSize.addEventListener('change', () => {
+      // Justera MW till ett rimligt defaultvärde för vald klass om nuvarande är utanför spannet
+      const s = elSize.value;
+      const curMw = parseFloat(elMw.value) || 20;
+      if (s === 'local' && curMw > 5) elMw.value = 5;
+      else if (s === 'region' && (curMw <= 5 || curMw > 40)) elMw.value = 20;
+      else if (s === 'tso' && curMw <= 40) elMw.value = 50;
+      updateScores();
+    });
+
+    elMw.addEventListener('input', () => {
+      const curMw = parseFloat(elMw.value) || 1;
+      // Automatisk synk till rätt anslutningsklass baserat på angiven effekt
+      if (curMw <= 5 && elSize.value !== 'local') {
+        elSize.value = 'local';
+      } else if (curMw > 5 && curMw <= 40 && elSize.value !== 'region') {
+        elSize.value = 'region';
+      } else if (curMw > 40 && elSize.value !== 'tso') {
+        elSize.value = 'tso';
+      }
+      renderZoneCards();
+      updateScores();
+    });
+
     elProfile.addEventListener('change', () => {
       renderWeightsTable();
       updateScores();
@@ -115,10 +138,6 @@
       renderZoneCards();
       renderHistoryTable();
       updateScores();
-    });
-    elMw.addEventListener('input', () => {
-      renderZoneCards();
-      if (selectedCellId) showCellDetail(selectedCellId);
     });
 
     elCapMfrrVal.textContent = Math.round(elCapMfrr.value * 100) + ' %';
@@ -715,6 +734,29 @@
       });
     } catch (e) {
       console.warn('Could not load flex.json', e);
+    }
+
+    // 5. Nätägare / Ei Områdeskoncessioner
+    try {
+      const res = await fetch('data/bess-map/concessions.json');
+      const concJson = await res.json();
+      L.geoJSON(concJson, {
+        style: function () {
+          return {
+            color: '#a855f7',
+            weight: 1.5,
+            dashArray: '2, 3',
+            fillColor: '#a855f7',
+            fillOpacity: 0.08
+          };
+        },
+        onEachFeature: function (feat, layer) {
+          const p = feat.properties || {};
+          layer.bindPopup(`<strong>Nätkoncession: ${p.owner || 'Okänd nätägare'}</strong><br>Koncessions-ID: ${p.id || '–'}<br>Högsta spänning: ${p.kv ? p.kv + ' kV' : '–'}`);
+        }
+      }).addTo(concLayerGroup);
+    } catch (e) {
+      console.warn('Could not load concessions.json', e);
     }
   }
 
