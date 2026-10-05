@@ -15,7 +15,17 @@
   let cellLayerGroup = null;
   let subsLayerGroup = null;
   let linesLayerGroup = null;
+  let concLayerGroup = null;
+  let flexLayerGroup = null;
   let selectedCellId = null;
+
+  // Layer Checkboxes
+  const lyrCells = document.getElementById('bs-lyr-cells');
+  const lyrLines = document.getElementById('bs-lyr-lines');
+  const lyrSubs = document.getElementById('bs-lyr-subs');
+  const lyrConc = document.getElementById('bs-lyr-conc');
+  const lyrFlex = document.getElementById('bs-lyr-flex');
+  const lyrFailed = document.getElementById('bs-lyr-failed');
 
   // DOM Inputs
   const rPowerMw = document.getElementById('range-power-mw');
@@ -179,6 +189,16 @@
     linesLayerGroup = L.layerGroup().addTo(map);
     cellLayerGroup = L.layerGroup().addTo(map);
     subsLayerGroup = L.layerGroup().addTo(map);
+    flexLayerGroup = L.layerGroup().addTo(map);
+    concLayerGroup = L.layerGroup(); // Avstängt per default
+
+    // Koppla av/på-växling för kartlager
+    if (lyrCells) lyrCells.addEventListener('change', () => lyrCells.checked ? map.addLayer(cellLayerGroup) : map.removeLayer(cellLayerGroup));
+    if (lyrLines) lyrLines.addEventListener('change', () => lyrLines.checked ? map.addLayer(linesLayerGroup) : map.removeLayer(linesLayerGroup));
+    if (lyrSubs) lyrSubs.addEventListener('change', () => lyrSubs.checked ? map.addLayer(subsLayerGroup) : map.removeLayer(subsLayerGroup));
+    if (lyrConc) lyrConc.addEventListener('change', () => lyrConc.checked ? map.addLayer(concLayerGroup) : map.removeLayer(concLayerGroup));
+    if (lyrFlex) lyrFlex.addEventListener('change', () => lyrFlex.checked ? map.addLayer(flexLayerGroup) : map.removeLayer(flexLayerGroup));
+    if (lyrFailed) lyrFailed.addEventListener('change', renderMapLayers);
   }
 
   // Beräknar spotarbitrage per zon och vald datasetperiod
@@ -442,20 +462,23 @@
 
   function renderMapLayers() {
     cellLayerGroup.clearLayers();
+    const showFailed = lyrFailed ? lyrFailed.checked : false;
 
     cellsData.forEach(cell => {
-      if (!cell.fin || !cell.fin.passed) return;
+      if (!cell.fin) return;
+      if (!cell.fin.passed && !showFailed) return;
 
-      const pb = cell.fin.scenarioPayback;
-      const color = getPaybackColor(pb);
+      const isPassed = cell.fin.passed;
+      const pb = isPassed ? cell.fin.scenarioPayback : 999;
+      const color = isPassed ? getPaybackColor(pb) : '#64748b';
       const isSelected = (cell.id === selectedCellId);
 
       const poly = L.polygon(cell.poly, {
-        color: isSelected ? '#38bdf8' : color,
+        color: isSelected ? '#38bdf8' : (isPassed ? color : '#ef4444'),
         weight: isSelected ? 3 : 1,
-        opacity: isSelected ? 1 : 0.65,
+        opacity: isSelected ? 1 : (isPassed ? 0.65 : 0.4),
         fillColor: color,
-        fillOpacity: isSelected ? 0.6 : (pb <= 7.0 ? 0.45 : 0.25)
+        fillOpacity: isSelected ? 0.6 : (isPassed ? (pb <= 7.0 ? 0.45 : 0.25) : 0.12)
       });
 
       poly.on('click', () => {
@@ -626,19 +649,79 @@
 
       mapStatus.textContent = `${cellsData.length.toLocaleString('sv-SE')} nätanalysrutor och 1 132 transformatorstationer laddade.`;
 
-      // Bakgrundsledningar
+      // 1. Högspänningsledningar
       try {
         const rLines = await fetch('data/bess-map/lines.json');
         const lines = await rLines.json();
         lines.forEach(ln => {
           L.polyline(ln.c, {
-            color: ln.kv >= 380 ? '#f43f5e' : '#38bdf8',
+            color: ln.kv >= 380 ? '#f43f5e' : (ln.kv >= 220 ? '#fb923c' : '#38bdf8'),
             weight: 1.2,
-            opacity: 0.4
+            opacity: 0.45
           }).addTo(linesLayerGroup);
         });
       } catch (e) {
         console.warn('Could not load lines', e);
+      }
+
+      // 2. Transformatorstationer (>= 40 kV)
+      try {
+        const rSubs = await fetch('data/bess-map/substations.json');
+        const subs = await rSubs.json();
+        subs.forEach(s => {
+          const circle = L.circleMarker([s[0], s[1]], {
+            radius: s[2] >= 220 ? 4.5 : 3.2,
+            color: s[2] >= 220 ? '#fb923c' : '#38bdf8',
+            fillColor: '#ffffff',
+            fillOpacity: 0.85,
+            weight: 1
+          });
+          circle.bindPopup(`<strong>${s[3] || 'Transformatorstation'}</strong><br>${s[2]} kV<br>${s[4] || ''}`);
+          circle.addTo(subsLayerGroup);
+        });
+      } catch (e) {
+        console.warn('Could not load substations', e);
+      }
+
+      // 3. Lokala flexmarknader
+      try {
+        const rFlex = await fetch('data/bess-map/flex.json');
+        const flexList = await rFlex.json();
+        flexList.forEach(f => {
+          const c = L.circle([f.lat, f.lon], {
+            radius: f.radius_km * 1000,
+            color: '#34d399',
+            fillColor: '#34d399',
+            fillOpacity: 0.12,
+            weight: 1.5,
+            dashArray: '3, 4'
+          });
+          c.bindPopup(`<strong>Lokal flexmarknad: ${f.name}</strong><br>${f.area}<br>${f.operator}`);
+          c.addTo(flexLayerGroup);
+        });
+      } catch (e) {
+        console.warn('Could not load flex', e);
+      }
+
+      // 4. Områdeskoncessioner (Ei DSO-polygoner)
+      try {
+        const rConc = await fetch('data/bess-map/concessions.json');
+        const concGeo = await rConc.json();
+        L.geoJSON(concGeo, {
+          style: {
+            color: '#a855f7',
+            weight: 1.5,
+            dashArray: '2, 3',
+            fillColor: '#a855f7',
+            fillOpacity: 0.08
+          },
+          onEachFeature: (feat, layer) => {
+            const p = feat.properties || {};
+            layer.bindPopup(`<strong>Nätkoncession: ${p.owner || 'Okänd'}</strong><br>ID: ${p.id || '–'}`);
+          }
+        }).addTo(concLayerGroup);
+      } catch (e) {
+        console.warn('Could not load concessions', e);
       }
 
       recalculateAll();

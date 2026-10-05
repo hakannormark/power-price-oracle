@@ -373,14 +373,29 @@
 
         <div id="bs-map" role="application" aria-label="Karta över BESS Investeringslönsamhet"></div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem; font-size:0.82em; color:var(--muted); flex-wrap:wrap; gap:0.5rem;">
-          <div id="bs-map-status">Laddar 4 612 nätanalysrutor och 1 132 stationer…</div>
-          <div>
-            Färgskala:
-            <span class="bs-badge green">&lt; 7 år Payback</span>
-            <span class="bs-badge yellow">7–10 år</span>
-            <span class="bs-badge red">&gt; 10 år / Exkluderad</span>
+        <!-- KARTLAGER-KONTROLLER -->
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.9rem; margin-top: 0.75rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.4rem;">
+            <strong style="font-size:0.82em; text-transform:uppercase; color:var(--muted); letter-spacing:0.04em;">🗺️ Aktiva Kartlager</strong>
+            <div style="font-size:0.8em; color:var(--muted);">
+              Färgskala:
+              <span class="bs-badge green">&lt; 7 år Payback</span>
+              <span class="bs-badge yellow">7–10 år</span>
+              <span class="bs-badge red">&gt; 10 år</span>
+            </div>
           </div>
+          <div style="display: flex; gap: 1rem 1.4rem; flex-wrap: wrap; font-size: 0.84em;">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-cells" checked> 10 km Analysrutor</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-lines" checked> Ledningar ≥ 130 kV</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-subs" checked> Transformatorstationer (1 132 st)</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-conc"> Nätkoncessioner (Ei DSO)</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-flex" checked> Lokala flexmarknader</label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="bs-lyr-failed"> Visa filtrerad mark</label>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; font-size:0.8em; color:var(--muted); flex-wrap:wrap; gap:0.5rem;">
+          <div id="bs-map-status">Laddar 4 612 nätanalysrutor och 1 132 stationer…</div>
         </div>
       </section>
 
