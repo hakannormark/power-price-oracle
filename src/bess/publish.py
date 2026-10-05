@@ -204,3 +204,11 @@ def write_bess(payload: dict[str, Any]) -> None:
     site_file.parent.mkdir(parents=True, exist_ok=True)
     site_file.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
     log.info("Wrote BESS valuation to %s and API", site_file)
+
+    try:
+        from .utility import write_utility_bess
+        write_utility_bess()
+        log.info("Wrote utility BESS valuation to bess-utility.json")
+    except Exception as exc:
+        log.warning("Could not write utility BESS data: %s", exc)
+

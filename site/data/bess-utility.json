@@ -1,0 +1,569 @@
+{
+ "version": "2026.1",
+ "fx_rate": 11.3,
+ "requirements": {
+  "fcr_d_up": {
+   "2026": 542,
+   "2030": 542,
+   "endurance_hours": 0.333,
+   "name": "FCR-D upp",
+   "unit": "MW"
+  },
+  "fcr_d_down": {
+   "2026": 524,
+   "2030": 524,
+   "endurance_hours": 0.333,
+   "name": "FCR-D ned",
+   "unit": "MW"
+  },
+  "fcr_n": {
+   "2026": 226,
+   "2030": 226,
+   "endurance_hours": 1.0,
+   "name": "FCR-N (symmetrisk)",
+   "unit": "MW"
+  },
+  "afrr_up": {
+   "2026": 100,
+   "2030": 235,
+   "endurance_hours": 1.0,
+   "name": "aFRR upp",
+   "unit": "MW"
+  },
+  "afrr_down": {
+   "2026": 125,
+   "2030": 235,
+   "endurance_hours": 1.0,
+   "name": "aFRR ned",
+   "unit": "MW"
+  },
+  "mfrr_cap_up": {
+   "2026": 1400,
+   "2030": 1400,
+   "endurance_hours": 1.0,
+   "name": "mFRR kapacitet upp",
+   "unit": "MW"
+  },
+  "mfrr_cap_down": {
+   "2026": 1150,
+   "2030": 1150,
+   "endurance_hours": 1.0,
+   "name": "mFRR kapacitet ned",
+   "unit": "MW"
+  },
+  "ffr": {
+   "2026": 113,
+   "2030": 113,
+   "endurance_hours": 0.0083,
+   "name": "FFR (maj–sep)",
+   "unit": "MW"
+  }
+ },
+ "historical_prices": {
+  "fcr_d_up": {
+   "2021": 44.82,
+   "2022": 62.97,
+   "2023": 38.36,
+   "2024": 10.51,
+   "2025": 6.06
+  },
+  "fcr_d_down": {
+   "2022": 31.95,
+   "2023": 70.18,
+   "2024": 25.56,
+   "2025": 5.91
+  },
+  "fcr_n": {
+   "2021": 37.5,
+   "2022": 64.66,
+   "2023": 65.97,
+   "2024": 47.39,
+   "2025": 26.85
+  },
+  "afrr_up": {
+   "2023": 28.25,
+   "2024": 23.88,
+   "2025": 17.7
+  },
+  "afrr_down": {
+   "2023": 43.2,
+   "2024": 32.27,
+   "2025": 19.25
+  },
+  "mfrr_cap_up": {
+   "2024": 21.05,
+   "2025": 35.27
+  },
+  "mfrr_cap_down": {
+   "2024": 31.49,
+   "2025": 27.9
+  },
+  "ffr": {
+   "2022": 118.98,
+   "2023": 37.27,
+   "2024": 21.4,
+   "2025": 11.34
+  }
+ },
+ "scenarios": {
+  "2026": {
+   "fcr_d_up": {
+    "low": 4.0,
+    "base": 6.0,
+    "high": 10.0
+   },
+   "fcr_d_down": {
+    "low": 3.0,
+    "base": 6.0,
+    "high": 12.0
+   },
+   "fcr_n": {
+    "low": 18.0,
+    "base": 26.0,
+    "high": 38.0
+   },
+   "afrr_up": {
+    "low": 12.0,
+    "base": 18.0,
+    "high": 28.0
+   },
+   "afrr_down": {
+    "low": 13.0,
+    "base": 19.0,
+    "high": 30.0
+   },
+   "mfrr_cap_up": {
+    "low": 22.0,
+    "base": 33.0,
+    "high": 48.0
+   },
+   "mfrr_cap_down": {
+    "low": 18.0,
+    "base": 28.0,
+    "high": 42.0
+   },
+   "ffr": {
+    "low": 7.0,
+    "base": 11.0,
+    "high": 20.0
+   },
+   "mfrr_energy_margin_sek": {
+    "low": 100.0,
+    "base": 200.0,
+    "high": 400.0
+   },
+   "mfrr_energy_mwh_per_mw": {
+    "low": 40.0,
+    "base": 80.0,
+    "high": 160.0
+   }
+  },
+  "2031": {
+   "fcr_d_up": {
+    "low": 4.0,
+    "base": 8.0,
+    "high": 16.0
+   },
+   "fcr_d_down": {
+    "low": 3.0,
+    "base": 7.0,
+    "high": 15.0
+   },
+   "fcr_n": {
+    "low": 12.0,
+    "base": 20.0,
+    "high": 34.0
+   },
+   "afrr_up": {
+    "low": 15.0,
+    "base": 24.0,
+    "high": 40.0
+   },
+   "afrr_down": {
+    "low": 16.0,
+    "base": 26.0,
+    "high": 42.0
+   },
+   "mfrr_cap_up": {
+    "low": 15.0,
+    "base": 25.0,
+    "high": 42.0
+   },
+   "mfrr_cap_down": {
+    "low": 13.0,
+    "base": 22.0,
+    "high": 38.0
+   },
+   "ffr": {
+    "low": 6.0,
+    "base": 12.0,
+    "high": 25.0
+   },
+   "mfrr_energy_margin_sek": {
+    "low": 150.0,
+    "base": 300.0,
+    "high": 600.0
+   },
+   "mfrr_energy_mwh_per_mw": {
+    "low": 60.0,
+    "base": 120.0,
+    "high": 240.0
+   }
+  }
+ },
+ "zones": {
+  "SE1": {
+   "name": "SE1 (Luleå / Norrbotten)",
+   "mean_spot_sek": 188.8,
+   "base_spread_2h_sek": 220.0,
+   "actual_spread_2h_sek": 315.3,
+   "actual_spread_4h_sek": 272.6,
+   "spread_ratio_4h_2h": 0.86,
+   "peak_price_2h_sek": 320.0,
+   "trough_price_2h_sek": 100.0,
+   "mfrr_local_multiplier": 0.9,
+   "description": "Vattenkraftsöverskott och låg spotvolatilitet. Smala dygnsspreadar men god nätkapacitet."
+  },
+  "SE2": {
+   "name": "SE2 (Sundsvall / Norra Mellansverige)",
+   "mean_spot_sek": 186.8,
+   "base_spread_2h_sek": 210.0,
+   "actual_spread_2h_sek": 329.6,
+   "actual_spread_4h_sek": 284.0,
+   "spread_ratio_4h_2h": 0.86,
+   "peak_price_2h_sek": 300.0,
+   "trough_price_2h_sek": 90.0,
+   "mfrr_local_multiplier": 0.95,
+   "description": "Bo:s basfall. Stor vattenkraftsproduktion dämpar dygnsspreaden. Långtidslagring (4h) svårmotiverad."
+  },
+  "SE3": {
+   "name": "SE3 (Stockholm / Södra Mellansverige)",
+   "mean_spot_sek": 522.5,
+   "base_spread_2h_sek": 500.0,
+   "actual_spread_2h_sek": 825.7,
+   "actual_spread_4h_sek": 721.8,
+   "spread_ratio_4h_2h": 0.87,
+   "peak_price_2h_sek": 650.0,
+   "trough_price_2h_sek": 150.0,
+   "mfrr_local_multiplier": 1.15,
+   "description": "Industrins och befolkningens tyngdpunkt. 2,8x högre spotpris än SE2, kraftiga dygnsspreadar och högre mFRR-värde."
+  },
+  "SE4": {
+   "name": "SE4 (Malmö / Sydsverige)",
+   "mean_spot_sek": 682.8,
+   "base_spread_2h_sek": 700.0,
+   "actual_spread_2h_sek": 1073.4,
+   "actual_spread_4h_sek": 937.6,
+   "spread_ratio_4h_2h": 0.87,
+   "peak_price_2h_sek": 850.0,
+   "trough_price_2h_sek": 150.0,
+   "mfrr_local_multiplier": 1.3,
+   "description": "Sveriges högsta prisvolatilitet, importberoende och stor vindvariation. Mycket starkt arbitrage och höga mFRR-ersättningar."
+  }
+ },
+ "presets": [
+  {
+   "id": "bo_se2_150mw",
+   "name": "Bo:s Nätjätte SE2 (150 MW / 300 MWh)",
+   "zone": "SE2",
+   "power_mw": 150.0,
+   "capacity_mwh": 300.0,
+   "capex_per_kwh": 2800.0,
+   "power_capex_share": 0.4,
+   "om_sek_per_mw_year": 45000.0,
+   "fixed_fees_sek_per_mw_year": 40000.0,
+   "cycle_cost_sek_mwh": 80.0,
+   "bsp_share": 0.03,
+   "bsp_floor_sek": 3000000.0,
+   "roundtrip_eff": 0.88,
+   "tech_availability": 0.95,
+   "dod": 0.9,
+   "annual_degradation": 0.02,
+   "discount_rate": 0.07,
+   "arbitrage_cycles": 200,
+   "allocations": {
+    "fcr_d_up": {
+     "bid_mw": 100.0,
+     "bid_share": 1.0,
+     "accept_rate": 0.42
+    },
+    "fcr_d_down": {
+     "bid_mw": 100.0,
+     "bid_share": 1.0,
+     "accept_rate": 0.42
+    },
+    "fcr_n": {
+     "bid_mw": 30.0,
+     "bid_share": 0.6,
+     "accept_rate": 0.24
+    },
+    "afrr_up": {
+     "bid_mw": 0.0,
+     "bid_share": 0.0,
+     "accept_rate": 0.0
+    },
+    "afrr_down": {
+     "bid_mw": 0.0,
+     "bid_share": 0.0,
+     "accept_rate": 0.0
+    },
+    "mfrr_cap_up": {
+     "bid_mw": 150.0,
+     "bid_share": 0.5,
+     "accept_rate": 0.17
+    },
+    "mfrr_cap_down": {
+     "bid_mw": 150.0,
+     "bid_share": 0.5,
+     "accept_rate": 0.17
+    },
+    "ffr": {
+     "bid_mw": 20.0,
+     "bid_share": 0.42,
+     "accept_rate": 0.18
+    }
+   }
+  },
+  {
+   "id": "regional_se3_20mw",
+   "name": "Regionalt Stödtjänstbatteri SE3 (20 MW / 40 MWh)",
+   "zone": "SE3",
+   "power_mw": 20.0,
+   "capacity_mwh": 40.0,
+   "capex_per_kwh": 3200.0,
+   "power_capex_share": 0.38,
+   "om_sek_per_mw_year": 50000.0,
+   "fixed_fees_sek_per_mw_year": 45000.0,
+   "cycle_cost_sek_mwh": 80.0,
+   "bsp_share": 0.04,
+   "bsp_floor_sek": 1000000.0,
+   "roundtrip_eff": 0.88,
+   "tech_availability": 0.95,
+   "dod": 0.9,
+   "annual_degradation": 0.02,
+   "discount_rate": 0.07,
+   "arbitrage_cycles": 250,
+   "allocations": {
+    "fcr_d_up": {
+     "bid_mw": 15.0,
+     "bid_share": 1.0,
+     "accept_rate": 0.45
+    },
+    "fcr_d_down": {
+     "bid_mw": 15.0,
+     "bid_share": 1.0,
+     "accept_rate": 0.45
+    },
+    "fcr_n": {
+     "bid_mw": 10.0,
+     "bid_share": 0.5,
+     "accept_rate": 0.25
+    },
+    "afrr_up": {
+     "bid_mw": 5.0,
+     "bid_share": 0.3,
+     "accept_rate": 0.25
+    },
+    "afrr_down": {
+     "bid_mw": 5.0,
+     "bid_share": 0.3,
+     "accept_rate": 0.25
+    },
+    "mfrr_cap_up": {
+     "bid_mw": 20.0,
+     "bid_share": 0.5,
+     "accept_rate": 0.22
+    },
+    "mfrr_cap_down": {
+     "bid_mw": 20.0,
+     "bid_share": 0.5,
+     "accept_rate": 0.22
+    },
+    "ffr": {
+     "bid_mw": 5.0,
+     "bid_share": 0.42,
+     "accept_rate": 0.2
+    }
+   }
+  },
+  {
+   "id": "industrial_se4_10mw",
+   "name": "Industriell Flex & mFRR SE4 (10 MW / 20 MWh)",
+   "zone": "SE4",
+   "power_mw": 10.0,
+   "capacity_mwh": 20.0,
+   "capex_per_kwh": 3400.0,
+   "power_capex_share": 0.35,
+   "om_sek_per_mw_year": 55000.0,
+   "fixed_fees_sek_per_mw_year": 50000.0,
+   "cycle_cost_sek_mwh": 80.0,
+   "bsp_share": 0.05,
+   "bsp_floor_sek": 600000.0,
+   "roundtrip_eff": 0.88,
+   "tech_availability": 0.95,
+   "dod": 0.9,
+   "annual_degradation": 0.02,
+   "discount_rate": 0.07,
+   "arbitrage_cycles": 280,
+   "allocations": {
+    "fcr_d_up": {
+     "bid_mw": 8.0,
+     "bid_share": 0.9,
+     "accept_rate": 0.5
+    },
+    "fcr_d_down": {
+     "bid_mw": 8.0,
+     "bid_share": 0.9,
+     "accept_rate": 0.5
+    },
+    "fcr_n": {
+     "bid_mw": 5.0,
+     "bid_share": 0.4,
+     "accept_rate": 0.25
+    },
+    "afrr_up": {
+     "bid_mw": 5.0,
+     "bid_share": 0.4,
+     "accept_rate": 0.3
+    },
+    "afrr_down": {
+     "bid_mw": 5.0,
+     "bid_share": 0.4,
+     "accept_rate": 0.3
+    },
+    "mfrr_cap_up": {
+     "bid_mw": 10.0,
+     "bid_share": 0.6,
+     "accept_rate": 0.25
+    },
+    "mfrr_cap_down": {
+     "bid_mw": 10.0,
+     "bid_share": 0.6,
+     "accept_rate": 0.25
+    },
+    "ffr": {
+     "bid_mw": 3.0,
+     "bid_share": 0.42,
+     "accept_rate": 0.22
+    }
+   }
+  },
+  {
+   "id": "long_duration_50mw_4h",
+   "name": "Långtidslagring BESS 4h (50 MW / 200 MWh)",
+   "zone": "SE3",
+   "power_mw": 50.0,
+   "capacity_mwh": 200.0,
+   "capex_per_kwh": 2240.0,
+   "power_capex_share": 0.25,
+   "om_sek_per_mw_year": 40000.0,
+   "fixed_fees_sek_per_mw_year": 35000.0,
+   "cycle_cost_sek_mwh": 80.0,
+   "bsp_share": 0.03,
+   "bsp_floor_sek": 2000000.0,
+   "roundtrip_eff": 0.88,
+   "tech_availability": 0.95,
+   "dod": 0.9,
+   "annual_degradation": 0.02,
+   "discount_rate": 0.07,
+   "arbitrage_cycles": 260,
+   "allocations": {
+    "fcr_d_up": {
+     "bid_mw": 40.0,
+     "bid_share": 1.0,
+     "accept_rate": 0.42
+    },
+    "fcr_d_down": {
+     "bid_mw": 40.0,
+     "bid_share": 1.0,
+     "accept_rate": 0.42
+    },
+    "fcr_n": {
+     "bid_mw": 20.0,
+     "bid_share": 0.6,
+     "accept_rate": 0.24
+    },
+    "afrr_up": {
+     "bid_mw": 15.0,
+     "bid_share": 0.5,
+     "accept_rate": 0.25
+    },
+    "afrr_down": {
+     "bid_mw": 15.0,
+     "bid_share": 0.5,
+     "accept_rate": 0.25
+    },
+    "mfrr_cap_up": {
+     "bid_mw": 50.0,
+     "bid_share": 0.5,
+     "accept_rate": 0.2
+    },
+    "mfrr_cap_down": {
+     "bid_mw": 50.0,
+     "bid_share": 0.5,
+     "accept_rate": 0.2
+    },
+    "ffr": {
+     "bid_mw": 10.0,
+     "bid_share": 0.42,
+     "accept_rate": 0.18
+    }
+   }
+  }
+ ],
+ "timeline": [
+  {
+   "date": "September 2026",
+   "title": "Tak för statisk FCR-D upp införs i Norden",
+   "impact": "Fast del 50 % av nordiskt behov plus dynamisk del kopplad till rotationsenergi. Statiska resurser stängs ute och dynamiska batterier gynnas kraftigt.",
+   "badge": "Prishöjande för BESS"
+  },
+  {
+   "date": "Q1 2027",
+   "title": "Nordiska TSO:er ansluter till MARI",
+   "impact": "Spotpriset slutar agera golv/tak för mFRR-bud. Ökad prisspridning i mFRR EAM ger större uppsida för snabb batterireglering.",
+   "badge": "Volatilitetsökning"
+  },
+  {
+   "date": "2027",
+   "title": "Ny IT-plattform för FFR",
+   "impact": "Förbereder övergång från säsongsupphandling till handel dagen före (D-1). Möjliggör opportunistisk budgivning.",
+   "badge": "Modernisering"
+  },
+  {
+   "date": "Q4 2027",
+   "title": "Svenska kraftnät ansluter till PICASSO",
+   "impact": "aFRR energiaktiveringsmarknad införs och merit order ersätter pro rata. Obalanspriset räknas på både mFRR och aFRR.",
+   "badge": "Ny intäktsström"
+  },
+  {
+   "date": "2028",
+   "title": "aFRR-behovet stiger till 235 MW upp och ned",
+   "impact": "Svenskt behov mer än fördubblas från dagens 100 MW. Den enda kapacitetsmarknaden med bekräftad stark volymtillväxt.",
+   "badge": "Marknadsexpansion"
+  }
+ ],
+ "hybrid_solar_reference": {
+  "solar_mw": 40.0,
+  "annual_solar_mwh": 40000.0,
+  "low_negative_price_share": 0.18,
+  "battery_absorb_share": 0.55,
+  "value_lift_sek_mwh": 350.0,
+  "saved_grid_connection_sek": 45000000.0
+ },
+ "dimensioning_reference": {
+  "base_duration_h": 2.0,
+  "alt_duration_h": 4.0,
+  "spread_efficiency_4h": 0.72
+ },
+ "vpp_cluster_comparison": {
+  "villa_battery_kw": 10.0,
+  "villa_battery_kwh": 20.0,
+  "villa_gross_price_per_kwh": 4500.0,
+  "villa_green_deduction_rate": 0.485,
+  "villa_max_deduction_per_person": 50000.0,
+  "villa_aggregator_cut": 0.2,
+  "utility_bsp_cut": 0.03,
+  "utility_bsp_floor": 3000000.0
+ }
+}

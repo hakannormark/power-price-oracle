@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storskalig BESS & Nätbatterier (MW / MWh) — Batterikalkyl & BESS</title>
+<meta name="description" content="Interaktiv intäkts- och investeringskalkyl för storskaliga BESS-system (MW/MWh) och nätbatterier. Bygger på Svenska kraftnäts Balancing Market Outlook 2030 (2026-uppdateringen) med full valideringsmotor och VPP-klusterjämförelse.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css?v=20261005a">
+<style>
+  .zone-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .zone-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .zone-pill:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .zone-pill.active {
+    background: #38bdf8;
+    color: #0b1220;
+    border-color: #38bdf8;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+  }
+
+  .bess-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+
+  .bess-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .bess-control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .bess-control-group label {
+    font-size: 0.85em;
+    color: var(--muted);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+  }
+  .bess-slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .bess-slider-wrap input[type="range"] {
+    flex: 1;
+    accent-color: #38bdf8;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .bess-slider-wrap input[type="number"],
+  .bess-control-group input[type="number"],
+  .bess-control-group select {
+    width: 105px;
+    padding: 0.4rem 0.6rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.9em;
+    font-weight: 600;
+    text-align: right;
+  }
+  .bess-control-group select {
+    width: 100%;
+    text-align: left;
+  }
+  .bess-hint {
+    font-size: 0.78em;
+    color: var(--faint);
+    line-height: 1.35;
+  }
+
+  /* Gauges & Overbooking Bars */
+  .gauge-wrap {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    height: 12px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+  .gauge-bar {
+    height: 100%;
+    transition: width 0.25s ease, background-color 0.25s ease;
+  }
+  .gauge-bar.success { background: #10b981; }
+  .gauge-bar.warn { background: #f59e0b; }
+  .gauge-bar.danger { background: #ef4444; }
+
+  /* Alert Boxes */
+  .bess-alert {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1.25rem;
+    font-size: 0.9em;
+    line-height: 1.5;
+  }
+  .bess-alert.danger {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+  }
+  .bess-alert.warn {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid #f59e0b;
+    color: #fde68a;
+  }
+  .bess-alert.info {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid #38bdf8;
+    color: #bae6fd;
+  }
+  .bess-alert ul {
+    margin: 0.4rem 0 0 1.25rem;
+    padding: 0;
+  }
+
+  /* Results Summary */
+  .bess-results-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .bess-result-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .bess-result-label {
+    font-size: 0.82em;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+  .bess-result-val {
+    font-size: 1.45em;
+    font-weight: 700;
+    color: #fff;
+    font-family: var(--mono);
+  }
+  .bess-result-sub {
+    font-size: 0.78em;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
+  /* Subnav Tabs */
+  .bess-subnav {
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+    margin: 2rem 0 1.5rem;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .bess-subnav-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.95em;
+    padding: 0.6rem 1.1rem;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .bess-subnav-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .bess-subnav-btn.active {
+    color: #38bdf8;
+    border-bottom: 2px solid #38bdf8;
+    background: rgba(56, 189, 248, 0.08);
+  }
+
+  .bess-tab-pane {
+    display: none;
+  }
+  .bess-tab-pane.active {
+    display: block;
+  }
+
+  /* Tables */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .bess-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+  }
+  .bess-table th,
+  .bess-table td {
+    padding: 0.75rem 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .bess-table th {
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .bess-table input.table-input {
+    width: 65px;
+    padding: 0.25rem 0.4rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 0.9em;
+    font-weight: 600;
+    text-align: right;
+  }
+  .bess-table tr.row-error {
+    background: rgba(239, 68, 68, 0.08);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .badge.success { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid #10b981; }
+  .badge.warn { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid #f59e0b; }
+  .badge.danger { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid #ef4444; }
+
+  .btn-group {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .btn-group button {
+    background: rgba(255, 255, 255, 0.03);
+    border: none;
+    color: var(--muted);
+    padding: 0.4rem 0.85rem;
+    font-size: 0.85em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-group button.active {
+    background: #38bdf8;
+    color: #0b1220;
+  }
+</style>
+</head>
+<body data-page="bess-storskalig">
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="header-top-row">
+      <a class="brand" href="batteri.html"><span class="dot" style="background: #38bdf8; box-shadow: 0 0 12px #38bdf8;"></span>Batterikalkyl <small>BESS Investering</small></a>
+      <nav class="portal-nav" aria-label="Huvudsystem">
+        <a href="index.html" class="portal-tab">
+          <span class="portal-tab-icon">⚡</span>
+          <span>Spotprisprognos</span>
+        </a>
+        <a href="batteri.html" class="portal-tab">
+          <span class="portal-tab-icon">🏡</span>
+          <span>Hembatteri (Villa)</span>
+        </a>
+        <a href="bess-storskalig.html" class="portal-tab active">
+          <span class="portal-tab-icon">🏭</span>
+          <span>Storskalig BESS (MW)</span>
+        </a>
+      </nav>
+    </div>
+    <nav class="site-nav">
+      <a href="batteri.html">← Tillbaka till Hembatterier (Villa)</a>
+      <a href="bess-storskalig.html" aria-current="page" style="color: #38bdf8; font-weight: 700;">Storskalig BESS (MW/MWh) Kalkylator</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack" id="utility-bess-app">
+
+    <!-- Stor systemväljare: Hembatteri vs Storskalig BESS -->
+    <div class="system-choice-banner">
+      <div class="system-choice-label">Välj typ av batterianläggning:</div>
+      <div class="system-choice-grid">
+        <a href="batteri.html" class="system-choice-card">
+          <div class="system-choice-icon">🏡</div>
+          <div class="system-choice-info">
+            <div class="system-choice-title">Hembatteri & Villa (5–60 kWh)</div>
+            <div class="system-choice-sub">För villor, lantbruk och solcellsägare. Beräknar egenanvändning, slopad 60-öring, nätarbitrage, säkringsnivå och Grön Teknik-avdrag.</div>
+          </div>
+          <div class="system-choice-badge">Växla till Villa →</div>
+        </a>
+        <a href="bess-storskalig.html" class="system-choice-card active">
+          <div class="system-choice-icon">🏭</div>
+          <div class="system-choice-info">
+            <div class="system-choice-title">Storskalig BESS & Nätbatteri (1–300 MW)</div>
+            <div class="system-choice-sub">För investerare, nätägare och industrier. SvK Balancing Market Outlook (mFRR, aFRR, FCR, FFR), handelsbord, 2h vs 4h dimensionering och hybrid sol.</div>
+          </div>
+          <div class="system-choice-badge">Aktiv kalkyl ✓</div>
+        </a>
+      </div>
+    </div>
+
+    <div class="page-head">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1>Storskalig BESS & Nätbatterier (MW / MWh)</h1>
+          <p class="lede">Interaktiv intäkts- och investeringskalkyl för storskaliga energilager, nätanslutna batteriparker och industriell flexibilitet. Bygger på Svenska kraftnäts <em>Balancing Market Outlook 2030 (2026-uppdateringen)</em> med empiriska utfall t.o.m. 2025.</p>
+        </div>
+        <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 0.6rem 1rem; font-size: 0.85em; max-width: 300px;">
+          <span style="color: #38bdf8; font-weight: 700;">⚡ SvK Marknadsstatus:</span> mFRR står nu för 81 % av stödtjänstkostnaderna (6,5 mdr kr). FCR-D har sjunkit till ~6 €/MW pga kraftig överetablering.
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. Elprisområde & Snabbprofiler -->
+    <section class="bess-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem;">
+        <div>
+          <h2 style="font-size: 1.15em; margin: 0;">1. Välj Elprisområde & Anläggningsprofil</h2>
+          <p style="font-size: 0.85em; color: var(--muted); margin: 0.2rem 0 0;">Elområdet styr spotprisspreaden för dygnsarbitrage och lokala mFRR-aktiveringar.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <label for="bess-preset-select" style="font-size: 0.85em; color: var(--muted); font-weight: 600;">Förinställd profil:</label>
+          <select id="bess-preset-select" style="background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.85em; font-weight: 600;">
+            <option value="bo_se2_150mw">Bo:s Nätjätte SE2 (150 MW / 300 MWh)</option>
+            <option value="regional_se3_20mw">Regionalt Stödtjänstbatteri SE3 (20 MW / 40 MWh)</option>
+            <option value="industrial_se4_10mw">Industriell Flex & mFRR SE4 (10 MW / 20 MWh)</option>
+            <option value="long_duration_50mw_4h">Långtidslagring BESS 4h (50 MW / 200 MWh)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="zone-pills">
+        <button type="button" class="zone-pill bess-zone-btn" data-zone="SE1">SE1 · Luleå / Norrbotten</button>
+        <button type="button" class="zone-pill bess-zone-btn active" data-zone="SE2">SE2 · Sundsvall / Norra Mellansverige</button>
+        <button type="button" class="zone-pill bess-zone-btn" data-zone="SE3">SE3 · Stockholm / Södra Mellansverige</button>
+        <button type="button" class="zone-pill bess-zone-btn" data-zone="SE4">SE4 · Malmö / Sydsverige</button>
+      </div>
+
+      <div id="bess-zone-info-text" style="font-size: 0.88em; color: var(--muted); background: rgba(56, 189, 248, 0.05); padding: 0.75rem 1rem; border-radius: 6px; border-left: 3px solid #38bdf8;">
+        Laddar elområdesdata…
+      </div>
+    </section>
+
+    <!-- 2. Tekniska Parametrar & CAPEX -->
+    <section class="bess-card">
+      <h2 style="font-size: 1.15em; margin: 0 0 1rem;">2. Anläggningens Dimensionering & Investeringskostnad (CAPEX)</h2>
+      <div class="bess-grid">
+        <!-- Effekt MW -->
+        <div class="bess-control-group">
+          <label for="input-power-mw">
+            <span>Installerad Effekt</span>
+            <span id="val-power-mw" style="color: #38bdf8;">150 MW</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="slider-power-mw" min="1" max="300" step="1" value="150">
+            <input type="number" id="input-power-mw" min="1" max="1000" step="1" value="150">
+          </div>
+          <span class="bess-hint">Omriktarkapacitet för laddning och urladdning mot nätet.</span>
+        </div>
+
+        <!-- Energi MWh -->
+        <div class="bess-control-group">
+          <label for="input-cap-mwh">
+            <span>Nominell Energi</span>
+            <span id="val-cap-mwh" style="color: #38bdf8;">300 MWh</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="slider-cap-mwh" min="2" max="1200" step="2" value="300">
+            <input type="number" id="input-cap-mwh" min="1" max="5000" step="1" value="300">
+          </div>
+          <span class="bess-hint">Varaktighet vid full effekt: <strong id="val-duration-h" style="color: #fff;">2,0 h</strong>.</span>
+        </div>
+
+        <!-- CAPEX per kWh -->
+        <div class="bess-control-group">
+          <label for="input-capex-kwh">
+            <span>Nyckelfärdig CAPEX</span>
+            <span id="val-capex-kwh" style="color: #38bdf8;">2 800 kr/kWh</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="slider-capex-kwh" min="1200" max="4500" step="50" value="2800">
+            <input type="number" id="input-capex-kwh" min="800" max="6000" step="50" value="2800">
+          </div>
+          <span class="bess-hint">Total investering inkl. nätanslutning, transformator och mark.</span>
+        </div>
+
+        <!-- Effektdel vs Energidel -->
+        <div class="bess-control-group">
+          <label for="input-power-capex-share">
+            <span>Effektrelaterad andel av CAPEX</span>
+            <span id="val-power-capex-share" style="color: #38bdf8;">40 %</span>
+          </label>
+          <div class="bess-slider-wrap">
+            <input type="range" id="slider-power-capex-share" min="20" max="60" step="1" value="40">
+            <input type="number" id="input-power-capex-share" min="10" max="80" step="1" value="40">
+          </div>
+          <span class="bess-hint">Omriktare och nätanslutning (40 %) vs celler och brandskydd (60 %).</span>
+        </div>
+      </div>
+
+      <!-- Fler tekniska och ekonomiska parametrar (expanderbar) -->
+      <details style="margin-top: 0.5rem;">
+        <summary style="color: #38bdf8; cursor: pointer; font-size: 0.9em; font-weight: 600;">⚙️ Fler driftkostnader, handelsbordskostnad och tekniska parametrar ▼</summary>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1rem; padding: 1.25rem; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid var(--border);">
+          <div class="bess-control-group">
+            <label for="input-om-mw"><span>Drift & Underhåll (O&M)</span></label>
+            <input type="number" id="input-om-mw" value="45000" step="1000">
+            <span class="bess-hint">SEK / MW / år</span>
+          </div>
+          <div class="bess-control-group">
+            <label for="input-fixed-mw"><span>Fasta avgifter (nät, försäkring)</span></label>
+            <input type="number" id="input-fixed-mw" value="40000" step="1000">
+            <span class="bess-hint">SEK / MW / år</span>
+          </div>
+          <div class="bess-control-group">
+            <label for="input-cycle-cost"><span>Cykelkostnad (slitage)</span></label>
+            <input type="number" id="input-cycle-cost" value="80" step="5">
+            <span class="bess-hint">SEK / MWh genomsatt</span>
+          </div>
+          <div class="bess-control-group">
+            <label for="input-bsp-share"><span>Handelsbord / BSP-andel</span></label>
+            <input type="number" id="input-bsp-share" value="3" step="0.5">
+            <span class="bess-hint">% av bruttointäkt</span>
+          </div>
+          <div class="bess-control-group">
+            <label for="input-bsp-floor"><span>Handelsbordsgolv (fast bas)</span></label>
+            <input type="number" id="input-bsp-floor" value="3" step="0.5">
+            <span class="bess-hint">MSEK / år (miniminivå)</span>
+          </div>
+          <div class="bess-control-group">
+            <label for="input-avail"><span>Teknisk tillgänglighet</span></label>
+            <input type="number" id="input-avail" value="95" step="1">
+            <span class="bess-hint">% av årets 8 760 timmar</span>
+          </div>
+          <div class="bess-control-group">
+            <label for="input-roundtrip"><span>Rundgångsverkningsgrad AC-AC</span></label>
+            <input type="number" id="input-roundtrip" value="88" step="1">
+            <span class="bess-hint">% verkningsgrad</span>
+          </div>
+          <div class="bess-control-group">
+            <label for="input-discount-rate"><span>Kalkylränta (WACC)</span></label>
+            <input type="number" id="input-discount-rate" value="7" step="0.5">
+            <span class="bess-hint">% för nuvärdesberäkning</span>
+          </div>
+          <div class="bess-control-group">
+            <label for="input-arbitrage-cycles"><span>Dygnsarbitragecykler</span></label>
+            <input type="number" id="input-arbitrage-cycles" value="200" step="10">
+            <span class="bess-hint">Hela cykler per år vid sidan av reserver</span>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 3. Smarta Validerings- & Säkerhetsspärrar -->
+    <section class="bess-card" style="border-left: 4px solid #38bdf8;">
+      <h2 style="font-size: 1.15em; margin: 0 0 0.5rem;">3. Fysiska Säkerhetsspärrar & Kapacitetskontroll</h2>
+      <p style="font-size: 0.85em; color: var(--muted); margin: 0 0 1rem;">Systemet kontrollerar i realtid att du inte säljer samma effekt två gånger (överbokning) och att batteriets energimängd klarar SvK:s uthållighetskrav.</p>
+      
+      <div id="bess-validation-alerts" style="display: none;"></div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85em; font-weight: 600; margin-bottom: 0.35rem;">
+            <span>Uppregleringsåtagande (FCR-D upp, FCR-N, aFRR upp, mFRR upp, FFR)</span>
+            <span id="text-up-commitment" style="font-family: var(--mono);">38,4 %</span>
+          </div>
+          <div class="gauge-wrap">
+            <div id="gauge-up-commitment" class="gauge-bar success" style="width: 38.4%;"></div>
+          </div>
+          <span class="bess-hint">Andel av tillgängliga timmar sålda uppåt. Över 100 % = Otillåten överbokning.</span>
+        </div>
+
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85em; font-weight: 600; margin-bottom: 0.35rem;">
+            <span>Nedregleringsåtagande (FCR-D ned, FCR-N, aFRR ned, mFRR ned)</span>
+            <span id="text-down-commitment" style="font-family: var(--mono);">37,4 %</span>
+          </div>
+          <div class="gauge-wrap">
+            <div id="gauge-down-commitment" class="gauge-bar success" style="width: 37.4%;"></div>
+          </div>
+          <span class="bess-hint">Andel av tillgängliga timmar sålda nedåt. FCR-N binder båda riktningarna.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Resultatpanel / Nyckeltal -->
+    <section class="bess-card" style="background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 70%), var(--card);">
+      <h2 style="font-size: 1.15em; margin: 0;">4. Ekonomiskt Utfall & Nyckeltal</h2>
+      
+      <div class="bess-results-summary">
+        <div class="bess-result-card">
+          <div class="bess-result-label">Bruttointäkt per år</div>
+          <div class="bess-result-val" id="res-gross-revenue" style="color: #38bdf8;">134,8 MSEK</div>
+          <div class="bess-result-sub">Kapacitet, energi och arbitrage</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">Nettointäkt till ägaren</div>
+          <div class="bess-result-val" id="res-net-revenue">130,7 MSEK</div>
+          <div class="bess-result-sub">Efter handelsbord & aggregator</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">Rörelseresultat (EBITDA)</div>
+          <div class="bess-result-val" id="res-ebitda" style="color: #34d399;">116,7 MSEK</div>
+          <div class="bess-result-sub">Efter O&M, nätavgifter och slitage</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">Enkel Payback</div>
+          <div class="bess-result-val" id="res-payback" style="color: #fbbf24;">7,2 år</div>
+          <div class="bess-result-sub">CAPEX / Rörelseresultat</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">Total Investering (CAPEX)</div>
+          <div class="bess-result-val" id="res-total-capex">840,0 MSEK</div>
+          <div class="bess-result-sub">Nyckelfärdig park inkl. anslutning</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">Rörelseresultat per MW</div>
+          <div class="bess-result-val" id="res-ebitda-per-mw">778 000 kr/MW</div>
+          <div class="bess-result-sub">Branschstandard för jämförelse</div>
+        </div>
+
+        <div class="bess-result-card">
+          <div class="bess-result-label">10-årigt Nettonuvärde (NPV)</div>
+          <div class="bess-result-val" id="res-net-npv">-20,4 MSEK</div>
+          <div class="bess-result-sub">Vid 7 % kalkylränta (exkl. extremår)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Fördjupningsflikar -->
+    <nav class="bess-subnav" aria-label="Fördjupningsmoduler">
+      <button type="button" class="bess-subnav-btn active" data-tab="tab-market-stack">📊 Intäktsstack & SvK Marknad</button>
+      <button type="button" class="bess-subnav-btn" data-tab="tab-dimensioning">📏 Dimensionering (2h vs 4h)</button>
+      <button type="button" class="bess-subnav-btn" data-tab="tab-hybrid-solar">☀️ Hybrid Solpark</button>
+      <button type="button" class="bess-subnav-btn" data-tab="tab-extreme-years">⚡ Extremår & SvK Tidplan</button>
+      <button type="button" class="bess-subnav-btn" data-tab="tab-vpp-comparison">🏡 Stort BESS vs Villakluster (VPP)</button>
+    </nav>
+
+    <!-- FLIK 1: Intäktsstack & Marknadsallokering -->
+    <div id="tab-market-stack" class="bess-tab-pane active">
+      <section class="bess-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <h3 style="font-size: 1.15em; margin: 0;">Intäktsmodell: Allokering av Effekt & Timmar</h3>
+            <p style="font-size: 0.85em; color: var(--muted); margin: 0.2rem 0 0;">
+              Timmarna beräknas som: <code>Tillgängliga timmar (8 322) × Budandel (%) × Acceptgrad (%)</code>. Ändra direkt i tabellen.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <div>
+              <span style="font-size: 0.8em; color: var(--muted); display: block;">Prognosår:</span>
+              <div class="btn-group">
+                <button type="button" class="bess-year-btn active" data-year="2026">2026 (Nuläge)</button>
+                <button type="button" class="bess-year-btn" data-year="2031">2031 (+5 år)</button>
+              </div>
+            </div>
+            <div>
+              <span style="font-size: 0.8em; color: var(--muted); display: block;">Prisscenario:</span>
+              <div class="btn-group">
+                <button type="button" class="bess-scenario-btn" data-scenario="low">Låg (P10)</button>
+                <button type="button" class="bess-scenario-btn active" data-scenario="base">Bas (P50)</button>
+                <button type="button" class="bess-scenario-btn" data-scenario="high">Hög (P90)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="bess-table">
+            <thead>
+              <tr>
+                <th>Produkt</th>
+                <th>Budad Effekt</th>
+                <th>Budandel</th>
+                <th>Acceptgrad</th>
+                <th>Vinnande Timmar</th>
+                <th>Pris</th>
+                <th>Marknadspåverkan</th>
+                <th style="text-align: right;">Bruttointäkt</th>
+              </tr>
+            </thead>
+            <tbody id="bess-products-table-body">
+              <!-- Dynamically populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Kostnadssammanställning -->
+        <div style="margin-top: 1.5rem; padding: 1.25rem; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid var(--border);">
+          <h4 style="font-size: 0.95em; margin: 0 0 0.75rem;">Kostnadsavdrag:</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; font-size: 0.9em;">
+            <div>Handelsbord & BSP: <strong id="cost-bsp" style="color: #f87171; float: right;">-4,0 MSEK</strong></div>
+            <div>Drift & Underhåll: <strong id="cost-om" style="color: #f87171; float: right;">-6,8 MSEK</strong></div>
+            <div>Fasta nätavgifter: <strong id="cost-fixed" style="color: #f87171; float: right;">-6,0 MSEK</strong></div>
+            <div>Cykelslitage (reserver): <strong id="cost-wear" style="color: #f87171; float: right;">-1,3 MSEK</strong></div>
+            <div style="border-top: 1px solid var(--border); padding-top: 0.25rem; font-weight: 700;">Summa Driftkostnader: <strong id="cost-total" style="color: #f87171; float: right;">-18,1 MSEK</strong></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- FLIK 2: Dimensioneringsanalys -->
+    <div id="tab-dimensioning" class="bess-tab-pane">
+      <section class="bess-card">
+        <h3 style="font-size: 1.15em; margin: 0 0 0.5rem;">Dimensionering: 300 MWh mot 600 MWh vid oförändrade 150 MW</h3>
+        <p style="font-size: 0.88em; color: var(--muted); margin: 0 0 1.25rem;">
+          Alla sex reservprodukter begränsas av de 150 MW som anläggningen kan mata ut. Redan 2 timmars varaktighet klarar samtliga uthållighetskrav (FCR-D kräver 20 min, övriga 1h). Den extra energidelen når <strong>endast arbitraget och mFRR-energin</strong>.
+        </p>
+
+        <div class="table-responsive">
+          <table class="bess-table">
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Huvudfall (2 timmar)</th>
+                <th>Alternativ (4 timmar)</th>
+                <th>Skillnad / Ökning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Energimängd & Varaktighet</td>
+                <td id="dim-main-mwh">300 MWh (2,0 h)</td>
+                <td id="dim-alt-mwh">600 MWh (4,0 h)</td>
+                <td>+300 MWh (+100 %)</td>
+              </tr>
+              <tr>
+                <td>Total Investering</td>
+                <td id="dim-main-capex">840,0 MSEK</td>
+                <td id="dim-alt-capex">1 344,0 MSEK</td>
+                <td id="dim-extra-capex" style="color: #f87171; font-weight: 600;">+504,0 MSEK</td>
+              </tr>
+              <tr>
+                <td>Rörelseresultat per år</td>
+                <td id="dim-main-ebitda">116,7 MSEK</td>
+                <td id="dim-alt-ebitda">118,1 MSEK</td>
+                <td id="dim-extra-ebitda" style="color: #34d399; font-weight: 600;">+1,4 MSEK</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 8px; padding: 1.25rem; margin-top: 1rem;">
+          <h4 style="color: #fbbf24; margin: 0 0 0.35rem; font-size: 1.05em;">Det avgörande nyckeltalet: Marginell Payback</h4>
+          <p style="font-size: 0.9em; margin: 0 0 0.5rem;">
+            Att investera <strong>504 MSEK</strong> extra för att tjäna <strong>1,4 MSEK</strong> extra per år ger en <strong>marginell återbetalningstid på:</strong>
+          </p>
+          <div style="font-size: 1.8em; font-weight: 700; color: #fbbf24; font-family: var(--mono);" id="dim-marginal-payback">360,3 år</div>
+          <p style="font-size: 0.85em; color: var(--muted); margin: 0.5rem 0 0;">
+            Ligger den marginella paybacken över anläggningens tekniska livslängd är den extra energin <em>inte motiverad</em>. För att nå samma payback som 2-timmarsfallet skulle energidelen behöva kosta under <strong id="dim-required-cost" style="color: #fff;">857 kr/kWh</strong>. I SE2 är vattenkraftens prisutjämning för stark för att 4h ska löna sig. I SE4 ser kalkylen betydligt bättre ut.
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <!-- FLIK 3: Samlokaliserad Solpark -->
+    <div id="tab-hybrid-solar" class="bess-tab-pane">
+      <section class="bess-card">
+        <h3 style="font-size: 1.15em; margin: 0 0 0.5rem;">Samlokaliserad Solpark (Hybrid Sol + BESS)</h3>
+        <p style="font-size: 0.88em; color: var(--muted); margin: 0 0 1.25rem;">
+          Halva batterilagret (150 MWh) når aldrig reservmarknaderna pga effektbegränsningen. En samlokaliserad solpark kan ge denna energi ett dagligt uppdrag genom att dela anslutningspunkt och undvika nedreglering vid negativa priser.
+        </p>
+
+        <div class="bess-results-summary">
+          <div class="bess-result-card">
+            <div class="bess-result-label">Solparkseffekt</div>
+            <div class="bess-result-val" id="sol-mw">40 MW</div>
+            <div class="bess-result-sub">40 000 MWh/år</div>
+          </div>
+          <div class="bess-result-card">
+            <div class="bess-result-label">Flyttad Solel per år</div>
+            <div class="bess-result-val" id="sol-moved-mwh">3 960 MWh</div>
+            <div class="bess-result-sub">Undviker nedstängning vid negativa priser</div>
+          </div>
+          <div class="bess-result-card">
+            <div class="bess-result-label">Årligt Nettovärde</div>
+            <div class="bess-result-val" id="sol-net-year" style="color: #34d399;">1,1 MSEK</div>
+            <div class="bess-result-sub">Efter slitage (+1,4M intäkt - 0,3M slitage)</div>
+          </div>
+          <div class="bess-result-card">
+            <div class="bess-result-label">Sparad separat nätanslutning</div>
+            <div class="bess-result-val" id="sol-saved-conn" style="color: #38bdf8;">45,0 MSEK</div>
+            <div class="bess-result-sub">Delad transformator och regionnätsfack</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; font-size: 0.88em; color: var(--muted); line-height: 1.5;">
+          <strong>De 4 värdemekanismerna:</strong>
+          <ol style="margin: 0.5rem 0 0 1.25rem;">
+            <li><strong>Delad anslutningspunkt:</strong> Det absolut största värdet. Solparken slipper bygga egen station för 45 MSEK.</li>
+            <li><strong>Undviken nedreglering:</strong> Under timmar med negativt spotpris laddar batteriet istället för att solparken tvingas stänga av.</li>
+            <li><strong>Funktion för vilande lagring:</strong> Den energi som inte behövs för reserver får ett uppdrag mitt på dagen.</li>
+            <li><strong>Avvägningen:</strong> Varje timme batteriet flyttar solel är en timme det inte kan sälja reserver. Modellen förutsätter därför att flytten sker under timmar då reservbuden ändå inte vinner auktionen.</li>
+          </ol>
+        </div>
+      </section>
+    </div>
+
+    <!-- FLIK 4: Extremår & SvK Tidplan -->
+    <div id="tab-extreme-years" class="bess-tab-pane">
+      <section class="bess-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <h3 style="font-size: 1.15em; margin: 0;">Extremårsanalys & Tioårskalkyl</h3>
+            <p style="font-size: 0.85em; color: var(--muted); margin: 0.2rem 0 0;">Historien visar att stödtjänstmarknaden präglas av extrema chocker och designdriven knapphet.</p>
+          </div>
+          <div>
+            <label for="bess-extreme-type-select" style="font-size: 0.85em; color: var(--muted); font-weight: 600;">Jämför utfallsår:</label>
+            <select id="bess-extreme-type-select" style="background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.85em; font-weight: 600;">
+              <option value="svagt">Svagt år (Negativt extremår, mult 0,49×)</option>
+              <option value="bas">Basår (Normalmarknad, mult 1,0×)</option>
+              <option value="som_2022" selected>Som 2022 (Gaskris & kärnkraftsstopp, mult 3,95×)</option>
+              <option value="som_2023">Som 2023 (FCR-D upprampning, mult 4,23×)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bess-results-summary">
+          <div class="bess-result-card">
+            <div class="bess-result-label">Aktivt Scenarios Rörelseresultat</div>
+            <div class="bess-result-val" id="ext-active-ebitda" style="color: #38bdf8;">460,8 MSEK</div>
+            <div class="bess-result-sub" id="ext-active-label">Som 2022</div>
+          </div>
+          <div class="bess-result-card">
+            <div class="bess-result-label">Multipel mot Basåret</div>
+            <div class="bess-result-val" id="ext-active-mult" style="color: #34d399;">3,95×</div>
+            <div class="bess-result-sub">Årets intäkt / Basårets intäkt</div>
+          </div>
+          <div class="bess-result-card">
+            <div class="bess-result-label">Payback i detta extremår</div>
+            <div class="bess-result-val" id="ext-active-payback">1,8 år</div>
+            <div class="bess-result-sub">Ett enda extremår återbetalar halva batteriet</div>
+          </div>
+        </div>
+
+        <!-- 10-årskalkyl -->
+        <h4 style="font-size: 1.05em; margin: 1.75rem 0 0.5rem;">Ackumulerat Rörelseresultat över 10 år vid olika antal extremår:</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 0.75rem;">
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 1rem;">
+            <div style="font-size: 0.85em; color: var(--muted);">0 Extremår (Bara Basår)</div>
+            <div style="font-size: 1.3em; font-weight: 700; color: #fff; font-family: var(--mono);" id="ext-cf-0">1 167 MSEK</div>
+            <div style="font-size: 0.75em; color: var(--muted); margin-top: 0.25rem;">Huvudkalkylens försiktiga basfall</div>
+          </div>
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid #38bdf8; border-radius: 8px; padding: 1rem;">
+            <div style="font-size: 0.85em; color: #38bdf8; font-weight: 600;">1 Extremår av 10 (Sannolikt)</div>
+            <div style="font-size: 1.3em; font-weight: 700; color: #38bdf8; font-family: var(--mono);" id="ext-cf-1">1 511 MSEK</div>
+            <div style="font-size: 0.75em; color: var(--muted); margin-top: 0.25rem;">Historiken 2019–2025 hade 2 extremår</div>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 8px; padding: 1rem;">
+            <div style="font-size: 0.85em; color: var(--muted);">2 Extremår av 10</div>
+            <div style="font-size: 1.3em; font-weight: 700; color: #fff; font-family: var(--mono);" id="ext-cf-2">1 855 MSEK</div>
+            <div style="font-size: 0.75em; color: var(--muted); margin-top: 0.25rem;">Om två systemchocker inträffar</div>
+          </div>
+        </div>
+
+        <!-- SvK Tidslinje -->
+        <h4 style="font-size: 1.05em; margin: 2rem 0 0.75rem;">Svenska kraftnäts Officiella Tidsplan (Designdriven knapphet):</h4>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="background: rgba(255, 255, 255, 0.02); border-left: 3px solid #38bdf8; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>September 2026: Tak för statisk FCR-D upp införs</strong>
+              <span class="badge success">Prishöjande för BESS</span>
+            </div>
+            <p style="font-size: 0.85em; color: var(--muted); margin: 0.25rem 0 0;">Statiska resurser trängs ut och dynamiska resurser (batterier) gynnas. Enda tydligt prishöjande faktorn för FCR-D på kort sikt.</p>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.02); border-left: 3px solid #fbbf24; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Q1 2027: Norden ansluter till MARI</strong>
+              <span class="badge warn">Volatilitetsökning</span>
+            </div>
+            <p style="font-size: 0.85em; color: var(--muted); margin: 0.25rem 0 0;">Spotpriset upphör att vara golv/tak för mFRR-bud. Ökad prisspridning i mFRR EAM ger större uppsida för snabb batterireglering.</p>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.02); border-left: 3px solid #10b981; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Q4 2027: Svenska kraftnät ansluter till PICASSO</strong>
+              <span class="badge success">Ny Intäktsström</span>
+            </div>
+            <p style="font-size: 0.85em; color: var(--muted); margin: 0.25rem 0 0;">aFRR energiaktiveringsmarknad införs och merit order ersätter pro rata. Obalanspriset börjar bygga på både mFRR och aFRR.</p>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.02); border-left: 3px solid #60a5fa; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>2028: aFRR-behovet stiger till 235 MW upp och ned</strong>
+              <span class="badge success">Marknadsexpansion</span>
+            </div>
+            <p style="font-size: 0.85em; color: var(--muted); margin: 0.25rem 0 0;">Svenskt behov mer än fördubblas från dagens 100 MW. Den enda kapacitetsmarknaden med bekräftad stark volymtillväxt till 2030.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- FLIK 5: Head-to-Head: Stort BESS vs Hembatterikluster (VPP) -->
+    <div id="tab-vpp-comparison" class="bess-tab-pane">
+      <section class="bess-card">
+        <h3 style="font-size: 1.15em; margin: 0 0 0.5rem;">Head-to-Head: 150 MW Centralt BESS mot 15 000 Villabatterier (VPP)</h3>
+        <p style="font-size: 0.88em; color: var(--muted); margin: 0 0 1.25rem;">
+          Kan ett storskaligt BESS konkurrera med ett aggregerat virtuellt kraftverk (Virtual Power Plant) av små hemsystem? Här jämförs samma effekt och energimängd (150 MW / 300 MWh) distribuerat på <strong id="vpp-villa-count" style="color: #fff;">15 000 villor</strong> (10 kW / 20 kWh styck).
+        </p>
+
+        <div class="table-responsive">
+          <table class="bess-table">
+            <thead>
+              <tr>
+                <th>Jämförelsepunkt</th>
+                <th>Storskaligt BESS (150 MW / 300 MWh)</th>
+                <th>Aggregerat Villakluster (VPP, 15 000 villor)</th>
+                <th>Vinnare / Fördel</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Total Investering (Brutto)</strong></td>
+                <td id="vpp-utility-capex">840,0 MSEK (2 800 kr/kWh)</td>
+                <td id="vpp-gross-capex">1 350,0 MSEK (4 500 kr/kWh brutto)</td>
+                <td><span class="badge success">Stort BESS (-38 % billigare)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Skattesubvention (Grön Teknik)</strong></td>
+                <td>0 kr (ingen subvention)</td>
+                <td id="vpp-subsidies" style="color: #34d399;">~675,0 MSEK skattebetald subvention</td>
+                <td><span class="badge warn">VPP (Statsstödd)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Nettoinvestering för ägarna</strong></td>
+                <td>840,0 MSEK</td>
+                <td id="vpp-net-capex" style="color: #38bdf8;">~675,0 MSEK för hushållen</td>
+                <td><span class="badge success">VPP Netto (tack vare staten)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Handel & Aggregatoravgift</strong></td>
+                <td>Eget handelsbord: <strong id="vpp-utility-bsp">~4,0 MSEK/år (3 %)</strong></td>
+                <td>Aggregator (CheckWatt/Tibber): <strong id="vpp-aggregator-fee" style="color: #f87171;">~27,0 MSEK/år (20 %)</strong></td>
+                <td><span class="badge success">Stort BESS (+23 MSEK/år sparade)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Nettointäkt till ägarna</strong></td>
+                <td id="vpp-utility-net" style="font-weight: 700; color: #34d399;">130,7 MSEK/år</td>
+                <td id="vpp-net-homes" style="font-weight: 700; color: #38bdf8;">107,8 MSEK/år (7 190 kr/villa)</td>
+                <td><span class="badge success">Stort BESS (+21 % högre netto)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Marknadstillträde</strong></td>
+                <td>Full access: mFRR EAM (81 % av marknaden), aFRR, spotarbitrage</td>
+                <td>Idag begränsat till FCR-D och lokal styrning. Kvartskrav i mFRR svårt.</td>
+                <td><span class="badge success">Stort BESS</span></td>
+              </tr>
+              <tr>
+                <td><strong>Nät- & flaskhalsbegränsningar</strong></td>
+                <td>Kräver ledig kapacitet i regionnät / stamnät; nätanslutningsköer</td>
+                <td>Installeras bakom befintlig elmätare; slipper anslutningsköer</td>
+                <td><span class="badge warn">VPP</span></td>
+              </tr>
+              <tr>
+                <td><strong>Underhåll & Livslängd</strong></td>
+                <td>Industriell vätskekylning, central service, 95 % garanterad tillgänglighet</td>
+                <td>15 000 spridda väggmontage, varierande wifi-stabilitet och hemmamiljö</td>
+                <td><span class="badge success">Stort BESS</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 1.25rem; margin-top: 1.25rem;">
+          <h4 style="color: #38bdf8; margin: 0 0 0.4rem;">Slutsats: Skalfördelar vs. Skattesubventioner</h4>
+          <p style="font-size: 0.9em; margin: 0; line-height: 1.5;">
+            Det storskaliga BESS-systemet har <strong>lägre hårdvarukostnad per kWh (-38 %)</strong>, <strong>lägre handelsmarginaler (3 % mot 20 %)</strong> och <strong>bättre marknadstillgång (mFRR och aFRR)</strong>.
+            Den enda anledningen till att hembatterier kan konkurrera ekonomiskt är <strong>statens 50 % Grön Teknik-avdrag</strong>. Om skattereduktionen justeras eller slopas (såsom skedde med 60-öringen den 1 januari 2026) vinner storskalig BESS på samtliga ekonomiska punkter.
+          </p>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer" style="margin-top: 3rem; padding: 2rem 0; border-top: 1px solid var(--border); font-size: 0.85em; color: var(--muted); text-align: center;">
+  <div class="wrap">
+    <p>Power Price Oracle · Storskalig BESS-analysmotor · Baserad på Svenska kraftnäts Balancing Market Outlook 2030 (2026 update)</p>
+  </div>
+</footer>
+
+<script src="assets/bess-utility.js?v=20261005a"></script>
+</body>
+</html>
