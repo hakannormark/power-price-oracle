@@ -452,23 +452,23 @@
     const npv10y = pvAnnuity(ebitda, state.discount_rate, 10);
     const netNpv = npv10y - totalCapex;
 
-    // 7. Dimensioning Deep-dive (2h vs 4h)
-    const dimAltMwh = state.dim_alt_mwh || (state.capacity_mwh * 2);
-    const dimAltDuration = state.power_mw > 0 ? (dimAltMwh / state.power_mw) : 4;
+    // 7. Dimensioning Deep-dive (2h vs 4h or selected alternative duration)
+    const dimAltDuration = state.dim_alt_duration_h || (state.dim_alt_mwh ? (state.dim_alt_mwh / state.power_mw) : 4);
+    const dimAltMwh = state.dim_alt_mwh || (state.power_mw * dimAltDuration);
     const dimAltCapexTotal = powerCapex + (energyCostPerKwh * dimAltMwh * 1000);
     const dimExtraCapex = dimAltCapexTotal - totalCapex;
 
     // Extra energy only benefits mFRR energy & arbitrage (reserves are power-capped at 1-2h)
     const dimAltMfrrEnergyRev = mfrrEnergyRevSek * (dimAltMwh / state.capacity_mwh);
     
-    // In 4h arbitrage, spread compresses (e.g. 156 kr vs 210 kr in SE2)
+    // In longer arbitrage, spread compresses (Bo's sheet Indata!B46: 0.72 at 4h)
     const dimAltSoldMwh = (dimAltMwh * state.dod) * state.arbitrage_cycles;
-    const dimAltBoughtMwh = (state.roundtrip_eff > 0) ? (dimAltSoldMwh / state.roundtrip_eff) : dimAltSoldMwh;
-    // Spread efficiency compresses peak selling price and increases trough buying price
-    const pBuy4h = troughPrice * 1.1111111; // 90 -> 100 in SE2
-    const spread4h = dailySpread * (state.dim_spread_eff ? (state.dim_spread_eff * (156 / (210 * 0.72))) : 0.742857);
-    const pSell4h = pBuy4h + spread4h;
-    const dimAltArbitrageGross = (dimAltSoldMwh * pSell4h) - (dimAltBoughtMwh * pBuy4h) - (dimAltSoldMwh * state.cycle_cost_sek_mwh);
+    const spreadEff = state.dim_spread_eff !== undefined
+      ? state.dim_spread_eff
+      : Math.max(0.4, 1.0 - (dimAltDuration - 2) * 0.14);
+    const pEffBuy = state.roundtrip_eff > 0 ? (troughPrice / state.roundtrip_eff) : troughPrice;
+    const dimAltMarginPerMwh = ((peakPrice - pEffBuy) * spreadEff) - state.cycle_cost_sek_mwh;
+    const dimAltArbitrageGross = dimAltSoldMwh * dimAltMarginPerMwh;
     const dimAltArbitrageNet = Math.max(0, dimAltArbitrageGross);
 
     const dimAltGrossRevenue = totalCapRevenueSek + dimAltMfrrEnergyRev + dimAltArbitrageNet;
@@ -478,8 +478,8 @@
     
     const dimExtraEbitda = dimAltEbitda - ebitda;
     const dimMarginalPayback = dimExtraEbitda > 0 ? (dimExtraCapex / dimExtraEbitda) : Infinity;
-    const dimRequiredCellCostForParity = (ebitda > 0 && totalCapex > 0 && (dimAltMwh - state.capacity_mwh) > 0)
-      ? (dimExtraEbitda * (totalCapex / ebitda)) / ((dimAltMwh - state.capacity_mwh) * 1000)
+    const dimRequiredCellCostForParity = (ebitda > 0 && dimAltMwh > 0)
+      ? ((dimAltEbitda * (totalCapex / ebitda)) - powerCapex) / (dimAltMwh * 1000)
       : 0;
 
     // 8. Hybrid Solar Deep-dive
@@ -806,20 +806,43 @@
     setText("cost-total", fmtMSEK(-res.totalOpCosts));
 
     // 8. Dimensioning Tab Results
-    setText("dim-main-mwh", state.capacity_mwh + " MWh");
-    setText("dim-alt-mwh", res.dim.altMwh + " MWh");
-    setText("dim-main-duration", res.durationH.toFixed(1) + " h");
-    setText("dim-alt-duration", res.dim.altDuration.toFixed(1) + " h");
+    setText("dim-header-title", `Dimensionering: ${state.capacity_mwh} MWh (${res.durationH.toFixed(1)} h) mot ${res.dim.altMwh} MWh (${res.dim.altDuration.toFixed(1)} h) vid oförändrade ${state.power_mw} MW`);
+    setText("dim-header-desc", `Alla sex reservprodukter begränsas av de ${state.power_mw} MW som anläggningen kan mata ut. Redan ${res.durationH.toFixed(1)} timmars varaktighet klarar samtliga uthållighetskrav (FCR-D kräver 20 min, övriga 1h). Den extra energidelen når endast arbitraget och mFRR-energin.`);
+    setText("dim-th-main", `Huvudfall (${res.durationH.toFixed(1)} h)`);
+    setText("dim-th-alt", `Alternativ (${res.dim.altDuration.toFixed(1)} h)`);
+    setText("dim-main-mwh", `${state.capacity_mwh} MWh (${res.durationH.toFixed(1)} h)`);
+    setText("dim-alt-mwh", `${res.dim.altMwh} MWh (${res.dim.altDuration.toFixed(1)} h)`);
+    const diffMwh = res.dim.altMwh - state.capacity_mwh;
+    const diffPct = state.capacity_mwh > 0 ? Math.round((diffMwh / state.capacity_mwh) * 100) : 0;
+    setText("dim-diff-mwh", `+${diffMwh} MWh (+${diffPct} %)`);
     setText("dim-main-capex", fmtMSEK(res.totalCapex));
     setText("dim-alt-capex", fmtMSEK(res.dim.altCapexTotal));
     setText("dim-extra-capex", fmtMSEK(res.dim.extraCapex));
     setText("dim-main-ebitda", fmtMSEK(res.ebitda));
     setText("dim-alt-ebitda", fmtMSEK(res.dim.altEbitda));
     setText("dim-extra-ebitda", fmtMSEK(res.dim.extraEbitda));
+    setText("dim-summary-capex", fmtMSEK(res.dim.extraCapex));
+    setText("dim-summary-ebitda", fmtMSEK(res.dim.extraEbitda));
     setText("dim-marginal-payback", fmtYears(res.dim.marginalPayback));
     setText("dim-required-cost", Math.round(res.dim.requiredCellCost).toLocaleString("sv-SE") + " kr/kWh");
 
+    // Dynamic duration buttons active state
+    document.querySelectorAll(".bess-dim-hours-btn").forEach(btn => {
+      const h = parseFloat(btn.getAttribute("data-hours"));
+      btn.classList.toggle("active", Math.abs(res.dim.altDuration - h) < 0.1);
+    });
+
+    const noteEl = document.getElementById("dim-summary-note");
+    if (noteEl) {
+      if (res.dim.marginalPayback > 30) {
+        noteEl.innerHTML = `Ligger den marginella paybacken (${fmtYears(res.dim.marginalPayback)}) över anläggningens tekniska livslängd (10–15 år) är den extra energin <em>inte motiverad</em>. För att nå samma payback som huvudfallet (${fmtYears(res.paybackYears)}) skulle energidelen behöva kosta under <strong>${Math.round(res.dim.requiredCellCost).toLocaleString("sv-SE")} kr/kWh</strong>. I ${state.zone} är ${state.zone === "SE4" ? "dygnsspreaden visserligen högre, men marginalkostnaden är fortfarande kännbar" : "vattenkraftens prisutjämning för stark för att längre varaktighet ska löna sig (jämför gärna med SE4)"}.`;
+      } else {
+        noteEl.innerHTML = `Med en marginell payback på <strong>${fmtYears(res.dim.marginalPayback)}</strong> i ${state.zone} kan längre varaktighet vara ekonomiskt försvarbar tack vare högre prisspreadar på spot- och intradagmarknaden. För att nå samma payback som huvudfallet (${fmtYears(res.paybackYears)}) kan energidelen kosta upp till <strong>${Math.round(res.dim.requiredCellCost).toLocaleString("sv-SE")} kr/kWh</strong>.`;
+      }
+    }
+
     // 9. Hybrid Solar Tab Results
+    setText("sol-intro-desc", `Med ${state.power_mw} MW effekt och ${state.capacity_mwh} MWh kapacitet når lagrets energi utöver 1h-kraven (${Math.max(0, state.capacity_mwh - state.power_mw)} MWh) sällan stödtjänstmarknaderna pga effektbegränsningen. En samlokaliserad solpark kan ge denna energi ett dagligt uppdrag genom att dela anslutningspunkt och undvika nedreglering vid negativa priser.`);
     setText("sol-mw", res.hybrid.solMw + " MW");
     setText("sol-moved-mwh", Math.round(res.hybrid.solMovedMwh).toLocaleString("sv-SE") + " MWh");
     setText("sol-rev-lift", fmtMSEK(res.hybrid.solRevenueLift));
@@ -838,6 +861,11 @@
     setText("ext-cf-2", fmtMSEK(res.extreme.cashflow2));
 
     // 11. Head-to-Head VPP vs Utility BESS
+    setText("vpp-header-title", `Head-to-Head: ${state.power_mw} MW Centralt BESS mot ${res.vpp.villaCount.toLocaleString("sv-SE")} Villabatterier (VPP)`);
+    setText("vpp-intro-desc", `Kan ett storskaligt BESS konkurrera med ett aggregerat virtuellt kraftverk (Virtual Power Plant) av små hemsystem? Här jämförs samma effekt och energimängd (${state.power_mw} MW / ${state.capacity_mwh} MWh) distribuerat på ${res.vpp.villaCount.toLocaleString("sv-SE")} villor (${state.vpp_villa_kw} kW / ${state.vpp_villa_kwh} kWh styck).`);
+    setText("vpp-th-utility", `Storskaligt BESS (${state.power_mw} MW / ${state.capacity_mwh} MWh)`);
+    setText("vpp-th-cluster", `Aggregerat Villakluster (VPP, ${res.vpp.villaCount.toLocaleString("sv-SE")} villor)`);
+    setText("vpp-td-infra", `${res.vpp.villaCount.toLocaleString("sv-SE")} spridda väggmontage, varierande wifi-stabilitet och hemmamiljö`);
     setText("vpp-villa-count", res.vpp.villaCount.toLocaleString("sv-SE") + " st");
     setText("vpp-gross-capex", fmtMSEK(res.vpp.grossCapexTotal));
     setText("vpp-subsidies", fmtMSEK(res.vpp.subsidiesTotal));
@@ -885,7 +913,19 @@
     }
 
     // Sliders & Number Inputs Sync
-    bindSyncPair("slider-power-mw", "input-power-mw", v => { state.power_mw = parseFloat(v) || 1; });
+    bindSyncPair("slider-power-mw", "input-power-mw", v => {
+      const newPower = parseFloat(v) || 1;
+      const oldPower = state.power_mw;
+      state.power_mw = newPower;
+      if (oldPower > 0 && oldPower !== newPower) {
+        Object.keys(state.allocations).forEach(k => {
+          const a = state.allocations[k];
+          if (a && typeof a.bid_mw === "number") {
+            a.bid_mw = Math.min(newPower, Math.round((a.bid_mw / oldPower) * newPower * 10) / 10);
+          }
+        });
+      }
+    });
     bindSyncPair("slider-cap-mwh", "input-cap-mwh", v => { state.capacity_mwh = parseFloat(v) || 1; });
     bindSyncPair("slider-capex-kwh", "input-capex-kwh", v => { state.capex_per_kwh = parseFloat(v) || 500; });
     bindSyncPair("slider-power-capex-share", "input-power-capex-share", v => { state.power_capex_share = (parseFloat(v) || 40) / 100; });
@@ -899,6 +939,17 @@
     bindInput("input-roundtrip", v => { state.roundtrip_eff = (parseFloat(v) || 88) / 100; });
     bindInput("input-discount-rate", v => { state.discount_rate = (parseFloat(v) || 7) / 100; });
     bindInput("input-arbitrage-cycles", v => { state.arbitrage_cycles = parseInt(v, 10) || 0; });
+
+    // Dimensioning Alternative Duration Switcher
+    document.querySelectorAll(".bess-dim-hours-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const hours = parseFloat(btn.getAttribute("data-hours")) || 4;
+        state.dim_alt_duration_h = hours;
+        state.dim_alt_mwh = state.power_mw * hours;
+        saveState();
+        render();
+      });
+    });
 
     // Scenarios & Year Switchers
     document.querySelectorAll(".bess-scenario-btn").forEach(btn => {

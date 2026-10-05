@@ -626,18 +626,29 @@
     <!-- FLIK 2: Dimensioneringsanalys -->
     <div id="tab-dimensioning" class="bess-tab-pane">
       <section class="bess-card">
-        <h3 style="font-size: 1.15em; margin: 0 0 0.5rem;">Dimensionering: 300 MWh mot 600 MWh vid oförändrade 150 MW</h3>
-        <p style="font-size: 0.88em; color: var(--muted); margin: 0 0 1.25rem;">
-          Alla sex reservprodukter begränsas av de 150 MW som anläggningen kan mata ut. Redan 2 timmars varaktighet klarar samtliga uthållighetskrav (FCR-D kräver 20 min, övriga 1h). Den extra energidelen når <strong>endast arbitraget och mFRR-energin</strong>.
+        <h3 style="font-size: 1.15em; margin: 0 0 0.5rem;" id="dim-header-title">Dimensionering: 300 MWh (2,0 h) mot 600 MWh (4,0 h) vid oförändrade 150 MW</h3>
+        <p style="font-size: 0.88em; color: var(--muted); margin: 0 0 1.25rem;" id="dim-header-desc">
+          Alla sex reservprodukter begränsas av de 150 MW som anläggningen kan mata ut. Redan 2,0 timmars varaktighet klarar samtliga uthållighetskrav (FCR-D kräver 20 min, övriga 1h). Den extra energidelen når <strong>endast arbitraget och mFRR-energin</strong>.
         </p>
+
+        <!-- Alternativ varaktighetsväljare -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+          <span style="font-size: 0.85em; color: var(--muted); font-weight: 600;">Jämför huvudfallet med varaktighet:</span>
+          <div class="btn-group">
+            <button type="button" class="bess-dim-hours-btn" data-hours="2">2 timmar</button>
+            <button type="button" class="bess-dim-hours-btn" data-hours="3">3 timmar</button>
+            <button type="button" class="bess-dim-hours-btn active" data-hours="4">4 timmar (Bo:s kalkyl)</button>
+            <button type="button" class="bess-dim-hours-btn" data-hours="6">6 timmar</button>
+          </div>
+        </div>
 
         <div class="table-responsive">
           <table class="bess-table">
             <thead>
               <tr>
                 <th>Parameter</th>
-                <th>Huvudfall (2 timmar)</th>
-                <th>Alternativ (4 timmar)</th>
+                <th id="dim-th-main">Huvudfall (2,0 timmar)</th>
+                <th id="dim-th-alt">Alternativ (4,0 timmar)</th>
                 <th>Skillnad / Ökning</th>
               </tr>
             </thead>
@@ -646,7 +657,7 @@
                 <td>Energimängd & Varaktighet</td>
                 <td id="dim-main-mwh">300 MWh (2,0 h)</td>
                 <td id="dim-alt-mwh">600 MWh (4,0 h)</td>
-                <td>+300 MWh (+100 %)</td>
+                <td id="dim-diff-mwh">+300 MWh (+100 %)</td>
               </tr>
               <tr>
                 <td>Total Investering</td>
@@ -667,10 +678,10 @@
         <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 8px; padding: 1.25rem; margin-top: 1rem;">
           <h4 style="color: #fbbf24; margin: 0 0 0.35rem; font-size: 1.05em;">Det avgörande nyckeltalet: Marginell Payback</h4>
           <p style="font-size: 0.9em; margin: 0 0 0.5rem;">
-            Att investera <strong>504 MSEK</strong> extra för att tjäna <strong>1,4 MSEK</strong> extra per år ger en <strong>marginell återbetalningstid på:</strong>
+            Att investera <strong id="dim-summary-capex">504,0 MSEK</strong> extra för att tjäna <strong id="dim-summary-ebitda">1,4 MSEK</strong> extra per år ger en <strong>marginell återbetalningstid på:</strong>
           </p>
           <div style="font-size: 1.8em; font-weight: 700; color: #fbbf24; font-family: var(--mono);" id="dim-marginal-payback">360,3 år</div>
-          <p style="font-size: 0.85em; color: var(--muted); margin: 0.5rem 0 0;">
+          <p style="font-size: 0.85em; color: var(--muted); margin: 0.5rem 0 0;" id="dim-summary-note">
             Ligger den marginella paybacken över anläggningens tekniska livslängd är den extra energin <em>inte motiverad</em>. För att nå samma payback som 2-timmarsfallet skulle energidelen behöva kosta under <strong id="dim-required-cost" style="color: #fff;">857 kr/kWh</strong>. I SE2 är vattenkraftens prisutjämning för stark för att 4h ska löna sig. I SE4 ser kalkylen betydligt bättre ut.
           </p>
         </div>
@@ -681,7 +692,7 @@
     <div id="tab-hybrid-solar" class="bess-tab-pane">
       <section class="bess-card">
         <h3 style="font-size: 1.15em; margin: 0 0 0.5rem;">Samlokaliserad Solpark (Hybrid Sol + BESS)</h3>
-        <p style="font-size: 0.88em; color: var(--muted); margin: 0 0 1.25rem;">
+        <p style="font-size: 0.88em; color: var(--muted); margin: 0 0 1.25rem;" id="sol-intro-desc">
           Halva batterilagret (150 MWh) når aldrig reservmarknaderna pga effektbegränsningen. En samlokaliserad solpark kan ge denna energi ett dagligt uppdrag genom att dela anslutningspunkt och undvika nedreglering vid negativa priser.
         </p>
 
@@ -815,8 +826,8 @@
     <!-- FLIK 5: Head-to-Head: Stort BESS vs Hembatterikluster (VPP) -->
     <div id="tab-vpp-comparison" class="bess-tab-pane">
       <section class="bess-card">
-        <h3 style="font-size: 1.15em; margin: 0 0 0.5rem;">Head-to-Head: 150 MW Centralt BESS mot 15 000 Villabatterier (VPP)</h3>
-        <p style="font-size: 0.88em; color: var(--muted); margin: 0 0 1.25rem;">
+        <h3 style="font-size: 1.15em; margin: 0 0 0.5rem;" id="vpp-header-title">Head-to-Head: 150 MW Centralt BESS mot 15 000 Villabatterier (VPP)</h3>
+        <p style="font-size: 0.88em; color: var(--muted); margin: 0 0 1.25rem;" id="vpp-intro-desc">
           Kan ett storskaligt BESS konkurrera med ett aggregerat virtuellt kraftverk (Virtual Power Plant) av små hemsystem? Här jämförs samma effekt och energimängd (150 MW / 300 MWh) distribuerat på <strong id="vpp-villa-count" style="color: #fff;">15 000 villor</strong> (10 kW / 20 kWh styck).
         </p>
 
@@ -825,8 +836,8 @@
             <thead>
               <tr>
                 <th>Jämförelsepunkt</th>
-                <th>Storskaligt BESS (150 MW / 300 MWh)</th>
-                <th>Aggregerat Villakluster (VPP, 15 000 villor)</th>
+                <th id="vpp-th-utility">Storskaligt BESS (150 MW / 300 MWh)</th>
+                <th id="vpp-th-cluster">Aggregerat Villakluster (VPP, 15 000 villor)</th>
                 <th>Vinnare / Fördel</th>
               </tr>
             </thead>
@@ -876,7 +887,7 @@
               <tr>
                 <td><strong>Underhåll & Livslängd</strong></td>
                 <td>Industriell vätskekylning, central service, 95 % garanterad tillgänglighet</td>
-                <td>15 000 spridda väggmontage, varierande wifi-stabilitet och hemmamiljö</td>
+                <td id="vpp-td-infra">15 000 spridda väggmontage, varierande wifi-stabilitet och hemmamiljö</td>
                 <td><span class="badge success">Stort BESS</span></td>
               </tr>
             </tbody>
