@@ -247,7 +247,27 @@
             <input type="range" id="bess-pv-slider" min="0" max="50" step="1" value="10">
             <input type="number" id="bess-pv-num" min="0" max="50" step="1" value="10">
           </div>
-          <span class="bess-hint" id="bess-pv-hint">Årsproduktion: ca 8 500 kWh (Sätt 0 vid enbart batteri)</span>
+          <span class="bess-hint" id="bess-pv-hint">Årsproduktion räknas ur elområdets uppmätta sol (sätt 0 vid enbart batteri)</span>
+        </div>
+
+        <!-- Panelernas väderstreck -->
+        <div class="bess-control-group">
+          <label for="bess-orientation"><span>Panelernas väderstreck</span></label>
+          <select class="field" id="bess-orientation">
+            <option value="south">Söder, 35° lutning</option>
+            <option value="eastwest">Öst och väst, hälften på varje sida</option>
+          </select>
+          <span class="bess-hint">Öst–väst ger ungefär en fjärdedel mindre el per år, men mer morgon och kväll.</span>
+        </div>
+
+        <!-- Uppvärmning -->
+        <div class="bess-control-group">
+          <label for="bess-heating"><span>Uppvärmning</span></label>
+          <select class="field" id="bess-heating">
+            <option value="electric">Med el (värmepump eller direktel)</option>
+            <option value="other">Inte med el (fjärrvärme, ved, pellets)</option>
+          </select>
+          <span class="bess-hint">Med el följer en del av förbrukningen elområdets uppmätta utetemperatur, timme för timme.</span>
         </div>
 
         <!-- Bruttoinvestering -->
@@ -297,7 +317,7 @@
             <input type="range" id="bess-fcr-slider" min="0" max="80" step="5" value="25">
             <input type="number" id="bess-fcr-num" min="0" max="80" step="5" value="25">
           </div>
-          <span class="bess-hint">Marknadsnivå 2026: ca 20–30 kr/kW/mån efter aggregatorsnitt</span>
+          <span class="bess-hint">Ditt eget antagande – fråga aggregatorn vad den betalar. Som jämförelse kostade Svenska kraftnäts upphandling av FCR-D (upp plus ned) i snitt 8,5 EUR/MW per timme de senaste tolv månaderna, ungefär 70 kr/kW och månad före aggregatorns andel och den tid batteriet inte är tillgängligt. 2024 var priset 37 EUR; det har fallit snabbt.</span>
         </div>
 
         <!-- Livscykelscenario -->
@@ -306,8 +326,8 @@
             <span>Livscykelscenario (15 år)</span>
           </label>
           <select class="field" id="bess-scenario">
-            <option value="nordic_frequency" selected>Nordisk basfrekvens (1,5 positiva & 0,5 negativa extremår/dec)</option>
-            <option value="base_only">Konservativt basår (1,0× linjärt utan extremår)</option>
+            <option value="nordic_frequency" selected>Med extremår (ett 2022 och ett 2020 på 15 år)</option>
+            <option value="base_only">Utan extremår (varje år som de senaste 12 månaderna)</option>
             <option value="cannibalization">Mättnad & Kannibalisering (12 % årlig erosion i stödtjänster)</option>
           </select>
           <span class="bess-hint">Modellerar prischocker vs marknadsmättnad</span>
@@ -376,7 +396,10 @@
         90 % av det teoretiskt bästa, eftersom en verklig styrning inte känner förbrukning och sol exakt i förväg.
         Stödtjänster läggs till som en ersättning per kW och reserverar en del av lagret.
         Solproduktionen är elområdets uppmätta solinstrålning timme för timme det senaste året, mulna dagar inräknade
-        – inte samma sol i hela landet. Positiva extremår i 15-årskalkylen är samma anläggning körd mot 2022 års priser.
+        – inte samma sol i hela landet – i panelernas plan (35° lutning), kontrollerad mot EU:s PVGIS.
+        Uppvärmningsdelen av förbrukningen följer elområdets uppmätta temperatur. Extremåren i 15-årskalkylen är samma
+        anläggning körd mot 2022 (år 5) och 2020 (år 10). Normalåret är de senaste tolv månaderna, och kalkylen antar
+        att det läget består.
       </p>
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; align-items: center;" class="bess-export-actions">
         <button type="button" class="btn btn-secondary" id="bess-btn-export-csv" style="cursor: pointer;">
@@ -531,7 +554,7 @@
   </div>
 </main>
 
-<script src="assets/bess-dispatch.js?v=20261007b"></script>
-<script src="assets/bess.js?v=20261007b"></script>
+<script src="assets/bess-dispatch.js?v=20261008a"></script>
+<script src="assets/bess.js?v=20261008a"></script>
 </body>
 </html>

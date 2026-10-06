@@ -94,33 +94,59 @@
     return { cost: bill, charged, chargedSolar, discharged };
   }
 
-  /** Timserierna för ett elområde: det senaste året, eller extremåret (2022) om extreme är sant. */
-  function seriesFor(hourly, zone, extreme) {
-    const src = extreme ? hourly.extreme : hourly;
-    if (!src || !src.spot || !src.spot[zone] || !src.pv_per_kwp || !src.pv_per_kwp[zone]) return null;
-    return { spot: src.spot[zone], pv: src.pv_per_kwp[zone], load: src.w_load };
+  /**
+   * Timserierna för ett elområde. period: undefined = det senaste året,
+   * 'extreme' = 2022, 'weak' = 2020. orientation: 'south' eller 'eastwest'.
+   */
+  function seriesFor(hourly, zone, period, orientation) {
+    const src = period === true ? hourly.extreme : (period ? hourly[period] : hourly);
+    const pv = src && src.pv && src.pv[orientation || 'south'];
+    if (!src || !src.spot || !src.spot[zone] || !pv || !pv[zone] || !src.deg || !src.deg[zone]) return null;
+    return { spot: src.spot[zone], pv: pv[zone], base: Array.isArray(src.base) ? src.base : src.base[zone], deg: src.deg[zone] };
   }
 
-  /** Solproduktion per installerad kWp och år i elområdet, ur uppmätt instrålning. */
-  function yieldPerKwp(hourly, zone) {
-    const s = seriesFor(hourly, zone, false);
+  /** Solproduktion per installerad kWp och år i elområdet, ur uppmätt instrålning i panelens plan. */
+  function yieldPerKwp(hourly, zone, orientation) {
+    const s = seriesFor(hourly, zone, null, orientation);
     if (!s) return 0;
     let sum = 0;
     for (let t = 0; t < s.pv.length; t++) sum += s.pv[t];
-    return sum * 8760 / s.pv.length;
+    return sum / 1000 * 8760 / s.pv.length;
+  }
+
+  /**
+   * Förbrukningen timme för timme (kWh). Hushållsel följer klockan; uppvärmning
+   * följer elområdets uppmätta temperatur. Samma formel som profiles.compose_load.
+   */
+  function composeLoad(series, constants, annualKwh, heatingShare) {
+    const n = series.base.length;
+    const h = heatingShare == null ? constants.heating_share : heatingShare;
+    const raw = new Float64Array(n);
+    let baseSum = 0;
+    for (let t = 0; t < n; t++) baseSum += series.base[t];
+    const baseMean = baseSum / n;
+    let sum = 0;
+    for (let t = 0; t < n; t++) {
+      raw[t] = (1 - h) * series.base[t] / baseMean + h * (series.deg[t] / 10) / constants.reference_mean_degrees;
+      sum += raw[t];
+    }
+    const scale = annualKwh * (n / 8760) / sum;
+    for (let t = 0; t < n; t++) raw[t] *= scale;
+    return raw;
   }
 
   /**
    * Årsvärdet av ett batteri i ett hushåll.
    *
    * hourly: innehållet i data/bess-hourly.json. o: { zone, loadKwh, pvKwp,
-   * usableKwh, powerKw, roundTripEff, strategy, extreme }. pvKwp är installerad
-   * effekt vid standardfaktorn; solen är elområdets uppmätta, timme för timme.
-   * Med extreme räknas samma anläggning mot 2022 års priser och sol.
+   * usableKwh, powerKw, roundTripEff, strategy, period, orientation,
+   * heatingShare }. Sol och temperatur är elområdets uppmätta, timme för timme.
+   * Med period 'extreme' eller 'weak' räknas samma anläggning mot 2022
+   * respektive 2020.
    */
   function valueBattery(hourly, o) {
     const k = hourly.constants;
-    const series = seriesFor(hourly, o.zone, !!o.extreme);
+    const series = seriesFor(hourly, o.zone, o.period || (o.extreme ? 'extreme' : null), o.orientation);
     if (!series) return null;
     const spot = series.spot;
     const n = spot.length;
@@ -128,10 +154,10 @@
     const net = new Float64Array(n);
     const imp = new Float64Array(n);
     const exp = new Float64Array(n);
-    const loadScale = o.loadKwh * yearShare / 1e6;
+    const load = composeLoad(series, k, o.loadKwh, o.heatingShare);
     const pvKwp = o.pvKwp || 0;
     for (let t = 0; t < n; t++) {
-      net[t] = series.load[t] * loadScale - series.pv[t] * pvKwp;
+      net[t] = load[t] - series.pv[t] / 1000 * pvKwp;
       imp[t] = spot[t] * k.spot_vat + k.import_adders_sek;
       exp[t] = spot[t] + k.export_adder_sek;
     }
@@ -153,5 +179,5 @@
     };
   }
 
-  return { LEVELS, billWithoutBattery, optimalSchedule, valueBattery, yieldPerKwp, seriesFor };
+  return { LEVELS, billWithoutBattery, optimalSchedule, valueBattery, yieldPerKwp, seriesFor, composeLoad };
 });

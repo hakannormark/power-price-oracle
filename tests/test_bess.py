@@ -101,9 +101,39 @@ class BessSolarTests(unittest.TestCase):
         self.assertLess(yields["SE1"], yields["SE2"])
         self.assertLess(yields["SE2"], yields["SE3"])
         self.assertLess(yields["SE3"], yields["SE4"])
-        # What installers and Energimyndigheten report for Sweden, north to south.
-        self.assertGreater(yields["SE1"], 650)
-        self.assertLess(yields["SE4"], 1150)
+        # PVGIS 5.2 (EU Joint Research Centre, satellite-based, 14 % system loss)
+        # for the same four points, 35 degrees facing south, fetched 2026-10-07.
+        # An independent method and data set; the two should agree within a tenth.
+        pvgis = {"SE1": 975, "SE2": 903, "SE3": 987, "SE4": 1053}
+        mean = {}
+        for zone in pvgis:
+            years = [float(solar.production_per_kwp(zone, self._year(y)).sum()) for y in range(2015, 2026)]
+            mean[zone] = sum(years) / len(years)
+            self.assertAlmostEqual(mean[zone] / pvgis[zone], 1.0, delta=0.10, msg=zone)
+
+    def test_east_west_roof_against_pvgis(self):
+        from src.bess import solar
+
+        # Mean of PVGIS facing east and facing west, same settings.
+        pvgis = {"SE1": 730, "SE2": 682, "SE3": 756, "SE4": 815}
+        for zone, ref in pvgis.items():
+            years = [float(solar.production_per_kwp(zone, self._year(y), "eastwest").sum()) for y in range(2015, 2026)]
+            self.assertAlmostEqual(sum(years) / len(years) / ref, 1.0, delta=0.10, msg=zone)
+
+    def test_heating_follows_the_zone_temperature(self):
+        from src.bess import solar
+        from src.bess.profiles import HEATING_BASE_C, REFERENCE_DEGREE_DAYS
+
+        ts = self._year()
+        north = generate_household_profiles(ts, zone="SE1")
+        south = generate_household_profiles(ts, zone="SE4")
+        flat = generate_household_profiles(ts, zone="SE1", heating_share=0.0)
+        winter = lambda df: df["load_kwh"].to_numpy()[: 59 * 24].sum() / df["load_kwh"].sum()
+        self.assertGreater(winter(north), winter(south))
+        self.assertGreater(winter(south), winter(flat))
+        # The reference climate is Malmö's: its degree days are close to the constant.
+        years = [float((HEATING_BASE_C - solar.temperature("SE4", self._year(y))).clip(min=0).sum() / 24) for y in range(2015, 2026)]
+        self.assertAlmostEqual(sum(years) / len(years) / REFERENCE_DEGREE_DAYS, 1.0, delta=0.08)
 
     def test_profile_uses_the_zone(self):
         ts = self._year()
@@ -127,15 +157,26 @@ class BessSolarTests(unittest.TestCase):
         given = compute_lifecycle(offer, disp, scenario="nordic_frequency", extreme=(5000.0, 9000.0))
         by_year = {c.year: c for c in given.annual_cash_flows}
         base = {c.year: c for c in plain.annual_cash_flows}
-        for year in (3, 11):
+        for year in (5,):
             c = by_year[year]
             self.assertAlmostEqual(c.solar_savings, 5000.0 * c.capacity_retention, delta=1.0)
             self.assertAlmostEqual(c.arbitrage_profit, 9000.0 * c.capacity_retention, delta=1.0)
-        # Normal years are untouched, and the weak year is weaker than a normal one.
+        # Normal years are untouched.
         self.assertEqual(by_year[1].total_revenue, base[1].total_revenue)
         self.assertEqual(by_year[2].arbitrage_profit, base[2].arbitrage_profit)
-        self.assertLess(by_year[7].arbitrage_profit / by_year[7].capacity_retention,
-                        by_year[6].arbitrage_profit / by_year[6].capacity_retention)
+        # The weak year takes its own valuation too.
+        weak = compute_lifecycle(offer, disp, scenario="nordic_frequency", extreme=(5000.0, 9000.0), weak=(700.0, 100.0))
+        c = {x.year: x for x in weak.annual_cash_flows}[10]
+        self.assertAlmostEqual(c.solar_savings, 700.0 * c.capacity_retention, delta=1.0)
+        self.assertAlmostEqual(c.arbitrage_profit, 100.0 * c.capacity_retention, delta=1.0)
+        # Pay for ancillary services is not scaled in extreme years: it only
+        # follows capacity fade and the stated market erosion.
+        fcr = {x.year: x.ancillary_revenue / x.capacity_retention for x in weak.annual_cash_flows}
+        self.assertAlmostEqual(fcr[5] / fcr[4], 0.95, delta=0.002)
+        self.assertAlmostEqual(fcr[10] / fcr[9], 0.95, delta=0.002)
+        # One extreme year of each kind in the fifteen, and no more.
+        kinds = [round(x.extreme_multiplier, 3) != 1.0 for x in weak.annual_cash_flows]
+        self.assertEqual([i + 1 for i, k in enumerate(kinds) if k], [5, 10])
 
 
 class BessPublishTests(unittest.TestCase):

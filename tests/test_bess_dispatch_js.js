@@ -15,7 +15,7 @@ const bess = read('bess.json');
 let checks = 0;
 const near = (a, b, tol, msg) => { checks++; assert.ok(Math.abs(a - b) <= tol, `${msg}: js ${a.toFixed(1)} vs python ${b}`); };
 
-assert.strictEqual(hourly.hours, hourly.w_load.length);
+assert.strictEqual(hourly.hours, hourly.base.length);
 assert.strictEqual(hourly.constants.levels, B.LEVELS, 'both sides use the same grid');
 
 // Every published offer, both strategies, every zone: the browser must reproduce Python.
@@ -70,7 +70,7 @@ const yields = Object.fromEntries(['SE1', 'SE2', 'SE3', 'SE4'].map((z) => [z, B.
 checks++; assert.ok(yields.SE1 < yields.SE2 && yields.SE2 < yields.SE3 && yields.SE3 < yields.SE4, `yield rises southwards: ${JSON.stringify(yields)}`);
 checks++; assert.ok(yields.SE1 > 650 && yields.SE4 < 1150, 'and stays within what Swedish installations report');
 const winter = (zone) => {
-  const s = B.seriesFor(hourly, zone, false);
+  const s = B.seriesFor(hourly, zone);
   const start = new Date(hourly.from).getTime();
   let w = 0; let all = 0;
   s.pv.forEach((p, t) => { const m = new Date(start + t * 3600e3).getUTCMonth(); all += p; if (m === 11 || m === 0) w += p; });
@@ -78,12 +78,33 @@ const winter = (zone) => {
 };
 checks++; assert.ok(winter('SE1') < winter('SE4'), 'Luleå gets a smaller share of its sun in midwinter than Malmö');
 const days = (zone) => {
-  const s = B.seriesFor(hourly, zone, false);
+  const s = B.seriesFor(hourly, zone);
   const sums = [];
   for (let d = 150; d < 240; d++) { let x = 0; for (let h = 0; h < 24; h++) x += s.pv[d * 24 + h] || 0; sums.push(x); }
   return Math.min(...sums) / Math.max(...sums);
 };
 checks++; assert.ok(days('SE3') < 0.5, 'summer days differ: there are overcast ones');
+
+// A roof facing east and west yields less than one facing south, in every zone.
+for (const z of ['SE1', 'SE2', 'SE3', 'SE4']) {
+  const ratio = B.yieldPerKwp(hourly, z, 'eastwest') / B.yieldPerKwp(hourly, z, 'south');
+  checks++; assert.ok(ratio > 0.65 && ratio < 0.9, `${z} east-west against south: ${ratio}`);
+}
+
+// The load: the annual figure is kept, heating puts more of it in winter, and
+// more so in the north.
+const winterShare = (zone, heatingShare) => {
+  const s = B.seriesFor(hourly, zone);
+  const load = B.composeLoad(s, hourly.constants, 8000, heatingShare);
+  const start = new Date(hourly.from).getTime();
+  let w = 0; let all = 0;
+  load.forEach((v, t) => { const m = new Date(start + t * 3600e3).getUTCMonth(); all += v; if (m === 11 || m === 0 || m === 1) w += v; });
+  near(all, 8000 * load.length / 8760, 0.5, `${zone} annual load is kept`);
+  return w / all;
+};
+checks++; assert.ok(winterShare('SE1', null) > winterShare('SE4', null), 'the north heats more of its year');
+checks++; assert.ok(winterShare('SE4', 0) < winterShare('SE4', null), 'without electric heating the load is flatter');
+near(winterShare('SE4', 0), winterShare('SE1', 0), 0.002, 'and then it is the same in every zone');
 
 // The extreme year is 2022 as it was, valued for the same system.
 const ext = B.valueBattery(hourly, Object.assign({}, base, { extreme: true }));
@@ -97,6 +118,21 @@ for (const zone of Object.keys(bess.zones)) {
     powerKw: offer.battery_max_power_kw, roundTripEff: offer.round_trip_eff, strategy: 'mixed', extreme: true,
   });
   near(js.solarSek + js.arbitrageSek, py.solar_savings_sek + py.arbitrage_profit_sek, Math.max(30, 0.015 * (py.solar_savings_sek + py.arbitrage_profit_sek)), `${zone} extreme year against the Python back-test`);
+}
+
+// The weak year is 2020 as it was, and it is weaker than the last twelve months.
+checks++; assert.ok(hourly.weak && hourly.weak.year === 2020, 'the weak year is published');
+for (const zone of Object.keys(bess.zones)) {
+  const offer = bess.zones[zone].offers[0];
+  const py = bess.zones[zone].backtest.years['2020'].offers[offer.id].mixed;
+  const o = {
+    zone, loadKwh: 8000, pvKwp: hourly.constants.case_house_pv_kwp, usableKwh: offer.usable_kwh,
+    powerKw: offer.battery_max_power_kw, roundTripEff: offer.round_trip_eff, strategy: 'mixed',
+  };
+  const weak = B.valueBattery(hourly, Object.assign({ period: 'weak' }, o));
+  const now = B.valueBattery(hourly, o);
+  near(weak.solarSek + weak.arbitrageSek, py.solar_savings_sek + py.arbitrage_profit_sek, Math.max(30, 0.015 * (py.solar_savings_sek + py.arbitrage_profit_sek)), `${zone} weak year against the Python back-test`);
+  checks++; assert.ok(weak.solarSek + weak.arbitrageSek < now.solarSek + now.arbitrageSek, `${zone}: 2020 was worth less than the last year`);
 }
 
 console.log(`bess-dispatch: ${checks} checks passed`);

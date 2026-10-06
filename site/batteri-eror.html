@@ -109,38 +109,17 @@
       <div class="section-title">
         <h2>2. Varför gamla kalkyler från 2015–2020 inte stämmer idag</h2>
       </div>
-      <div style="font-size: 0.95em; color: var(--text); line-height: 1.6;">
-        <p>
-          En av de vanligaste fallgroparna när man bedömer batteriers lönsamhet är att titta på äldre elmarknadsstatistik från 2015–2020.
-          Under den perioden var batterier i princip ekonomiskt omöjliga att räkna hem. Men sedan 2022 har marknadens fundamenta genomgått ett oåterkalleligt systemskifte.
-        </p>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
-          <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem;">
-            <h3 style="color: #94a3b8; margin-top: 0; font-size: 1.15em;">Gamla eran (2015–2020): Den dämpade marknaden</h3>
-            <ul style="padding-left: 1.25rem; font-size: 0.9em; color: var(--muted); line-height: 1.6;">
-              <li><strong>Tung planerbar baskraft:</strong> Ringhals 1 & 2 och Oskarshamn 1 & 2 var i drift, och Tyskland hade massiv kärn- och kolkraft.</li>
-              <li><strong>Små dygnsspreadar:</strong> Prisskillnaden mellan dag och natt i SE4 var endast <strong>15–27 öre/kWh</strong>.</li>
-              <li><strong>Försumbart arbitrage:</strong> Ett 15 kWh batteri tjänade bara <strong>300–500 kr/år</strong> på spotprisskillnader. Teoretisk payback var över 40 år.</li>
-              <li><strong>Inga negativa priser:</strong> Negativa spotpriser förekom i princip aldrig (0–2 timmar/år).</li>
-            </ul>
-          </div>
-
-          <div style="background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 1.25rem;">
-            <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em;">Nya eran (2022–2026): Flexibilitetens tidsålder</h3>
-            <ul style="padding-left: 1.25rem; font-size: 0.9em; color: var(--text); line-height: 1.6;">
-              <li><strong>Väderberoende kraft & stängd baskraft:</strong> Över 15 GW vindkraft i Norden och nedlagd kärnkraft i söder har skapat kraftig intradagsvolatilitet.</li>
-              <li><strong>Vidgade dygnsspreadar:</strong> Dygnsspreaden i SE4 ligger på <strong>97–232 öre/kWh</strong> – en fyr- till tiodubbling!</li>
-              <li><strong>Exploderande arbitrage:</strong> Samma 15 kWh batteri genererar nu <strong>2 500–6 200 kr/år</strong> i rent spotarbitrage (6–12× mer!).</li>
-              <li><strong>15-minutersavräkning & slopad 60-öring:</strong> 15-minutersperioder (okt 2025) synliggör extrema spikar, och slopandet av 60-öringen (jan 2026) höjer värdet av att lagra egen solel med 60 öre per kWh.</li>
-            </ul>
-          </div>
-        </div>
-
-        <p style="color: var(--muted); font-size: 0.9em; margin-bottom: 0;">
-          <strong>Slutsats:</strong> Att använda data före 2022 för att beräkna framtida batterilönsamhet ger en djupt missvisande bild. Dagens flexibilitetsmarknad, nätavgifter och solcellskalkyler kräver att man utgår från den moderna erans prisdynamik.
-        </p>
-      </div>
+      <p style="color: var(--muted); line-height: 1.6;">
+        Fram till 2020 var prisskillnaden mellan dag och natt liten, och ett batteri hade lite att tjäna på att flytta el. Sedan 2021 är priserna betydligt rörligare, framför allt i SE3 och SE4. Hur stor skillnaden är för din anläggning står i backtestet nedan – där är varje år uträknat mot det årets verkliga timpriser, sol och temperatur, inte hämtat ur en tumregel.
+      </p>
+      <ul style="color: var(--muted); line-height: 1.6; padding-left: 1.2rem;">
+        <li><strong>Gamla eran (2015–2020):</strong> mer planerbar kraft i södra Sverige och på kontinenten, små dygnsskillnader och nästan inga negativa priser.</li>
+        <li><strong>Nya eran (2022–):</strong> mer väderberoende produktion, större dygnsskillnader och hundratals timmar med negativa priser per år i söder.</li>
+        <li><strong>Två regeländringar:</strong> kvartspriser i dagen före-handeln sedan oktober 2025, och slopad skattereduktion för såld solel sedan januari 2026.</li>
+      </ul>
+      <p style="color: var(--muted); line-height: 1.6; margin-bottom: 0;">
+        <strong>Vad kalkylen antar:</strong> att de senaste tolv månadernas prisbild består. Det är ett antagande, inte en prognos. Om marknaden går tillbaka mot läget före 2021 blir energivärdet ungefär en tredjedel så stort i söder; se raderna för 2015–2020 i tabellen.
+      </p>
     </section>
 
     <!-- Simulerad anläggning (sparad från kalkylatorn) -->
@@ -263,7 +242,7 @@
             Stödtjänster (FCR-D) i backtest:
           </label>
           <select class="field" id="bess-backtest-fcr-mode" style="width: 100%;">
-            <option value="historic" selected>Faktisk marknadshistorik (0 kr t.o.m. 2020, topp 2023)</option>
+            <option value="historic" selected>Antagen historik (0 kr t.o.m. 2020, topp 2023) – inte uppmätt</option>
             <option value="flat">Hypotetisk schablon (Dagens 25 kr/kW alla år)</option>
           </select>
         </div>
@@ -291,7 +270,7 @@
 
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
           <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">2. Vind- & solelexpansionen</h3>
-          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Med över 15 GW vindkraft i Norden och snabbt växande taksolel styrs priserna alltmer av vädret. När det blåser kraschar priserna (till och med under nollpunkten), och när det mojnar rusar priserna snabbt uppåt.</p>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Med mycket mer vindkraft och snabbt växande taksolel styrs priserna alltmer av vädret. När det blåser kraschar priserna (till och med under nollpunkten), och när det mojnar rusar priserna snabbt uppåt.</p>
         </div>
 
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
@@ -309,43 +288,20 @@
     <!-- Geopolitik vs Strukturell förändring -->
     <section class="card">
       <div class="section-title">
-        <h2>5. Ukrainakriget och gaskrisen: Geopolitisk prischock vs strukturell era</h2>
+        <h2>5. Berodde inte allt på gaskrisen 2022?</h2>
       </div>
-      <div style="background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.5rem; line-height: 1.6;">
-        <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.15em;">Beror inte allt på Ukraina och gaspriserna?</h3>
-        <p style="color: var(--text); font-size: 0.95em;">
-          Detta är en av de skarpaste och vanligaste frågorna från insatta konsumenter: <em>"Blev inte elpriserna höga bara för att Ryssland invaderade Ukraina och gaspriserna skenade under 2022?"</em>
-        </p>
-        <p style="color: var(--muted); font-size: 0.9em;">
-          <strong>Det enkla svaret:</strong> Jo, Ukrainakriget och den ryska gasstrypningen orsakade den akuta prischocken 2022. Men data från 2023–2026 bevisar att elmarknadens nya volatilitet <strong>inte</strong> försvann när gaspriserna sjönk.
-        </p>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin: 1.25rem 0;">
-          <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
-            <h4 style="color: #facc15; margin-top: 0;">2022: Den geopolitiska gaschocken</h4>
-            <p style="font-size: 0.88em; color: var(--muted); margin-bottom: 0;">
-              När Nord Stream ströps skenade gaspriserna (TTF) till över <strong>300 EUR/MWh</strong>. Eftersom gaskraft sätter marginalpriset under höglast drog det med sig elpriserna i Europa och södra Sverige. Snittspoten i SE4 nådde 172 öre/kWh och 15 kWh spotarbitrage exploderade till över 6 200 kr/år. Detta var ett <strong>geopolitiskt extremår</strong>, inte det nya normalläget.
-            </p>
-          </div>
-
-          <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
-            <h4 style="color: #4ade80; margin-top: 0;">2023–2026: Beviset på systemskiftet</h4>
-            <p style="font-size: 0.88em; color: var(--muted); margin-bottom: 0;">
-              Under 2023–2025 föll de europeiska gaspriserna tillbaka med ca <strong>85 %</strong> (tillbaka till historiska 25–35 EUR/MWh). Om krisen bara berott på gas borde elmarknaden ha fallit tillbaka till 2015–2020 års spreadar (15–27 öre). Istället låg SE4-spreadarna kvar på <strong>97–139 öre/kWh</strong> och arbitraget på <strong>2 500–3 600 kr/år</strong> (6–8× högre än gamla eran).
-            </p>
-          </div>
-        </div>
-
-        <p style="color: var(--text); font-size: 0.9em; margin-bottom: 0;">
-          <strong>Slutsats för kalkylen:</strong> Vår framåtblickande kalkylator bygger <em>inte</em> på 2022 års extrema gaspriser, utan på det nya strukturella normalläget 2023–2026. Den höga lönsamheten för batterier drivs idag av <strong>väderberoende elproduktion (vind/sol), stängd baskraft och 15-minutersavräkning</strong> – inte av gasbrist.
-        </p>
-      </div>
+      <p style="color: var(--muted); line-height: 1.6;">
+        2022 var ett undantag: gasbristen efter Rysslands invasion av Ukraina drev upp elpriserna i södra Sverige långt över allt annat i tabellen. Men åren efter, när gaspriset fallit tillbaka, gick batteriets energivärde inte tillbaka till nivån 2015–2020. Jämför raderna för 2023–2025 med raderna för 2015–2019 i backtestet ovan för ditt elområde.
+      </p>
+      <p style="color: var(--muted); line-height: 1.6; margin-bottom: 0;">
+        <strong>Hur kalkylen använder det:</strong> normalåret är de senaste tolv månaderna. 2022 ingår bara som det positiva extremåret i scenariot med extremår, och 2020 som det negativa.
+      </p>
     </section>
 
   </div>
 </main>
 
-<script src="assets/bess-dispatch.js?v=20261007b"></script>
-<script src="assets/bess.js?v=20261007b"></script>
+<script src="assets/bess-dispatch.js?v=20261008a"></script>
+<script src="assets/bess.js?v=20261008a"></script>
 </body>
 </html>

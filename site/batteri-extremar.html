@@ -212,7 +212,7 @@
       <div style="max-width: 450px; margin-bottom: 1.5rem;">
         <label for="bess-scenario" style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9em;">Aktivt scenario:</label>
         <select class="field" id="bess-scenario" style="width: 100%;">
-          <option value="nordic_frequency" selected>1. Nordisk basfrekvens (1,5 positiva & 0,5 negativa per decennium)</option>
+          <option value="nordic_frequency" selected>1. Med extremår (ett 2022 och ett 2020 på 15 år)</option>
           <option value="base_only">2. Enbart basår (Konservativ kalkyl utan makrochocker)</option>
           <option value="cannibalization">3. Marknadskannibalisering (Snabb priserosion på FCR-D)</option>
         </select>
@@ -220,9 +220,9 @@
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
         <div class="scenario-card">
-          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.05em;">Scenario 1: Nordisk basfrekvens (Standard)</h3>
+          <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.05em;">Scenario 1: Med extremår (Standard)</h3>
           <p style="font-size: 0.88em; color: var(--muted); line-height: 1.5; margin-bottom: 0;">
-            Modellerar 1,5 positiva och 0,5 negativa extremår per decennium. Ett positivt extremår (år 3 och 11) räknas med 2022 års verkliga timpriser och sol i det valda elområdet: samma anläggning körs mot det året. Ett negativt extremår (år 7) är ett stressantagande, 0,6 gånger normalårets energivärde – inget år sedan 2015 har varit så svagt. Stödtjänster trappas av med realistiska -5 %/år ned till en stabil bottennivå på 40 %.
+            Ett positivt och ett negativt extremår under 15 år – så många som åren 2015–2025 innehöll. Det positiva (år 5) är samma anläggning körd mot 2022 års verkliga timpriser, sol och temperatur i elområdet. Det negativa (år 10) är samma anläggning körd mot 2020, våtåret med de lägsta priserna. Ingen fast faktor används. Ersättningen för stödtjänster ändras inte i extremår; den trappas av med 5 % per år ned till 40 %, vilket är ett antagande.
           </p>
         </div>
 
@@ -305,62 +305,41 @@
       </div>
     </section>
 
-    <!-- Empirisk verifiering av extremår -->
+    <!-- Vad åren faktiskt var värda -->
     <section class="card">
       <div class="section-title">
-        <h2>3. Empirisk verifiering: Kan man lita på extremårsreferensen?</h2>
+        <h2>3. Vad de verkliga åren var värda</h2>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; font-size: 0.95em;">
+      <p style="color: var(--muted); line-height: 1.6; font-size: 0.95em;">
+        Tabellen visar inte en tumregel utan en uträkning: samma hus och samma batteri kört mot varje års verkliga timpriser, sol och temperatur i det valda elområdet. Byt elområde överst på sidan så räknas den om.
+      </p>
+      <div id="bess-year-evidence" style="overflow-x: auto;"></div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; font-size: 0.95em; margin-top: 1.25rem;">
         <div>
-          <h3 style="color: #38bdf8; margin-top: 0;">Varför extremår är en ofrånkomlig del av kraftmarknaden</h3>
+          <h3 style="color: #38bdf8; margin-top: 0;">Vad tabellen säger</h3>
+          <ul style="color: var(--muted); line-height: 1.6; padding-left: 1.2rem;">
+            <li><strong>2022 sticker ut i söder, knappt i norr.</strong> I SE3 och SE4 var energivärdet ungefär dubbelt mot i dag. I SE1 och SE2 var skillnaden liten.</li>
+            <li><strong>2020 var svagt överallt.</strong> Mycket vatten och låga priser gav lite att tjäna på att flytta el.</li>
+            <li><strong>2015–2019 var svagare än i dag hela tiden.</strong> Det var inte extremår utan en lugnare marknad. Kalkylen antar att dagens rörligare priser består i 15 år. Det är kalkylens största antagande, och ingen kan veta om det håller.</li>
+            <li><strong>Ett år av varje slag på elva.</strong> Därför har scenariot ett positivt och ett negativt extremår på 15 år, inte fler.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="color: #facc15; margin-top: 0;">Vad det betyder för kalkylen</h3>
           <p style="color: var(--muted); line-height: 1.6;">
-            I investeringsunderlag används ofta en tumregel om <strong>1,5 positiva och 0,5 negativa extremår per decennium</strong>.
-            Ett positivt extremår definieras som ett år där arbitrage- och energivärdet når &gt;2,0× normalt basår (orsakat av torka, gaskriser, kärnkraftsrevisioner eller kalla vinterdunkelflaute).
-            Ett negativt extremår definieras som &lt;0,6× normalt värde (orsakat av våtår, extrem hydrologisk dämpning eller låg volatilitet).
+            En investering bör gå ihop utan att ett nytt 2022 inträffar. Jämför därför alltid med <strong>Scenario 2 (utan extremår)</strong> och <strong>Scenario 3 (kannibalisering)</strong>. Extremåren ändrar slutsumman, men de ska inte vara det som bär kalkylen.
           </p>
           <p style="color: var(--muted); line-height: 1.6;">
-            Vår empiriska analys av svensk spotmarknadsdata (2011–2026) bekräftar detta:
-            Under de senaste 15 åren har Sverige haft 3 extrema positiva volatilitetsår (<strong>2018</strong> års torka, <strong>2021</strong> års kontinentala gaskris, <strong>2022</strong> års energichock) vilket motsvarar <strong>2,0 positiva år per decennium</strong>.
-            Åren 2020 och 2024 utgjorde lågvolatila perioder med komprimerade spreadar.
-          </p>
-          <p style="color: var(--muted); line-height: 1.6;">
-            Referensen är därmed <em>inte</em> en teoretisk konstruktion utan väl förankrad i den nordiska kraftmarknadens historiska svängningar.
+            Det som väger tyngst i de flesta kalkyler här är inte extremåren utan ersättningen för stödtjänster, som du själv anger. Den är inte uppmätt på den här sidan.
           </p>
         </div>
-
-        <div>
-          <h3 style="color: #facc15; margin-top: 0;">Slutsats för din investeringskalkyl</h3>
-          <p style="color: var(--muted); line-height: 1.6;">
-            <strong>Konservativ rekommendation:</strong>
-            En sund batteriinvestering ska inte stå och falla med att ett nytt extremår som 2022 inträffar direkt år 1.
-            Kalkylen bör vara lönsam (dvs. positivt 15-års NPV och payback under batteriets 10-åriga garantitid) redan i det konservativa <strong>Scenario 2 (Enbart basår)</strong> eller tåla <strong>Scenario 3 (Kannibalisering)</strong>.
-          </p>
-          <p style="color: var(--muted); line-height: 1.6;">
-            Om och när ett framtida extremår väl inträffar fungerar det som en ren ekonomisk bonus (en "jackpot" som kortar återbetalningstiden med 1–3 år per chockår).
-          </p>
-        </div>
-      </div>
-
-      <div style="margin-top: 1.5rem; background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.25rem;">
-        <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">Ukrainakriget och gaskrisen 2022: En geopolitisk chock – inte vårt basår</h3>
-        <p style="font-size: 0.9em; color: var(--text); line-height: 1.6; margin-bottom: 0.75rem;">
-          En vanlig och helt rimlig fråga är: <em>"Berodde inte den nya erans höga elpriser på Rysslands invasion av Ukraina och skenande gaspriser?"</em><br>
-          <strong>Svaret är ett tydligt ja och nej:</strong>
-        </p>
-        <ul style="padding-left: 1.25rem; font-size: 0.9em; color: var(--muted); line-height: 1.6; margin-bottom: 0.75rem;">
-          <li><strong>2022 var ett geopolitiskt extremår:</strong> Rysslands gasstrypning fick de europeiska gaspriserna (TTF) att skena över 300 EUR/MWh. Gas sätter ofta marginalpriset i Europas elsystem, vilket drev upp SE4-snittet till 172 öre/kWh och gav 15 kWh-batterier över 6 200 kr/år i spotarbitrage. Detta var en extraordinär chock.</li>
-          <li><strong>2023–2026 bevisar det permanenta systemskiftet:</strong> Under 2023–2025 rasade gaspriserna med ca 85 % tillbaka till normala 25–35 EUR/MWh. Om den nya eran enbart berodde på gas/Ukraina borde batteriarbitraget ha kollapsat tillbaka till 2015–2020 års nivåer (300–500 kr/år). Men det gjorde det inte! I SE4 genererade batterier fortfarande <strong>2 500–3 600 kr/år</strong> (6–8 gånger mer än före 2021) därför att baskraften (Ringhals 1 & 2, tysk kärnkraft) lagts ner och över 15 GW väderberoende vindkraft dominerar marknaden.</li>
-        </ul>
-        <p style="font-size: 0.88em; color: var(--muted); line-height: 1.5; margin-bottom: 0;">
-          <strong>Hur modellen räknar:</strong> Vårt normala <em>basår</em> bygger uteslutande på det normaliserade 2023–2026-läget (med billig gas). Geopolitiska gaschocker som 2022 räknas däremot in som just <strong>positiva extremår</strong> i Scenario 1 (Nordisk basfrekvens) år 3 och 11. De räknas inte med en fast faktor: anläggningen körs mot 2022 års faktiska timpriser i elområdet.
-        </p>
       </div>
     </section>
 
   </div>
 </main>
 
-<script src="assets/bess-dispatch.js?v=20261007b"></script>
-<script src="assets/bess.js?v=20261007b"></script>
+<script src="assets/bess-dispatch.js?v=20261008a"></script>
+<script src="assets/bess.js?v=20261008a"></script>
 </body>
 </html>

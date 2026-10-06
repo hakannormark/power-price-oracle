@@ -17,10 +17,29 @@ import pandas as pd
 from ..timeutil import TZ
 
 # The case house has 10 kWp on the roof but yields about 7 000 kWh a year in
-# Malmö, well under what 10 kWp facing south would. Expressed as the capacity
-# that gives the same yield at the standard system factor, so that the same
-# house in Luleå gets Luleå's sun rather than Malmö's 7 000 kWh.
-CASE_HOUSE_PV_KWP_EFFECTIVE = 6.8
+# Malmö, where 10 kWp facing south at 35 degrees gives about 10 500. Expressed
+# as the capacity that gives the same yield, so that the same house in Luleå
+# gets Luleå's sun rather than Malmö's 7 000 kWh.
+CASE_HOUSE_PV_KWP_EFFECTIVE = 6.7
+
+# The load is two parts. Appliances follow the clock and are the same anywhere.
+# Heating follows the measured outdoor temperature in the zone, hour by hour:
+# degrees below HEATING_BASE_C. HEATING_SHARE is the heated part of the annual
+# consumption for a house in the reference climate (Malmö, about 2 600 degree
+# days below 17 C); the same house further north heats more, so a larger part
+# of the same annual figure lands in winter.
+HEATING_BASE_C = 17.0
+HEATING_SHARE = 0.40
+REFERENCE_DEGREE_DAYS = 2600.0
+REFERENCE_MEAN_DEGREES = REFERENCE_DEGREE_DAYS * 24.0 / 8760.0
+
+
+def compose_load(base: np.ndarray, degrees: np.ndarray, annual_load_kwh: float, heating_share: float = HEATING_SHARE) -> np.ndarray:
+    """Hourly load from the clock-driven part and the degrees below the heating base."""
+    n = len(base)
+    raw = (1.0 - heating_share) * base / base.mean() + heating_share * degrees / REFERENCE_MEAN_DEGREES
+    return raw * (annual_load_kwh * n / 8760.0) / raw.sum()
+
 
 # Typical diurnal load curve weights (0 to 23 hours)
 # Morning peak at 07-09, evening peak at 17-21, night dip at 01-05
@@ -40,13 +59,16 @@ def generate_household_profiles(
     pv_capacity_kwp: float = 10.0,
     zone: str | None = None,
     pv_kwp_effective: float | None = None,
+    orientation: str = "south",
+    heating_share: float = HEATING_SHARE,
 ) -> pd.DataFrame:
     """Generate aligned hourly load and PV profiles for the given timestamps.
 
-    With `zone`, solar production is the measured radiation at that zone's
-    reference point (bess/solar.py) times `pv_kwp_effective`: the real sun, hour
-    by hour, clouds included. Without it, or if no radiation is stored, the old
-    clear-sky curve for Malmö scaled to `annual_pv_kwh` is used.
+    With `zone`, solar production is the measured radiation in the panel's plane
+    at that zone's reference point (bess/solar.py) times `pv_kwp_effective`, and
+    the heating part of the load follows the zone's measured temperature: the
+    real weather, hour by hour. Without it, or if nothing is stored, the old
+    seasonal curves for Malmö are used.
     """
     n = len(timestamps)
     if n == 0:
@@ -106,13 +128,18 @@ def generate_household_profiles(
     else:
         pv_kwh = np.zeros(n)
 
+    degrees = np.zeros(n)
     if zone is not None:
         from . import solar
 
-        measured = solar.production_per_kwp(zone, dts)
+        measured = solar.production_per_kwp(zone, dts, orientation)
         if measured is not None:
             kwp = CASE_HOUSE_PV_KWP_EFFECTIVE if pv_kwp_effective is None else pv_kwp_effective
             pv_kwh = measured * kwp
+        temp = solar.temperature(zone, dts)
+        if temp is not None:
+            degrees = np.maximum(0.0, HEATING_BASE_C - temp)
+            load_kwh = compose_load(base_diurnal, degrees, annual_load_kwh, heating_share)
 
     surplus = np.maximum(0.0, pv_kwh - load_kwh)
     deficit = np.maximum(0.0, load_kwh - pv_kwh)
@@ -121,6 +148,8 @@ def generate_household_profiles(
         "ts": dts,
         "hour": hours,
         "dow": dows,
+        "base": base_diurnal,
+        "degrees": degrees,
         "load_kwh": load_kwh,
         "pv_kwh": pv_kwh,
         "surplus_kwh": surplus,

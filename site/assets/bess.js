@@ -20,6 +20,8 @@
       p_kw: 10,
       load_kwh: 8000,
       pv_kwp: 10,
+      orientation: "south",      // "south" | "eastwest"
+      heating: "electric",       // "electric" | "other"
       gross_price: 65000,
       fcr_rate_month: 25,
       current_fuse: 16,
@@ -272,6 +274,16 @@
     sync("bess-fcr-slider", "bess-fcr-num", "fcr_rate_month");
 
     // 4. Dropdowns
+    [["bess-orientation", "orientation"], ["bess-heating", "heating"]].forEach(([id, key]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (state.custom[key]) el.value = state.custom[key];
+      el.addEventListener("change", (e) => {
+        state.custom[key] = e.target.value;
+        saveState();
+        renderAll();
+      });
+    });
     const ownersSelect = document.getElementById("bess-owners");
     if (ownersSelect) {
       if (state.numOwners !== undefined) ownersSelect.value = String(state.numOwners);
@@ -406,8 +418,8 @@
   // slider asks for the same system several times over.
   const energyCache = new Map();
   const NO_ENERGY = { solarSek: 0, arbitrageSek: 0, storedSolarKwh: 0, gridChargedKwh: 0, throughputKwh: 0 };
-  function energyValue(c, usableKwh, extreme) {
-    if (!state.hourly) return extreme ? null : NO_ENERGY;
+  function energyValue(c, usableKwh, period) {
+    if (!state.hourly) return period ? null : NO_ENERGY;
     const o = {
       zone: state.selectedZone,
       loadKwh: c.load_kwh,
@@ -416,20 +428,23 @@
       powerKw: c.p_kw,
       roundTripEff: 0.9,
       strategy: state.strategy === "mixed" ? "mixed" : "energy_only",
-      extreme: !!extreme,
+      period: period || null,
+      orientation: c.orientation === "eastwest" ? "eastwest" : "south",
+      heatingShare: c.heating === "other" ? 0 : null,
     };
     const key = JSON.stringify(o);
     if (!energyCache.has(key)) {
       if (energyCache.size > 200) energyCache.clear();
       energyCache.set(key, window.BessDispatch.valueBattery(state.hourly, o));
     }
-    return energyCache.get(key) || (extreme ? null : NO_ENERGY);
+    return energyCache.get(key) || (period ? null : NO_ENERGY);
   }
 
   // What a kWp yields in a year in the selected zone, from measured radiation.
   function zoneYieldPerKwp() {
-    const y = state.hourly ? window.BessDispatch.yieldPerKwp(state.hourly, state.selectedZone) : 0;
-    return y > 0 ? y : 850;
+    const o = state.custom.orientation === "eastwest" ? "eastwest" : "south";
+    const y = state.hourly ? window.BessDispatch.yieldPerKwp(state.hourly, state.selectedZone, o) : 0;
+    return y > 0 ? y : 950;
   }
 
   // Calculate dynamic custom battery system
@@ -459,9 +474,11 @@
     // Energy value: the cheapest schedule against the zone's hourly prices, for
     // this household's load and solar. Solar storage and price arbitrage share
     // one battery and one set of cycles; nothing is counted twice.
-    const energy = energyValue(c, usableKwh, false);
-    // The same system in 2022, on that year's hourly prices and sun in this zone.
-    const energyExtreme = energyValue(c, usableKwh, true);
+    const energy = energyValue(c, usableKwh, null);
+    // The same system in 2022 and in 2020, on those years' hourly prices, sun
+    // and temperature in this zone.
+    const energyExtreme = energyValue(c, usableKwh, "extreme");
+    const energyWeak = energyValue(c, usableKwh, "weak");
     const storedSolarKwh = Math.round(energy.storedSolarKwh);
     const solarSavingsSek = Math.round(energy.solarSek);
     const arbitrageKwh = Math.round(energy.gridChargedKwh);
@@ -493,10 +510,11 @@
 
     for (let yr = 1; yr <= 15; yr++) {
       const deg = Math.max(0.65, 1.0 - (yr - 1) * 0.018); // 1.8% annual degradation
-      let shock = 1.0;
+      let kind = "normal";
       if (state.scenario === "nordic_frequency") {
-        if (yr === 3 || yr === 11) shock = 2.3;      // Positive extreme shock (gas/dry)
-        else if (yr === 7) shock = 0.6;              // Wet negative shock
+        // One of each in fifteen years, as in 2015-2025; see lifecycle.py.
+        if (yr === 5) kind = "positive";                // 2022 as it was
+        else if (yr === 10) kind = "negative";          // 2020 as it was
       }
 
       // Ancillary services degrade with battery SoH AND market saturation/cannibalization
@@ -510,13 +528,17 @@
           // Rapid cannibalization: 12% erosion per year down to 25% floor
           saturationDecay = Math.max(0.25, Math.pow(0.88, yr - 1));
         }
-        yrAncillary = Math.round(ancillaryRevSek * deg * saturationDecay * (shock > 1 ? 1.2 : (shock < 1 ? 0.8 : 1.0)));
+        // Not scaled in extreme years: the payment is an amount per kW that
+        // the user states, and nothing here measures how it moved.
+        yrAncillary = Math.round(ancillaryRevSek * deg * saturationDecay);
       }
 
-      // A positive extreme year is 2022 as it was; a negative one is a flat 0,6.
-      const positive = shock > 1;
-      const yrSolar = Math.round((positive && energyExtreme ? energyExtreme.solarSek : solarSavingsSek * (positive ? 1 + (shock - 1) * 0.2 : shock)) * deg);
-      const yrArb = Math.round((positive && energyExtreme ? energyExtreme.arbitrageSek : arbitrageProfitSek * shock) * deg);
+      // An extreme year is the same system valued on that year's own hours.
+      // The fixed factors are only used if the year is missing from the data.
+      const other = kind === "positive" ? energyExtreme : (kind === "negative" ? energyWeak : null);
+      const fallback = kind === "positive" ? 2.3 : (kind === "negative" ? 0.6 : 1.0);
+      const yrSolar = Math.round((other ? other.solarSek : solarSavingsSek * (kind === "positive" ? 1.26 : fallback)) * deg);
+      const yrArb = Math.round((other ? other.arbitrageSek : arbitrageProfitSek * fallback) * deg);
       const yrGross = yrSolar + yrArb + yrAncillary;
       const yrTotal = Math.max(0, yrGross - effectiveFuseDeduction);
 
@@ -753,6 +775,31 @@
     renderOffersTable();
     renderOfferDetail();
     renderBacktest();
+    renderYearEvidence();
+  }
+
+  // What the years since 2015 were worth for the first example system in the
+  // selected zone, against the last twelve months. Filled from the back-test.
+  function renderYearEvidence() {
+    const el = document.getElementById("bess-year-evidence");
+    const zd = getZoneData();
+    if (!el || !zd || !zd.backtest || !zd.offers || !zd.offers.length) return;
+    const offer = zd.offers[0];
+    const now = offer.annual_dispatch && offer.annual_dispatch.mixed;
+    if (!now) return;
+    const normal = now.solar_savings_sek + now.arbitrage_profit_sek;
+    const thisYear = String(new Date().getFullYear());
+    const rows = Object.keys(zd.backtest.years).sort().filter((y) => y !== thisYear).map((y) => {
+      const m = ((zd.backtest.years[y].offers || {})[offer.id] || {}).mixed;
+      if (!m) return "";
+      const v = m.solar_savings_sek + m.arbitrage_profit_sek;
+      const ratio = normal > 0 ? v / normal : 0;
+      const mark = y === "2022" ? " 🔥" : (y === "2020" ? " 🌧️" : "");
+      return `<tr><td>${y}${mark}</td><td class="num">${fmtKr(m.solar_savings_sek)}</td><td class="num">${fmtKr(m.arbitrage_profit_sek)}</td><td class="num">${fmtKr(v)}</td><td class="num">${ratio.toFixed(2).replace(".", ",")} ×</td></tr>`;
+    }).join("");
+    el.innerHTML = `<table class="tbl" style="width:100%; font-size:0.9em;"><thead><tr><th>År</th><th class="num">Sollagring</th><th class="num">Arbitrage</th><th class="num">Energivärde</th><th class="num">Mot senaste 12 mån</th></tr></thead><tbody>${rows}
+      <tr style="font-weight:700;"><td>Senaste 12 mån</td><td class="num">${fmtKr(now.solar_savings_sek)}</td><td class="num">${fmtKr(now.arbitrage_profit_sek)}</td><td class="num">${fmtKr(normal)}</td><td class="num">1,00 ×</td></tr></tbody></table>
+      <p style="font-size:0.85em; color:var(--muted); margin:0.6rem 0 0;">${state.selectedZone}, typfall A (${offer.capacity_kwh} kWh), utan stödtjänster. Varje år är samma hus och batteri kört mot det årets timpriser, sol och temperatur, med dagens avgifter och växelkurs.</p>`;
   }
 
   function renderActiveConfigSummary() {
@@ -825,15 +872,12 @@
 
     // 2. Scenario shocks
     if (scenario === "nordic_frequency") {
-      if (year === 3) {
+      if (year === 5) {
         badges.push(`<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🔥 Positivt extremår (2022 års priser)</span>`);
         rowStyle = "background: rgba(245, 158, 11, 0.08);";
-      } else if (year === 7) {
-        badges.push(`<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🌧️ Negativt extremår (0,6×)</span>`);
+      } else if (year === 10) {
+        badges.push(`<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🌧️ Negativt extremår (2020 års priser)</span>`);
         rowStyle = "background: rgba(56, 189, 248, 0.08);";
-      } else if (year === 11) {
-        badges.push(`<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🔥 Positivt extremår (2022 års priser)</span>`);
-        rowStyle = "background: rgba(245, 158, 11, 0.08);";
       }
     } else if (scenario === "cannibalization") {
       if (year === 3 || year === 6 || year === 9) {
@@ -1449,7 +1493,7 @@
             • Dygnsspread: <strong>${(classicM.meanSpread * 100).toFixed(1).replace(".", ",")} öre/kWh</strong><br>
             • Spotarbitrage: <strong>${fmtKr(classicM.meanArb)}/år</strong><br>
             • Totalt årsvärde: <strong>${fmtKr(classicM.meanTot)}/år</strong><br>
-            • Slutsats: <em>För låg volatilitet. Batteri olönsamt (payback &gt;40 år).</em>
+            • Slutsats: <em>Små prisskillnader gav batteriet lite att tjäna.</em>
           </div>
         </div>
 
@@ -1460,7 +1504,7 @@
             • Dygnsspread: <strong>${(modernM.meanSpread * 100).toFixed(1).replace(".", ",")} öre/kWh</strong><br>
             • Spotarbitrage: <strong>${fmtKr(modernM.meanArb)}/år</strong><br>
             • Totalt årsvärde: <strong>${fmtKr(modernM.meanTot)}/år</strong><br>
-            • Slutsats: <em>${mult}× högre årsvärde i moderna eran! Batteri når 4–7 års återbetalningstid.</em>
+            • Slutsats: <em>${mult}× högre årsvärde än i gamla eran, med de stödtjänstersättningar som valts ovan.</em>
           </div>
         </div>
       </div>
@@ -1492,7 +1536,7 @@
         * <strong>Totalt årsvärde (kr/år):</strong> Summan av årets ekonomiska nytta för det enskilda året = Solel (sparad nätel) + Spotarbitrage (vinst från dygnsspreadar) + Stödtjänster (ersättning via aggregator). Siffran visar utfallet för respektive år (ej ackumulerat).
       </p>
       <p style="font-size: 0.8em; color: var(--muted); margin-bottom: 1rem; line-height: 1.5;">
-        ⚡ <strong>Stödtjänsternas historiska förlopp:</strong> Före 2021 var hembatterier inte tillåtna på Svenska kraftnäts frekvensmarknad och inga aggregatorer existerade för villor (därav 0 kr). Under 2022–2023 rådde akut brist på frekvensreserver i Norden vilket gav en extrem intäktstopp (upp till 3,5× dagens nivå år 2023). Från 2024 har massiv utbyggnad av storskaliga batteriparker mättat marknaden, och ersättningen har stabiliserats på dagens normaliserade nivå (ca 25 kr/kW/mån).
+        ⚡ <strong>Stödtjänsterna i backtestet är ett antagande, inte en mätning.</strong> Före 2021 fanns ingen aggregator för villor (0 kr). För 2021–2024 används uppskattade nivåer i förhållande till den ersättning du anger (0,4×, 1,8×, 3,5×, 1,4×). Det som är uppmätt är marknadspriset: Svenska kraftnäts upphandling av FCR-D (upp plus ned) kostade i snitt 37 EUR/MW per timme 2024, 12 EUR 2025 och 8,5 EUR de senaste tolv månaderna. Priset har alltså fallit med tre fjärdedelar på två år – snabbare än kalkylens scenarier räknar med framåt.
       </p>
       ${summaryBlock}
     `;
