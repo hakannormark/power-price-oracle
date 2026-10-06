@@ -695,6 +695,9 @@
   tr.bs-neg td { background: rgba(167, 139, 250, 0.10); }
   .bs-compare-tray { flex-wrap: wrap; }
   .bs-sens-row { grid-template-columns: 230px 1fr 1fr; }
+  /* Wide screens: the two columns meet in the middle, so shorter payback grows leftwards from there. */
+  .bs-sens-track { flex: 1; height: 10px; background: rgba(255,255,255,0.04); border-radius: 3px; overflow: hidden; display: flex; }
+  .bs-sens-track.bs-sens-good { justify-content: flex-end; }
   .bs-sens-head { display: grid; grid-template-columns: 230px 1fr 1fr; gap: 0.5rem; font-size: 0.75em; text-transform: uppercase; color: var(--muted); font-weight: 700; padding-bottom: 0.35rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
   .bs-custom-pin { background: #f472b6; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 10px #f472b6; }
   .bs-container > * { min-width: 0; }
@@ -709,6 +712,8 @@
     .bs-card { padding: 0.9rem; }
     .bs-sens-row, .bs-sens-head { grid-template-columns: 1fr; }
     .bs-sens-head > div:not(:first-child) { display: none; }
+    /* Stacked: every bar starts at the left, so their lengths can be compared. */
+    .bs-sens-track.bs-sens-good { justify-content: flex-start; }
     .bs-kpi-grid { grid-template-columns: 1fr 1fr; }
     .bs-kpi-val { font-size: 1.1em; }
     .bs-compare-tray { left: 0.5rem; right: 0.5rem; transform: none; max-width: none; bottom: 0.5rem; padding: 0.5rem 0.75rem; gap: 0.5rem; }
@@ -1283,7 +1288,7 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="assets/bess-studio-model.js?v=20261008f"></script>
-<script src="assets/bess-studio.js?v=20261008f"></script>
+<script src="assets/bess-studio-model.js?v=20261008g"></script>
+<script src="assets/bess-studio.js?v=20261008g"></script>
 </body>
 </html>

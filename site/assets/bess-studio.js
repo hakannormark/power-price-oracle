@@ -749,7 +749,7 @@
       const color = flat ? '#64748b' : good ? '#34d399' : '#f87171';
       return `<div style="display:flex; align-items:center; gap:6px; margin:2px 0;">
         <span style="min-width:64px; color:var(--muted);">${label}</span>
-        <div style="flex:1; height:10px; background:rgba(255,255,255,0.04); border-radius:3px; overflow:hidden; display:flex; ${good ? 'justify-content:flex-end;' : ''}"><div style="width:${w}%; background:${color};"></div></div>
+        <div class="bs-sens-track${good ? ' bs-sens-good' : ''}"><div style="width:${w}%; background:${color};"></div></div>
         <span style="min-width:86px; text-align:right; font-family:var(--mono); color:${color}; font-weight:600;">${v === null ? 'ingen' : `${num(v, 1)} år`}</span>
       </div>`;
     };
