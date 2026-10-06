@@ -54,7 +54,6 @@
     ['range-substation-bay', 'val-substation-bay', (v) => `${num(v)} MSEK`],
     ['range-share', 'val-share', (v) => `${num(v)} %`],
     ['range-realization', 'val-realization', (v) => `${num(v)} %`],
-    ['range-anc-ext', 'val-anc-ext', (v) => `× ${num(v, 2)}`],
     ['range-fee', 'val-fee', (v) => `${num(v)} %`],
     ['range-om', 'val-om', (v) => `${num(v)} kr`],
     ['range-grid', 'val-grid', (v) => `${num(v)} kr`],
@@ -70,7 +69,7 @@
   // Reglage som sparas i länken.
   const HASH_FIELDS = [
     'num-power-mw', 'num-duration', 'range-capex-kwh', 'range-capex-kw', 'range-cable-cost', 'range-substation-bay',
-    'sel-dataset', 'sel-extreme-years', 'sel-negative-years', 'range-anc-ext', 'range-share', 'range-realization', 'range-fee', 'range-om', 'range-grid',
+    'sel-dataset', 'sel-extreme-years', 'sel-negative-years', 'sel-anc-ext', 'range-share', 'range-realization', 'range-fee', 'range-om', 'range-grid',
     'range-other', 'range-wear', 'inv-extreme-years', 'inv-negative-years',
   ].concat(Object.keys(INVEST_FIELDS));
 
@@ -93,7 +92,7 @@
       extremeYears: parseInt($('sel-extreme-years').value, 10) || 0,
       negativeYears: parseInt($('sel-negative-years').value, 10) || 0,
       marketSharePct: fnum('range-share'),
-      ancillaryExtremeMult: fnum('range-anc-ext', 1),
+      ancillaryExtremeMult: $('sel-anc-ext').value === 'measured' ? 'measured' : (parseFloat($('sel-anc-ext').value) || 1),
       realizationPct: fnum('range-realization'),
       feePct: fnum('range-fee'),
       omPerKw: fnum('range-om'),
@@ -541,8 +540,14 @@
     const actualX = sel0 && sel0.actual2022Gross && sel0.gross > 0 ? sel0.actual2022Gross / sel0.gross : null;
     $('lbl-extreme-desc').textContent = isBase
       ? 'Prisunderlaget är redan 2022 – alla år är positiva extremår och valet har ingen effekt.'
-      : `Batteriet optimeras om mot 2022 års spotpriser, med dagens stödtjänstpriser. Det höjer bruttointäkten med ${ZONES.map((z, i) => `${z} +${pct(ratios[i])}`).join(', ')}. 2022 års rena spotarbitrage var ${ZONES.map((z) => `${z} ${num(S.zoneRev[z].extremeRatio, 1)} ×`).join(', ')} normalårets (gräns för extremår: ${thr} ×).`;
-    $('lbl-anc-ext-desc').textContent = 'Stödtjänstintäkten i ett positivt extremår, gånger den optimerade nivån. 1,00 betyder dagens priser. '
+      : `Batteriet optimeras om mot 2022 års spotpriser, med stödtjänstpriser enligt valet nedan. Det höjer bruttointäkten med ${ZONES.map((z, i) => `${z} +${pct(ratios[i])}`).join(', ')}. 2022 års rena spotarbitrage var ${ZONES.map((z) => `${z} ${num(S.zoneRev[z].extremeRatio, 1)} ×`).join(', ')} normalårets (gräns för extremår: ${thr} ×).`;
+    const co = S.disp.reserve_comovement;
+    const mfrr = co && co.products && co.products.mfrr_up;
+    $('lbl-anc-ext-desc').textContent = ($('sel-anc-ext').value === 'measured'
+      ? (mfrr
+        ? `Uppmätt sedan 2024: de dagar spotpriset varit högst har mFRR upp kostat ${num(mfrr.price_top_tenth, 1)} gånger mer än övriga dagar, FCR-D upp ${num(co.products.fcr_d_up.price_top_tenth, 1)} gånger, medan nedreserverna blivit något billigare. Tillämpat på 2022 års spotnivå höjer det stödtjänstintäkten med ${ZONES.map((z) => `${z} ${S.zoneRev[z].ancExtremeFactor >= 1 ? '+' : '−'}${pct(Math.abs(S.zoneRev[z].ancExtremeFactor - 1))}`).join(', ')}. Ett samband mellan dagar, tillämpat på ett helt år – ett antagande. `
+        : 'Det uppmätta sambandet saknas i datafilen; stödtjänstpriserna hålls oförändrade. ')
+      : 'Stödtjänstintäkten i ett positivt extremår, gånger den optimerade nivån med dagens priser. ')
       + (actualX ? `Som jämförelse: 2022 som det faktiskt var – med den tidens FCR-priser, före batteriernas intåg – gav ${num(actualX, 1)} gånger dagens normalår för den här anläggningen.` : '');
     const drops = ZONES.map((z) => S.zoneRev[z]).map((r) => (r.gross > 0 ? 1 - r.grossNegative / r.gross : 0));
     $('lbl-negative-desc').textContent = `Spotdelen × ${num(M.NEGATIVE_FACTOR, 1)}, oförändrade stödtjänster. Sänker bruttointäkten med ${ZONES.map((z, i) => `${z} −${pct(drops[i])}`).join(', ')}. Ett stressantagande: lägsta helår sedan 2023 är 0,76 × snittet.`;
@@ -720,7 +725,7 @@
       { name: 'Realiseringsgrad', a: [`${num(Math.max(40, inp.realizationPct - 15))} %`, { realizationPct: Math.max(40, inp.realizationPct - 15) }], b: [`${num(Math.min(100, inp.realizationPct + 15))} %`, { realizationPct: Math.min(100, inp.realizationPct + 15) }] },
       { name: 'Andel av stödtjänstmarknaderna', a: [`${num(inp.marketSharePct / 2, 1)} %`, { marketSharePct: inp.marketSharePct / 2 }], b: [`${num(Math.min(30, inp.marketSharePct * 2))} %`, { marketSharePct: Math.min(30, inp.marketSharePct * 2) }] },
       { name: 'Positiva extremår under tio år', note: isBase22 ? 'ingen effekt: prisunderlaget är redan 2022' : '', a: ['0 år', { extremeYears: 0 }], b: ['2 år', { extremeYears: 2 }] },
-      { name: 'Stödtjänster i positivt extremår', note: inp.extremeYears > 0 && !isBase22 ? '' : 'ingen effekt utan positiva extremår', a: ['× 1', { ancillaryExtremeMult: 1 }], b: ['× 3', { ancillaryExtremeMult: 3 }] },
+      { name: 'Stödtjänster i positivt extremår', note: inp.extremeYears > 0 && !isBase22 ? '' : 'ingen effekt utan positiva extremår', a: ['oförändrade', { ancillaryExtremeMult: 1 }], b: ['× 3', { ancillaryExtremeMult: 3 }] },
       { name: 'Negativa extremår under tio år', a: ['0 år', { negativeYears: 0 }], b: ['2 år', { negativeYears: 2 }] },
       { name: 'Battericeller och kraftelektronik', a: ['+20 %', { capexPerKwh: inp.capexPerKwh * 1.2, capexPerKw: inp.capexPerKw * 1.2 }], b: ['−20 %', { capexPerKwh: inp.capexPerKwh * 0.8, capexPerKw: inp.capexPerKw * 0.8 }] },
       { name: 'Anslutning (kabel och stationsfack)', a: ['+30 %', { cablePerKmMsek: inp.cablePerKmMsek * 1.3, bayMsek: inp.bayMsek * 1.3 }], b: ['−30 %', { cablePerKmMsek: inp.cablePerKmMsek * 0.7, bayMsek: inp.bayMsek * 0.7 }] },
@@ -1097,6 +1102,7 @@
     $('sel-dataset').addEventListener('change', recalcAll);
     $('sel-extreme-years').addEventListener('change', () => { S.extremeDirty = false; syncExtremeYearField(); recalcAll(); });
     $('sel-negative-years').addEventListener('change', () => { S.negativeDirty = false; syncExtremeYearField(); recalcAll(); });
+    $('sel-anc-ext').addEventListener('change', recalcAll);
     $('sel-map-color-mode').addEventListener('change', () => {
       const byScore = $('sel-map-color-mode').value === 'score';
       $('legend-score-wrap').style.display = byScore ? 'inline' : 'none';

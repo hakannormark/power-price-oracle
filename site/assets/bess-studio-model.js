@@ -177,7 +177,12 @@
     const stack = extremeIsBase && extStack ? Object.assign({}, baseStack, { rev: extStack.rev, cycles: extStack.cycles }) : baseStack;
     const realization = o.realizationPct / 100;
     const k = o.mw * o.fx * realization * (o.revMult === undefined ? 1 : o.revMult);
-    const ancMult = o.ancillaryExtremeMult === undefined ? 1 : Math.max(0, o.ancillaryExtremeMult);
+    // Reserve prices in the extreme year: a number the user chose, or else the
+    // measured relation between each product's price and the spot price.
+    const measured = o.ancillaryExtremeMult === undefined || o.ancillaryExtremeMult === null || o.ancillaryExtremeMult === 'measured';
+    const ancMult = measured ? 1 : Math.max(0, o.ancillaryExtremeMult);
+    const comove = measured && data.reserve_comovement && data.reserve_comovement.factors
+      && data.reserve_comovement.factors[basePeriod] && data.reserve_comovement.factors[basePeriod][o.zone];
 
     const arbBase = spotOnly(data, o.zone, o.durationH, basePeriod);
     const arbScenario = ds.kind === 'spot' ? spotOnlyMean(data, o.zone, o.durationH, ds.years) : arbBase;
@@ -189,7 +194,9 @@
     const products = data.products;
     const perProduct = {};
     products.forEach((p, i) => {
-      perProduct[p] = stack.rev[i] * k * (i === 0 ? spotFactor : 1);
+      // With 2022 as the price data set every year is the extreme year, reserves included.
+      const reserve = extremeIsBase && extStack ? (comove ? (comove[p] > 0 ? comove[p] : 1) : ancMult) : 1;
+      perProduct[p] = stack.rev[i] * k * (i === 0 ? spotFactor : reserve);
     });
     const spot = perProduct.spot;
     const anc = products.slice(1).reduce((s, p) => s + perProduct[p], 0);
@@ -197,9 +204,14 @@
     // Extreme year: its own optimisation where the file has one, else the old scaling.
     let spotExtreme;
     let ancExtremeBase;
+    let ancExtremeUnchanged = null;
     if (extStack) {
       spotExtreme = extStack.rev[0] * k;
-      ancExtremeBase = extStack.rev.slice(1).reduce((s, v) => s + v, 0) * k;
+      ancExtremeBase = extStack.rev.slice(1).reduce((s, v, i) => {
+        const f = comove && comove[products[i + 1]];
+        return s + v * (f > 0 ? f : 1);
+      }, 0) * k;
+      ancExtremeUnchanged = extStack.rev.slice(1).reduce((s, v) => s + v, 0) * k;
     } else {
       spotExtreme = baseStack.rev[0] * k * arbRatio;
       ancExtremeBase = anc;
@@ -241,6 +253,9 @@
       spotNegative,
       grossNegative: spotNegative + anc,
       spotFactor, extremeFloorApplied, extremeIsBase,
+      // What the measured relation did to the reserves of the extreme year (1 = unchanged prices).
+      ancExtremeFactor: ancExtremeUnchanged > 0 && !extremeIsBase && !extremeFloorApplied ? ancExtreme / ancExtremeUnchanged : 1,
+      ancExtremeMeasured: !!comove,
       reoptimised: !!extStack,
       // 2022 års rena arbitrage i förhållande till normalårets, att jämföra med gränsen 2,0 ×.
       extremeRatio: spotFactor > 0 ? arbRatio / (extremeIsBase ? arbRatio : spotFactor) : 1,

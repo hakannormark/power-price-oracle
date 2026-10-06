@@ -450,7 +450,18 @@ def build(workers: int | None = None, now: datetime | None = None) -> dict[str, 
     def span(hours: list[datetime]) -> dict[str, Any]:
         return {"from": iso(hours[0]), "to": iso(hours[-1] + timedelta(hours=1)), "hours": len(hours)}
 
+    periods = {p: span(h) for p, h in coopt_periods.items()}
+    try:
+        from ..store import load_actuals
+        from .reserve_comovement import measure
+
+        comovement = measure(load_actuals(), periods)
+    except Exception as exc:  # noqa: BLE001 - the extreme year then keeps reserve prices unchanged
+        log.warning("reserve co-movement could not be measured: %s", exc)
+        comovement = None
+
     return {
+        "reserve_comovement": comovement,
         "version": VERSION,
         "generated_at": iso(now),
         "model": "Veckovis linjärprogrammering per MW, pristagare, perfekt förutseende inom veckan",
@@ -467,7 +478,7 @@ def build(workers: int | None = None, now: datetime | None = None) -> dict[str, 
         "rho_grid": list(RHO_GRID),
         "sample_rho": SAMPLE_RHO,
         "sample_cols": ["spot", "soc_pct", "charge", "discharge"] + [r[0] for r in RESERVES],
-        "periods": {p: span(h) for p, h in coopt_periods.items()},
+        "periods": periods,
         "full_years": full_years,
         "spot_missing_hours": dict(meta_missing),
         "sources": {

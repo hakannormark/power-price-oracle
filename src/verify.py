@@ -378,6 +378,7 @@ ASSUMPTIONS = [
     "Hembatteriet: att de senaste tolv månadernas prisbild består i 15 år. Åren 2015–2020 gav ungefär en tredjedel så mycket i söder.",
     "Hembatteriet: ersättningen för stödtjänster anges av användaren och är inte uppmätt. Marknadspriset på FCR-D har fallit med tre fjärdedelar på två år.",
     "Hembatteriet: 90 % av det teoretiskt bästa körschemat uppnås, 40 % av förbrukningen är uppvärmning i Malmöklimat, solanläggningen ger 80 % av instrålningen i panelens plan.",
+    "BESS Studio: i ett positivt extremår följer reservpriserna spotpriset enligt ett samband uppmätt mellan dagar sedan 2024. Att det gäller ett helt år är ett antagande.",
     "BESS Studio: aktiveringsenergi, egen prispåverkan, intradag, prognosfel och otillgänglighet är inte modellerade. Resultatet är en övre gräns före dessa.",
     "Prisprognosen: osäkerhetsbandet är kalibrerat på historiska fel och täcker inte händelser utan motstycke.",
     "Långtidsprognosen: har ännu ingen skarp månad att mätas mot.",

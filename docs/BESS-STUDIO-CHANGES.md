@@ -308,3 +308,41 @@ python -m src.geo.dispatch_engine
 - Avståndet räknas från rutans mitt. För en verklig tomt: använd "Sätt egen plats".
 - Testat i en Chromium-webbläsare, inte Safari eller Firefox.
 - `tests/test_new_models.py` kördes inte (kräver lightgbm) och berörs inte av ändringarna.
+
+
+---
+
+## Tillägg 2026-10-08: stödtjänster i positivt extremår
+
+Fråga: i ett extremår borde väl mer än spotarbitraget öka?
+
+**Kontrollräkning.** Spotarbitraget ökade redan: batteriet optimeras om mot 2022 års spotpriser och spotdelen blir två till åtta gånger större. Men stödtjänstpriserna hölls på dagens nivå, och eftersom stödtjänster är 70–95 % av intäkten för små och medelstora anläggningar blev hela extremåret bara 2–40 % bättre än ett normalår.
+
+**Mätning.** Dagspris per produkt mot elområdets dagspris för spot, båda delade med kalendermånadens median, alla dagar sedan januari 2024 (`src/geo/reserve_comovement.py`):
+
+| Produkt | Dyraste tiondelen spotdagar mot övriga | Elasticitet |
+|---|---|---|
+| mFRR upp | 2,7 × | 0,58 |
+| FCR-D upp | 1,5 × | 0,36 |
+| aFRR upp | 1,35 × | 0,15 |
+| FCR-N | 1,2 × | 0,15 |
+| mFRR ned | 0,96 × | −0,03 |
+| aFRR ned | 0,85 × | −0,08 |
+| FCR-D ned | 0,83 × | −0,17 |
+
+**Ändring.** Som förval räknas varje produkts pris i extremåret om med (medelspot 2022 / medelspot i basperioden) ^ elasticitet. Valet "Oförändrade priser" ger den gamla uträkningen.
+
+Extremår mot normalår, 2 timmars lager, 5 % marknadsandel:
+
+| Anläggning | SE1 | SE3 | SE4 |
+|---|---|---|---|
+| 10 MW, förut | × 1,02 | × 1,21 | × 1,18 |
+| 10 MW, nu | × 1,08 | × 1,43 | × 1,40 |
+| 50 MW, förut | × 1,04 | × 1,37 | × 1,37 |
+| 50 MW, nu | × 1,09 | × 1,58 | × 1,50 |
+| 200 MW, förut | × 1,12 | × 1,80 | × 1,66 |
+| 200 MW, nu | × 1,15 | × 1,91 | × 1,71 |
+
+**Förbehåll.** Sambandet är uppmätt mellan dagar och tillämpas på ett helt år. 2022 som det faktiskt var gav omkring 3,3 × för 50 MW, men mest på grund av FCR-priser från en marknad som batterierna inte hade fyllt.
+
+**Hembatteriet** är oförändrat: där är stödtjänstersättningen ett belopp per kW som användaren anger, och energidelen räknas redan mot 2022 års verkliga priser.

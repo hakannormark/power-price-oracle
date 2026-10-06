@@ -56,7 +56,16 @@ ZONES.forEach((zone) => DURS.forEach((durationH) => MWS.forEach((mw) => SHARES.f
     if (!rev.extremeIsBase) {
       // Re-optimised against 2022's spreads the battery leans on arbitrage: more spot, no more reserves.
       ok(rev.spotExtreme >= rev.spot - EPS, `${tag}: extreme year has at least the normal year's spot revenue`);
-      ok(rev.ancExtreme <= rev.anc + Math.max(1, 0.01 * rev.anc), `${tag}: and no more ancillary revenue than a normal year`);
+      // With unchanged reserve prices the battery leans on arbitrage: no more reserves than a normal year.
+      const flat = M.siteRevenue(data, { zone, mw, durationH, dataset, marketSharePct, realizationPct: 75, fx: FX, ancillaryExtremeMult: 1 });
+      ok(flat.ancExtreme <= flat.anc + Math.max(1, 0.01 * flat.anc), `${tag}: unchanged prices give no more ancillary revenue than a normal year`);
+      ok(flat.ancExtremeFactor === 1 || flat.extremeFloorApplied, `${tag}: and the factor says unchanged`);
+      // The default follows the measured relation: upward reserves dearer, never by more than the cap.
+      ok(rev.ancExtremeMeasured, `${tag}: the measured relation is in the file`);
+      if (!rev.extremeFloorApplied && !flat.extremeFloorApplied) {
+        ok(rev.ancExtremeFactor > 0.85 && rev.ancExtremeFactor < 3.0001, `${tag}: measured factor ${rev.ancExtremeFactor} is within range`);
+        ok(rev.spotExtreme === flat.spotExtreme, `${tag}: the relation does not touch the spot part`);
+      }
     }
     if (rev.extremeFloorApplied) floorHits++;
     // Negative extreme year: ancillary untouched, spot at 0.6 x the normal year.
@@ -95,9 +104,10 @@ ZONES.forEach((zone) => DURS.forEach((durationH) => MWS.forEach((mw) => SHARES.f
     {
       // A reserve-price multiplier above one can only add to the extreme year.
       const up = M.siteRevenue(data, { zone, mw, durationH, dataset, marketSharePct, realizationPct: 75, fx: FX, ancillaryExtremeMult: 2 });
-      ok(up.grossExtreme >= rev.grossExtreme - EPS, `${tag}: higher reserve prices in the extreme year never lower it`);
-      near(up.gross, rev.gross, `${tag}: and leave the normal year alone`);
-      if (!rev.extremeIsBase && !up.extremeFloorApplied) near(up.ancExtreme, 2 * rev.ancExtreme, `${tag}: the multiplier acts on the ancillary part`);
+      const one = M.siteRevenue(data, { zone, mw, durationH, dataset, marketSharePct, realizationPct: 75, fx: FX, ancillaryExtremeMult: 1 });
+      ok(up.grossExtreme >= one.grossExtreme - EPS, `${tag}: higher reserve prices in the extreme year never lower it`);
+      if (!rev.extremeIsBase) near(up.gross, rev.gross, `${tag}: and leave the normal year alone`);
+      if (!rev.extremeIsBase && !up.extremeFloorApplied) near(up.ancExtreme, 2 * one.ancExtreme, `${tag}: the multiplier acts on the ancillary part`);
     }
     ok(fins[1].tenYear >= fins[0].tenYear - EPS && fins[2].tenYear >= fins[1].tenYear - EPS, `${tag}: ten-year cash flow rises with extreme years`);
     if (fins[0].payback !== null) {

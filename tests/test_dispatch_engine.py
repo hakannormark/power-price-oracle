@@ -141,3 +141,30 @@ def test_published_market_stats_cover_every_product(published):
             for key, *_ in de.RESERVES:
                 assert stats[key]["price_mean"] >= 0
                 assert 0 <= stats[key]["hours_share"] <= 1
+
+
+# ------------------------------------------- reserves in the extreme year
+def test_elasticity_recovers_a_known_relation():
+    from src.geo.reserve_comovement import elasticity
+
+    rng = np.random.default_rng(1)
+    spot = np.exp(rng.normal(0, 0.5, 2000))
+    # A product that moves with the square root of spot, and one that does not move.
+    found = elasticity(list(zip(spot, spot ** 0.5)))
+    assert found[0] == pytest.approx(0.5, abs=0.03)
+    assert elasticity(list(zip(spot, np.ones_like(spot))))[0] == pytest.approx(0.0, abs=1e-9)
+    assert elasticity(list(zip(spot[:50], spot[:50]))) is None, "too few days to say anything"
+
+
+def test_published_reserve_factors_are_measured_and_bounded(published):
+    co = published["reserve_comovement"]
+    assert set(co["products"]) == {key for key, *_ in de.RESERVES}
+    # Upward reserves are dearer when spot is high; that is the finding the extreme year rests on.
+    assert co["products"]["mfrr_up"]["elasticity"] > 0.2
+    assert co["products"]["fcr_d_up"]["elasticity"] > 0
+    for period, zones in co["factors"].items():
+        for zone, factors in zones.items():
+            assert co["spot_ratio_2022"][period][zone] > 1, "2022 was dearer than the base period"
+            for product, factor in factors.items():
+                assert 0.5 <= factor <= 3.0
+                assert factor == pytest.approx(co["spot_ratio_2022"][period][zone] ** co["products"][product]["elasticity"], abs=0.002) or factor in (0.5, 3.0)
