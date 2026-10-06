@@ -122,7 +122,8 @@ jobs:
               fetch-neighbours)        python -m src.fetch_neighbours --merge "$RUNNER_TEMP/staged.jsonl" ;;
               fetch-reservoirs)        python -m src.fetch_reservoirs ;;
               # The battery pages read measured sun per zone from data/bess/solar/.
-              refresh-weather-archive) python -m src.fetch_weather_archive --refresh && python -m src.bess.solar ;;
+              # Also compares the last 45 days of stored prices with an independent source.
+              refresh-weather-archive) python -m src.fetch_weather_archive --refresh && python -m src.bess.solar && (python -m src.verify --prices || true) ;;
               # BESS Studio: re-run the dispatch back-test on the latest spot and
               # Svenska kraftnät capacity-market prices. Needs scipy, nothing else.
               refresh-bess-dispatch)   pip install -q "scipy>=1.11" && python -m src.geo.dispatch_engine ;;

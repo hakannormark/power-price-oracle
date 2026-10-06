@@ -362,6 +362,19 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
     publish_site.write_models()
     publish_site.write_status(status)
 
+    # Independent checks of what was just published. A failure is shown on the
+    # control page; it does not stop the run.
+    try:
+        from . import verify
+
+        report = verify.run(actuals=actuals)
+        verify.write(report)
+        failed = [c["id"] for c in report["checks"] if not c["ok"]]
+        if failed:
+            log.warning("verification failed: %s", ", ".join(failed))
+    except Exception as verify_exc:  # noqa: BLE001
+        log.warning("verification could not run: %s", verify_exc)
+
     # ---- 13. summary ----------------------------------------------------
     print(f"run_id={run_id}")
     print(f"  status          : {'DEGRADED' if degraded else 'ok'}{' (demo data)' if demo else ''}")

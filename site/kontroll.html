@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="sv" data-base="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kontroll — Spotprognos</title>
+<meta name="description" content="Oberoende kontroller av sajtens siffror: priser, träffsäkerhet och batterikalkyler räknas om på en annan väg, vid varje uppdatering.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css?v=20261006c">
+</head>
+<body data-page="static">
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="header-top-row">
+      <a class="brand" href="index.html"><span class="dot"></span>Spotprognos <small>Nord Pool SE1–SE4</small></a>
+      <nav class="portal-nav" aria-label="Huvudsystem">
+        <a href="index.html" class="portal-tab active">
+          <span class="portal-tab-icon">⚡</span>
+          <span>Spotprisprognos</span>
+        </a>
+        <a href="batteri.html" class="portal-tab">
+          <span class="portal-tab-icon">🏡</span>
+          <span>Hembatteri</span>
+        </a>
+        <a href="bess-studio.html" class="portal-tab">
+          <span class="portal-tab-icon">🏭</span>
+          <span>Storskalig BESS</span>
+        </a>
+      </nav>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html">Prognos</a>
+      <a href="langtid.html">Långtid</a>
+      <a href="traffsakerhet.html">Träffsäkerhet</a>
+      <a href="modeller.html">Modeller</a>
+      <a href="metod.html">Metod</a>
+      <a href="kontroll.html" aria-current="page">Kontroll</a>
+      <a href="api.html">API</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap stack">
+
+    <div class="page-head">
+      <h1>Kontroll</h1>
+      <p class="lede">Varje gång sajten uppdateras räknas dess viktigaste siffror om på en annan väg –
+        en annan källa, en annan algoritm eller ren aritmetik på det som publicerats. Här står utfallet.</p>
+    </div>
+
+    <section class="card">
+      <div class="section-title"><h2 id="verify-summary">Kontrollerna laddas …</h2></div>
+      <p class="muted" id="verify-when"></p>
+      <div id="verify-checks"></div>
+    </section>
+
+    <section class="card prose">
+      <h2>Vad kontrollerna inte kan visa</h2>
+      <p>En kontroll kan visa att en uträkning är rätt gjord. Den kan inte visa att ett antagande om framtiden håller.
+        Det här är de antaganden som väger tyngst, och som du själv bör ta ställning till:</p>
+      <ul id="verify-assumptions"></ul>
+      <p>Utöver kontrollerna här körs omkring 250 automatiska tester och drygt 110 000 kontroller av
+        BESS-modellen innan kod släpps. Källkoden är öppen; kontrollerna finns i <code>src/verify.py</code>.</p>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>Om sajten</h4>
+        <p>Spotprognos räknar ut en veckoprognos för Nord Pools day-ahead-priser i SE1–SE4,
+           sparar varje utfärdad prognos och mäter i efterhand hur väl den träffade.</p>
+      </div>
+      <div>
+        <h4>Datakällor</h4>
+        <ul>
+          <li><a href="https://transparency.entsoe.eu/">ENTSO-E Transparency</a></li>
+          <li><a href="https://open-meteo.com/">Open-Meteo</a></li>
+          <li><a href="https://www.svk.se/">Svenska kraftnät</a></li>
+          <li><a href="https://www.nordpoolgroup.com/">Nord Pool</a></li>
+          <li><a href="https://live.euronext.com/en/products/commodities/power-derivatives">Euronext</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Öppet</h4>
+        <ul>
+          <li><a href="api.html">JSON-API</a></li>
+          <li><a href="modeller.html">Modeller</a></li>
+          <li><a href="kontroll.html">Kontroll av siffrorna</a></li>
+          <li><a href="#" data-repo-url>Källkod</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="disclaimer">
+      <span>Prognosen är en modell, inte ett elavtal. Påslag, moms och nät saknas.<br><span class="muted" data-fx>–</span></span>
+      <span>Uppdaterad <b data-updated>–</b> · nästa körning <b data-next-update>–</b></span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/app.js?v=20261006c" defer></script>
+<script>
+(function () {
+  var esc = function (s) { return String(s).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); };
+  fetch("data/verification.json?t=" + Date.now()).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (v) {
+    var failed = v.total - v.passed;
+    var head = document.getElementById("verify-summary");
+    head.textContent = failed === 0 ? "Alla " + v.total + " kontroller går igenom" : failed + " av " + v.total + " kontroller går inte igenom";
+    head.style.color = failed === 0 ? "#4ade80" : "#f87171";
+    document.getElementById("verify-when").textContent = "Senast körda " + new Date(v.generated_at).toLocaleString("sv-SE", { dateStyle: "long", timeStyle: "short" }) + ".";
+    document.getElementById("verify-checks").innerHTML = v.checks.map(function (c) {
+      return '<div style="border-top:1px solid var(--border); padding:0.9rem 0;">' +
+        '<div style="font-weight:600;"><span style="color:' + (c.ok ? "#4ade80" : "#f87171") + ';">' + (c.ok ? "✓" : "✗") + "</span> " + esc(c.title) + "</div>" +
+        '<div class="muted" style="font-size:0.92em; margin-top:0.25rem;">' + esc(c.method) + "</div>" +
+        '<div style="font-size:0.92em; margin-top:0.35rem; overflow-wrap:anywhere;">' + esc(c.detail) + "</div></div>";
+    }).join("");
+    document.getElementById("verify-assumptions").innerHTML = v.assumptions.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("");
+  }).catch(function () {
+    document.getElementById("verify-summary").textContent = "Kontrollresultatet kunde inte läsas";
+  });
+})();
+</script>
+</body>
+</html>

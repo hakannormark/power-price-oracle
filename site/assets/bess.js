@@ -594,7 +594,8 @@
       ancillaryRevSek,
       totalAnnualValue,
       simplePayback,
-      discPayback: discPayback || (simplePayback ? simplePayback * 1.3 : null),
+      discPayback,
+      quarters: energy.quarters || null,
       npv15y: Math.round(npv),
       npv10y: Math.round(npv10),
       cashFlows,
@@ -602,9 +603,14 @@
   }
 
   function computeSeasonalProfile(res) {
-    const solarSplit = [0.06, 0.45, 0.40, 0.09];
-    const arbSplit = [0.38, 0.20, 0.14, 0.28];
-    const ancSplit = [0.28, 0.25, 0.22, 0.25];
+    // Sun and arbitrage per quarter come from the schedule itself. A quarter can
+    // be negative for one of them: charging in one quarter pays off in the next.
+    const qs = res.quarters;
+    const share = (key, total) => [0, 1, 2, 3].map((i) => (qs && total > 0 ? Math.round(qs[i][key]) / total : 0.25));
+    const solarSplit = share("solarSek", (qs || []).reduce((s, q) => s + Math.round(q.solarSek), 0));
+    const arbSplit = share("arbitrageSek", (qs || []).reduce((s, q) => s + Math.round(q.arbitrageSek), 0));
+    // The pay for ancillary services is an amount per kW and month: the same every quarter.
+    const ancSplit = [0.25, 0.25, 0.25, 0.25];
 
     const quarters = [
       {

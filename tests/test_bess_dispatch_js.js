@@ -65,6 +65,11 @@ checks++; assert.ok(se1.solarSek + se1.arbitrageSek < v.solarSek + v.arbitrageSe
 // The bill can only fall, and never by more than the bill itself plus what export could earn.
 checks++; assert.ok(v.solarSek + v.arbitrageSek < v.baselineBillSek + 8500 * 2, 'value is bounded by the bill');
 
+// The quarters are the schedule's own and add up to the year.
+near(v.quarters.reduce((s, q) => s + q.solarSek, 0), v.solarSek, 1, 'solar by quarter adds up');
+near(v.quarters.reduce((s, q) => s + q.arbitrageSek, 0), v.arbitrageSek, 1, 'arbitrage by quarter adds up');
+checks++; assert.ok(v.quarters[1].solarSek + v.quarters[2].solarSek > 3 * (v.quarters[0].solarSek + v.quarters[3].solarSek) / 2, 'stored sun is a spring and summer thing');
+
 // Sun differs by zone, and it is the zone's own.
 const yields = Object.fromEntries(['SE1', 'SE2', 'SE3', 'SE4'].map((z) => [z, B.yieldPerKwp(hourly, z)]));
 checks++; assert.ok(yields.SE1 < yields.SE2 && yields.SE2 < yields.SE3 && yields.SE3 < yields.SE4, `yield rises southwards: ${JSON.stringify(yields)}`);

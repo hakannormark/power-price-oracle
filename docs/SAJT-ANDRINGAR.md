@@ -170,6 +170,44 @@ Det som syns: 2022 var ett extremår i söder men knappt i norr. En fast faktor 
 
 Kvar som antaganden: negativt extremår är 0,6 × normalåret (inget år sedan 2015 har varit så svagt), stödtjänster × 1,2 / × 0,8 i extremår, och förbrukningsprofilen är densamma i alla elområden. Solen räknas på horisontell instrålning; panelens lutning och väderstreck ingår bara i faktorn 0,88, vilket ger något för lite vinterproduktion och något för mycket mitt på sommaren.
 
+
+**Kvarvarande antaganden ersatta med mätningar – 2026-10-08**
+
+| Antagande | Nu |
+|---|---|
+| Sol på plan mark × 0,88 | Instrålning i panelens plan (35°, söder eller öst–väst) × 0,80. Kontrollerad mot PVGIS: inom 8 %, inom 1 % i SE3–SE4 |
+| Samma förbrukningsprofil i hela landet | Uppvärmningsdelen följer elområdets uppmätta temperatur. Kan stängas av i kalkylatorn |
+| Negativt extremår 0,6 × | 2020 som det var: 0,61 × i SE1, 0,40 × i SE4 |
+| 1,5 positiva och 0,5 negativa extremår per decennium | Ett av varje på 15 år (år 5 och 10). Det är vad 2015–2025 innehöll |
+| Stödtjänster × 1,2 / × 0,8 i extremår | Oförändrade i extremår |
+| Säsongsfördelning med fasta andelar | Uträknad ur körschemat, kvartal för kvartal |
+
+Ett påstående jag själv skrev in i förra omgången var fel: att inget år sedan 2015 varit svagare än 0,6 × normalåret. Åren 2015–2019 ligger på 0,30–0,33 × i SE4.
+
+**Hål i prishistorien.** Oktober 2020–december 2021 saknades helt, liksom två timmar varje sommartidsdygn 2015–2020 och ett dygn i SE2. Fyllt från energy-charts.info.
+
+---
+
+## 5b. Kontroll av sajten – 2026-10-08
+
+Ny sida: `kontroll.html`. Nio kontroller räknar om publicerade siffror på en annan väg vid varje uppdatering (`src/verify.py`).
+
+| Kontroll | Metod | Utfall |
+|---|---|---|
+| Prishistoriken komplett | Varje timme sedan 2015 | 412 596 timmar, 0 saknas |
+| Priser mot oberoende källa | energy-charts.info | 345 328 timmar jämförda, 3 avvek (rättade) |
+| Sidornas priser | Mot lagret och ECB-kursen | 0 avviker |
+| Prognosens form | Tidsaxel och band | 0 fel |
+| Träffsäkerheten | Omräknad ur loggarna utan poängsättningskoden | Skillnad 0,000 |
+| Hembatteriets körschema | Mot linjär optimering | 97,6–98,6 % av bästa möjliga |
+| Investeringskalkylen | Omräknad ur kassaflödena | 144 kalkyler, 0 avviker |
+| Solproduktion | Mot PVGIS | Inom 8 % |
+| BESS Studios arbitrage | Mot en annan algoritm | Inom 1,1 % |
+
+Handskrivna sifferpåståenden som sidornas egna tabeller motsade är borttagna från batterisidorna (bland annat "tre positiva extremår på 15 år", "2 500–6 200 kr/år i arbitrage", "payback över 40 år", "frekvensmarknad ~350 MW"). Stödtjänsternas historik i backtestet är märkt som antagande.
+
+**Det kontrollerna inte kan visa** står på kontrollsidan. Tyngst: att dagens prisbild består, och ersättningen för stödtjänster. Uppmätt FCR-D-pris har fallit från 37 till 8,5 EUR/MW per timme på två år; kalkylens scenarier räknar med 5 respektive 12 % per år.
+
 ---
 
 ## 6. Inte gjort

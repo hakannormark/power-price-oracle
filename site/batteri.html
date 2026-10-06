@@ -158,6 +158,7 @@
       <a href="batteri-paket.html">Paket & Offerter</a>
       <a href="batteri-eror.html">Elmarknadens Epoker</a>
       <a href="batteri-extremar.html">Extremår & Scenarier</a>
+      <a href="kontroll.html">Kontroll av siffrorna</a>
     </nav>
   </div>
 </header>
@@ -438,7 +439,7 @@
           </table>
         </div>
         <p style="font-size: 0.8em; color: var(--muted); margin-top: 0.5rem;" id="bess-custom-cf-footnote">
-          * Stödtjänstintäkter (FCR-D) är inte konstanta utan minskar över tid på grund av: (1) Batteriets kapacitetsförlust (-1,8 %/år SoH) som minskar godkänd budvolym, och (2) Förväntad marknadsmättnad/priserosion då Svenska kraftnäts begränsade frekvensmarknad (~350 MW) snabbt fylls när fler batterier installeras i Sverige.
+          * Stödtjänstintäkter (FCR-D) är inte konstanta utan minskar över tid på grund av: (1) Batteriets kapacitetsförlust (-1,8 %/år SoH) som minskar godkänd budvolym, och (2) Förväntad marknadsmättnad/priserosion då Svenska kraftnäts begränsade frekvensmarknad (FCR-D upp: omkring 580 MW i Sverige) snabbt fylls när fler batterier installeras i Sverige.
         </p>
       </div>
     </section>
@@ -450,7 +451,7 @@
         <span class="meta">Dynamiskt beräknad för din valda anläggning i <span id="bess-season-zone-name">SE4</span></span>
       </div>
       <p class="sub">
-        I Sverige är elmarknaden extremt säsongsbetonad. Ett hembatteri arbetar på helt olika sätt beroende på årstid: på vintern genereras nästan 100 % av värdet via nätarbitrage och stödtjänster, medan våren och sommaren domineras av att lagra egenproducerad solel.
+        Ett hembatteri arbetar olika över året: på vintern finns nästan ingen solel att lagra, och värdet kommer från prisskillnader och stödtjänster; på våren och sommaren dominerar lagrad solel. Fördelningen nedan är uträknad ur körschemat för din anläggning i det valda elområdet, kvartal för kvartal – ingen schablon.
       </p>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem;" id="bess-season-cards">
@@ -458,8 +459,7 @@
       </div>
 
       <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 0.9rem; margin-top: 1.25rem; font-size: 0.85em; color: var(--muted); line-height: 1.5;">
-        💡 <strong>Säsongsinsikt:</strong> Utan solceller är batteriets intäkter kraftigt koncentrerade till vinter och höst (ca 60–65 % under Q1 och Q4) då elpriserna svänger som mest. Med solceller planar intäktsflödet ut jämnare över året då solöverskottet på våren och försommaren ersätter det lugnare sommararbitraget.
-      </div>
+        💡 <strong>Säsongsinsikt:</strong> Stödtjänstersättningen är ett belopp per kW och månad och fördelas därför lika över kvartalen. Ett kvartal kan visa ett litet minus för sol eller arbitrage: el som laddas i slutet av ett kvartal ger sin nytta i nästa.</div>
     </section>
 
     <!-- 4. Dimensioneringsguide: Villa vs Högförbrukare -->
@@ -474,7 +474,7 @@
             <strong>Rekommendation: 10–13 kWh är sweet spot.</strong><br>
             Ett normalt hushåll drar 8–11 kWh på kväll/natt på sommaren och 10–14 kWh på vintern.
             Ett 10–13 kWh batteri fylls av solelen på dagen och töms under natten – en perfekt 100 % cykel per dygn.
-            All kapacitet utöver 13 kWh får svårt att tömmas i en vanlig villa under natten, och marginalnyttan på kilowattimme 14–20 ger ca 18 års payback i ren egenanvändning om man inte nyttjar aggressivt nätarbitrage.
+            All kapacitet utöver 13 kWh får svårt att tömmas i en vanlig villa under natten. Vad de extra kilowattimmarna ger för just ditt hus ser du genom att dra i reglaget för batterikapacitet i kalkylatorn ovan.
           </p>
         </div>
 
@@ -554,7 +554,7 @@
   </div>
 </main>
 
-<script src="assets/bess-dispatch.js?v=20261008a"></script>
-<script src="assets/bess.js?v=20261008a"></script>
+<script src="assets/bess-dispatch.js?v=20261008b"></script>
+<script src="assets/bess.js?v=20261008b"></script>
 </body>
 </html>

@@ -1,0 +1,78 @@
+{
+ "generated_at": "2026-10-06T18:25:06+02:00",
+ "passed": 9,
+ "total": 9,
+ "checks": [
+  {
+   "id": "price_history",
+   "title": "Prishistoriken är komplett",
+   "method": "Varje timme sedan 2015 finns en gång per elområde.",
+   "ok": true,
+   "detail": "412 596 timpriser sedan 2015-01-01; saknade timmar: 0, dubbletter: 0."
+  },
+  {
+   "id": "price_source",
+   "title": "Priserna stämmer med en oberoende källa",
+   "method": "Lagrade timpriser jämförs med energy-charts.info (Fraunhofer ISE), som hämtar från ENTSO-E på egen väg.",
+   "ok": true,
+   "detail": "Hela historiken jämförd 2026-10-07: 345 328 timmar, 0 avviker (före rättning: 3, alla i ett dygn i SE2 2022)."
+  },
+  {
+   "id": "site_prices",
+   "title": "Sidorna visar de lagrade priserna",
+   "method": "Priser på elområdessidorna jämförs med lagret, och öre/kWh med EUR/MWh gånger ECB-kursen.",
+   "ok": true,
+   "detail": "408 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
+  },
+  {
+   "id": "forecast_bands",
+   "title": "Prognosen är välformad",
+   "method": "Obruten tidsaxel och osäkerhetsband som innesluter prognosen.",
+   "ok": true,
+   "detail": "672 prognostimmar i fyra elområden: obruten tidsaxel och p10 ≤ prognos ≤ p90 överallt; 0 fel."
+  },
+  {
+   "id": "accuracy",
+   "title": "Träffsäkerheten är rätt räknad",
+   "method": "Standardmodellens medelfel räknas om direkt ur prognosloggen och utfallen, utan poängsättningskoden.",
+   "ok": true,
+   "detail": "Standardmodellens medelfel (horizon_hybrid) omräknat ur prognosloggen och utfallen, per horisont i EUR/MWh: 0-24h: 23.23, 24-48h: 23.16, 48-72h: 25.50, 72-96h: 33.71, 96-120h: 35.90, 120-144h: 21.65. Största skillnad mot träffsäkerhetssidan: 0.000."
+  },
+  {
+   "id": "battery_optimiser",
+   "title": "Hembatteriets körschema är nära det bästa möjliga",
+   "method": "Jämförs med en linjär optimering – en annan metod för samma problem.",
+   "ok": true,
+   "detail": "Batteriets körschema (dynamisk programmering, 49 nivåer) mot en linjär optimering av samma fyra veckor, andel av den teoretiskt bästa besparingen: SE1 97.6 %, SE2 98.0 %, SE3 98.4 %, SE4 98.6 %."
+  },
+  {
+   "id": "lifecycle",
+   "title": "Investeringskalkylen går ihop",
+   "method": "Återbetalningstid och nuvärde räknas om ur de publicerade kassaflödena.",
+   "ok": true,
+   "detail": "144 kalkyler (elområde × typfall × scenario × ägare): årens delar summerar till kassaflödet, och återbetalningstid och nuvärde vid 5 % ränta stämmer med de publicerade; 0 avviker."
+  },
+  {
+   "id": "solar",
+   "title": "Solproduktionen stämmer med PVGIS",
+   "method": "Uppmätt instrålning (ERA5) gånger 0,80 jämförs med EU-kommissionens solkalkylator.",
+   "ok": true,
+   "detail": "Solproduktion per kWp och år, medel 2015–2025, mot EU:s PVGIS (söder 35°): SE1 894 mot 975, SE2 939 mot 903, SE3 989 mot 987, SE4 1050 mot 1053. Största avvikelse inklusive öst–väst: 8 %."
+  },
+  {
+   "id": "studio_arbitrage",
+   "title": "BESS Studios arbitrage stämmer med en annan algoritm",
+   "method": "Veckovis linjär optimering jämförs med dynamisk programmering över hela året.",
+   "ok": true,
+   "detail": "Arbitrageintäkt 2025 för 2 timmars lager, omräknad med en annan algoritm: SE1 17 631 mot 17 437 EUR/MW, SE4 69 349 mot 69 010 EUR/MW. Skillnad som mest 1.1 % (veckoblock och nivåindelning förklarar den)."
+  }
+ ],
+ "assumptions": [
+  "Hembatteriet: att de senaste tolv månadernas prisbild består i 15 år. Åren 2015–2020 gav ungefär en tredjedel så mycket i söder.",
+  "Hembatteriet: ersättningen för stödtjänster anges av användaren och är inte uppmätt. Marknadspriset på FCR-D har fallit med tre fjärdedelar på två år.",
+  "Hembatteriet: 90 % av det teoretiskt bästa körschemat uppnås, 40 % av förbrukningen är uppvärmning i Malmöklimat, solanläggningen ger 80 % av instrålningen i panelens plan.",
+  "BESS Studio: aktiveringsenergi, egen prispåverkan, intradag, prognosfel och otillgänglighet är inte modellerade. Resultatet är en övre gräns före dessa.",
+  "Prisprognosen: osäkerhetsbandet är kalibrerat på historiska fel och täcker inte händelser utan motstycke.",
+  "Långtidsprognosen: har ännu ingen skarp månad att mätas mot."
+ ]
+}

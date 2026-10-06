@@ -16,9 +16,13 @@
   const LEVELS = 49;
   const INFEASIBLE = 1e12;
 
-  function billWithoutBattery(net, imp, exp) {
+  function billWithoutBattery(net, imp, exp, group, byGroup) {
     let bill = 0;
-    for (let t = 0; t < net.length; t++) bill += net[t] > 0 ? net[t] * imp[t] : net[t] * exp[t];
+    for (let t = 0; t < net.length; t++) {
+      const cost = net[t] > 0 ? net[t] * imp[t] : net[t] * exp[t];
+      bill += cost;
+      if (byGroup) byGroup[group[t]] += cost;
+    }
     return bill;
   }
 
@@ -26,10 +30,10 @@
    * Billigaste schemat. net = förbrukning minus solel per timme (kWh),
    * imp/exp = köp- och säljpris (kr/kWh). Returnerar räkningen och flödena.
    */
-  function optimalSchedule(net, imp, exp, windowKwh, maxPowerKw, roundTripEff, allowGridCharging, wearHurdle) {
+  function optimalSchedule(net, imp, exp, windowKwh, maxPowerKw, roundTripEff, allowGridCharging, wearHurdle, group, byGroup) {
     const n = net.length;
     if (!(windowKwh > 0) || !(maxPowerKw > 0) || n === 0) {
-      return { cost: billWithoutBattery(net, imp, exp), charged: 0, chargedSolar: 0, discharged: 0 };
+      return { cost: billWithoutBattery(net, imp, exp, group, byGroup), charged: 0, chargedSolar: 0, discharged: 0 };
     }
     const S = LEVELS;
     const eta = Math.sqrt(roundTripEff);
@@ -82,7 +86,9 @@
       const j = choice[t * S + state];
       const a = ac[state * S + j];
       const flow = net[t] + a;
-      bill += flow > 0 ? flow * imp[t] : flow * exp[t];
+      const cost = flow > 0 ? flow * imp[t] : flow * exp[t];
+      bill += cost;
+      if (byGroup) byGroup[group[t]] += cost;
       if (a > 0) {
         charged += a;
         chargedSolar += Math.min(a, net[t] < 0 ? -net[t] : 0);
@@ -146,7 +152,8 @@
    */
   function valueBattery(hourly, o) {
     const k = hourly.constants;
-    const series = seriesFor(hourly, o.zone, o.period || (o.extreme ? 'extreme' : null), o.orientation);
+    const period = o.period || (o.extreme ? 'extreme' : null);
+    const series = seriesFor(hourly, o.zone, period, o.orientation);
     if (!series) return null;
     const spot = series.spot;
     const n = spot.length;
@@ -163,13 +170,27 @@
     }
     const reserve = (k.fcr_window_reserve || {})[o.strategy] || 0;
     const windowKwh = o.usableKwh * (1 - reserve);
-    const baseline = billWithoutBattery(net, imp, exp);
-    const solarOnly = optimalSchedule(net, imp, exp, windowKwh, o.powerKw, o.roundTripEff, false, k.wear_hurdle_sek_per_kwh);
+    // The bill per calendar quarter, so that the seasonal split is the schedule's own.
+    const quarter = new Uint8Array(n);
+    const start = period ? null : new Date(hourly.from).getTime();
+    for (let t = 0; t < n; t++) {
+      quarter[t] = start === null ? Math.min(3, Math.floor(t / (n / 4))) : Math.floor(new Date(start + t * 3600e3).getUTCMonth() / 3);
+    }
+    const qBase = new Float64Array(4);
+    const qSolar = new Float64Array(4);
+    const qFull = new Float64Array(4);
+    const baseline = billWithoutBattery(net, imp, exp, quarter, qBase);
+    const solarOnly = optimalSchedule(net, imp, exp, windowKwh, o.powerKw, o.roundTripEff, false, k.wear_hurdle_sek_per_kwh, quarter, qSolar);
     const full = o.strategy === 'fcr_priority'
       ? solarOnly
-      : optimalSchedule(net, imp, exp, windowKwh, o.powerKw, o.roundTripEff, true, k.wear_hurdle_sek_per_kwh);
+      : optimalSchedule(net, imp, exp, windowKwh, o.powerKw, o.roundTripEff, true, k.wear_hurdle_sek_per_kwh, quarter, qFull);
     const toYear = 1 / yearShare;
+    const quarters = [0, 1, 2, 3].map((q) => ({
+      solarSek: (qBase[q] - qSolar[q]) * k.realisation * toYear,
+      arbitrageSek: (o.strategy === 'fcr_priority' ? 0 : qSolar[q] - qFull[q]) * k.realisation * toYear,
+    }));
     return {
+      quarters,
       solarSek: Math.max(0, baseline - solarOnly.cost) * k.realisation * toYear,
       arbitrageSek: Math.max(0, solarOnly.cost - full.cost) * k.realisation * toYear,
       storedSolarKwh: full.chargedSolar * toYear,
