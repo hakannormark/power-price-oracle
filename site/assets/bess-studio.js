@@ -405,7 +405,7 @@
           <div class="bs-top-sub"><span style="color:#38bdf8; font-weight:600;">${c.zone}</span> · ${num(c.res.cableKm, 1)} km till station · ruta ${esc(c.id)}</div>
         </div>
         <div class="bs-top-right">
-          <div class="bs-top-roi" style="color:${paybackColor(f.payback)};">${f.payback === null ? '–' : `${num(f.payback, 2)} år`}</div>
+          <div class="bs-top-roi" style="color:${paybackColor(f.payback)};">${f.payback === null ? '–' : `${num(f.payback, 1)} år`}</div>
           <div class="bs-top-ebitda">${msek(f.netNormal)}/år</div>
         </div>`;
       const go = () => selectSite(c, true);
