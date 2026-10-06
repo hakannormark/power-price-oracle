@@ -1,0 +1,214 @@
+{
+  "trained_at": "2026-10-06T14:13:12+02:00",
+  "targets_from": "2024-01-19T15:00:00+01:00",
+  "targets_to": "2026-10-06T01:00:00+02:00",
+  "samples": 654664,
+  "features": [
+    "zone",
+    "hour",
+    "dow",
+    "month",
+    "is_weekend",
+    "is_holiday",
+    "lead",
+    "p_last",
+    "p_lag168",
+    "p_lag336",
+    "shrunk",
+    "day_mean",
+    "day_min",
+    "day_max",
+    "week_mean",
+    "spread_se4_se3",
+    "spread_se3_se2",
+    "temp",
+    "hdd",
+    "wind",
+    "solar",
+    "wind_north",
+    "wind_south",
+    "wind_de",
+    "solar_de",
+    "wind_dk",
+    "temp_ref",
+    "wind_ref",
+    "wind_south_ref",
+    "wind_de_ref",
+    "solar_ref",
+    "ttf",
+    "eua"
+  ],
+  "categorical": [
+    "zone"
+  ],
+  "quantiles": [
+    0.1,
+    0.5,
+    0.9
+  ],
+  "target": "price - shrunk level",
+  "weather": "Open-Meteo Previous Runs: the forecast made `lead` days before the hour",
+  "half_life_days": 365.0,
+  "params": {
+    "objective": "quantile",
+    "metric": "quantile",
+    "boosting_type": "gbdt",
+    "num_leaves": 63,
+    "learning_rate": 0.05,
+    "min_child_samples": 100,
+    "subsample": 0.8,
+    "subsample_freq": 1,
+    "colsample_bytree": 0.8,
+    "lambda_l2": 1.0,
+    "seed": 42
+  },
+  "walk_forward": {
+    "conformal_offsets": {
+      "1": [
+        -1.34,
+        22.02
+      ],
+      "2": [
+        -1.04,
+        23.67
+      ],
+      "3": [
+        -0.86,
+        27.13
+      ],
+      "4": [
+        -0.56,
+        27.57
+      ],
+      "5": [
+        -0.99,
+        28.17
+      ],
+      "6": [
+        -0.73,
+        30.0
+      ],
+      "7": [
+        -0.89,
+        30.96
+      ]
+    },
+    "coverage80_after_offsets_in_sample": 0.8,
+    "folds": 6,
+    "fold_days": 30,
+    "rounds": 81,
+    "by_lead": {
+      "1": {
+        "n": 17280,
+        "mae_v3": 25.32,
+        "mae_trained_on_newest_weather": 24.98,
+        "mae_shrunk_level": 33.37,
+        "mae_seasonal_naive": 36.44,
+        "bias_v3": -12.09,
+        "coverage80": 0.696
+      },
+      "2": {
+        "n": 17280,
+        "mae_v3": 26.14,
+        "mae_trained_on_newest_weather": 25.49,
+        "mae_shrunk_level": 33.37,
+        "mae_seasonal_naive": 36.44,
+        "bias_v3": -12.7,
+        "coverage80": 0.692
+      },
+      "3": {
+        "n": 17280,
+        "mae_v3": 26.85,
+        "mae_trained_on_newest_weather": 26.23,
+        "mae_shrunk_level": 33.37,
+        "mae_seasonal_naive": 36.44,
+        "bias_v3": -12.86,
+        "coverage80": 0.684
+      },
+      "4": {
+        "n": 17280,
+        "mae_v3": 28.2,
+        "mae_trained_on_newest_weather": 27.44,
+        "mae_shrunk_level": 33.37,
+        "mae_seasonal_naive": 36.44,
+        "bias_v3": -13.08,
+        "coverage80": 0.667
+      },
+      "5": {
+        "n": 17280,
+        "mae_v3": 29.15,
+        "mae_trained_on_newest_weather": 28.4,
+        "mae_shrunk_level": 33.37,
+        "mae_seasonal_naive": 36.44,
+        "bias_v3": -13.78,
+        "coverage80": 0.669
+      },
+      "6": {
+        "n": 17280,
+        "mae_v3": 30.39,
+        "mae_trained_on_newest_weather": 29.4,
+        "mae_shrunk_level": 33.37,
+        "mae_seasonal_naive": 36.44,
+        "bias_v3": -14.05,
+        "coverage80": 0.669
+      },
+      "7": {
+        "n": 17280,
+        "mae_v3": 30.74,
+        "mae_trained_on_newest_weather": 30.12,
+        "mae_shrunk_level": 33.37,
+        "mae_seasonal_naive": 36.44,
+        "bias_v3": -14.53,
+        "coverage80": 0.664
+      }
+    },
+    "by_zone": {
+      "SE1": {
+        "n": 30240,
+        "mae_v3": 21.55,
+        "mae_trained_on_newest_weather": 21.61,
+        "mae_shrunk_level": 27.68,
+        "mae_seasonal_naive": 30.43,
+        "bias_v3": -11.0,
+        "coverage80": 0.701
+      },
+      "SE2": {
+        "n": 30240,
+        "mae_v3": 23.06,
+        "mae_trained_on_newest_weather": 23.05,
+        "mae_shrunk_level": 29.29,
+        "mae_seasonal_naive": 32.15,
+        "bias_v3": -12.09,
+        "coverage80": 0.687
+      },
+      "SE3": {
+        "n": 30240,
+        "mae_v3": 28.99,
+        "mae_trained_on_newest_weather": 27.51,
+        "mae_shrunk_level": 33.89,
+        "mae_seasonal_naive": 36.93,
+        "bias_v3": -12.86,
+        "coverage80": 0.677
+      },
+      "SE4": {
+        "n": 30240,
+        "mae_v3": 38.85,
+        "mae_trained_on_newest_weather": 37.59,
+        "mae_shrunk_level": 42.64,
+        "mae_seasonal_naive": 46.25,
+        "bias_v3": -17.25,
+        "coverage80": 0.644
+      }
+    },
+    "overall": {
+      "n": 120960,
+      "mae_v3": 28.11,
+      "mae_trained_on_newest_weather": 27.44,
+      "mae_shrunk_level": 33.37,
+      "mae_seasonal_naive": 36.44,
+      "bias_v3": -13.3,
+      "coverage80": 0.677
+    },
+    "note": "Hindcast on archived forecasts, issued once a day before the auction. Live scoring decides; this only says the model is worth logging. mae_trained_on_newest_weather is the same model fitted on the newest forecast instead of the one of the right age: if it is not worse, training on honest weather has bought nothing in this test."
+  }
+}

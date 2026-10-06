@@ -4,11 +4,21 @@ name: Maintenance
 # Triggered by hand: gh workflow run Maintenance -f task=diagnose
 
 on:
+  # Scheduled jobs name their own task further down, by which cron fired.
+  #
   # The weather archive is training data, and it stood still at 2026-08-29 while
   # the models kept being fitted on it. Weekly is often enough: ERA5 publishes
   # several days behind real time anyway.
+  #
+  # Reservoir levels and the neighbours' prices were only ever fetched by hand,
+  # so both stopped in early September while the front page went on quoting the
+  # reservoir level as current. Daily is cheap and keeps them honest.
   schedule:
-    - cron: "40 3 * * 1"
+    - cron: "40 3 * * 1"   # refresh-weather-archive
+    - cron: "15 2 * * *"   # fetch-reservoirs
+    - cron: "45 2 * * *"   # fetch-neighbours
+    - cron: "20 4 * * 2"   # refresh-bess-dispatch
+    - cron: "50 4 * * 1"   # retrain-lightgbm
   workflow_dispatch:
     inputs:
       task:
@@ -22,6 +32,8 @@ on:
           - fetch-reservoirs
           - fetch-neighbours
           - refresh-weather-archive
+          - refresh-bess-dispatch
+          - retrain-lightgbm
       days:
         description: Days of history for deep-backfill
         required: false
@@ -33,7 +45,10 @@ permissions:
 
 env:
   # A scheduled run carries no inputs, so it names its own task.
-  TASK: ${{ github.event_name == 'schedule' && 'refresh-weather-archive' || inputs.task }}
+  TASK: ${{ github.event_name != 'schedule' && inputs.task || github.event.schedule == '15 2 * * *' && 'fetch-reservoirs' || github.event.schedule == '45 2 * * *' && 'fetch-neighbours' || github.event.schedule == '20 4 * * 2' && 'refresh-bess-dispatch' || github.event.schedule == '50 4 * * 1' && 'retrain-lightgbm' || 'refresh-weather-archive' }}
+  # A scheduled run has no inputs; ten days of neighbour prices closes any gap
+  # a missed night leaves.
+  DAYS: ${{ inputs.days || '10' }}
 
 concurrency:
   # Serialises every run that commits to data/ — a 13-minute backfill and a
@@ -68,13 +83,26 @@ jobs:
         # Staged outside the repo: the download takes minutes, and origin moves
         # underneath it. The merge below is seconds and can be retried against a
         # fresh checkout, which a rebase of two JSONL files cannot.
-        run: python -m src.backfill --days ${{ inputs.days }} --stage "$RUNNER_TEMP/staged.jsonl"
+        run: python -m src.backfill --days "$DAYS" --stage "$RUNNER_TEMP/staged.jsonl"
 
       - name: Backfill neighbouring zone prices
         if: env.TASK == 'fetch-neighbours'
         env:
           ENTSOE_TOKEN: ${{ secrets.ENTSOE_TOKEN }}
-        run: python -m src.fetch_neighbours --days ${{ inputs.days }} --stage "$RUNNER_TEMP/staged.jsonl"
+        run: python -m src.fetch_neighbours --days "$DAYS" --stage "$RUNNER_TEMP/staged.jsonl"
+
+      # lightgbm_v3 is refitted every week on everything up to now. The training
+      # weather is not in the repository (25 MiB, rebuildable), so it is fetched
+      # here, outside the retry loop below: it takes minutes and does not depend
+      # on where origin is. The artifacts are staged and copied in after the reset.
+      - name: Retrain lightgbm_v3
+        if: env.TASK == 'retrain-lightgbm'
+        run: |
+          set -euo pipefail
+          python -m src.fetch.previous_runs
+          python -m src.models.train_lightgbm_v3
+          mkdir -p "$RUNNER_TEMP/artifacts"
+          cp src/models/artifacts/lightgbm_v3_q*.txt src/models/artifacts/meta_v3.json "$RUNNER_TEMP/artifacts/"
 
       - name: Commit new history
         if: env.TASK != 'diagnose'
@@ -94,9 +122,13 @@ jobs:
               fetch-neighbours)        python -m src.fetch_neighbours --merge "$RUNNER_TEMP/staged.jsonl" ;;
               fetch-reservoirs)        python -m src.fetch_reservoirs ;;
               refresh-weather-archive) python -m src.fetch_weather_archive --refresh ;;
+              # BESS Studio: re-run the dispatch back-test on the latest spot and
+              # Svenska kraftnät capacity-market prices. Needs scipy, nothing else.
+              refresh-bess-dispatch)   pip install -q "scipy>=1.11" && python -m src.geo.dispatch_engine ;;
+              retrain-lightgbm)        cp "$RUNNER_TEMP"/artifacts/* src/models/artifacts/ ;;
             esac
 
-            git add data
+            git add data site/data/bess-map/dispatch_backtest.json src/models/artifacts
             if git diff --cached --quiet; then
               echo "Nothing changed."
               exit 0

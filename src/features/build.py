@@ -39,6 +39,13 @@ FEATURE_COLUMNS = [
     "price_zone_yesterday_profile",
 ]
 
+# Raw weather per point, the same for every zone's row at an hour. lightgbm_v3
+# reads these instead of the indices above: an index is the value divided by a
+# normal, and training and serving had come to compute that normal differently.
+RAW_WEATHER_POINTS = ("SE1", "SE2", "SE3", "SE4", "DK2", "DE_NORTH")
+RAW_WEATHER_VARS = ("temp", "wind", "solar")
+RAW_WEATHER_COLUMNS = [f"wx_{var}_{point}" for var in RAW_WEATHER_VARS for point in RAW_WEATHER_POINTS]
+
 
 def _swedish_holidays(years: list[int]) -> set:
     """Swedish public holidays, minus plain Sundays.
@@ -116,6 +123,20 @@ def build_features(
         frame["wind_index_north"] = pd.NA
         frame["wind_index_south"] = pd.NA
 
+    # ---- raw weather per point, wide
+    for column in RAW_WEATHER_COLUMNS:
+        frame[column] = pd.NA
+    if weather is not None and not weather.empty and {"temp", "wind", "solar"} <= set(weather.columns):
+        raw = weather[weather["point"].isin(RAW_WEATHER_POINTS)]
+        wide = raw.pivot_table(index="ts", columns="point", values=list(RAW_WEATHER_VARS), aggfunc="first")
+        wide.columns = [f"wx_{var}_{point}" for var, point in wide.columns]
+        frame = frame.drop(columns=[c for c in wide.columns if c in frame.columns]).merge(
+            wide.reset_index(), on="ts", how="left"
+        )
+        for column in RAW_WEATHER_COLUMNS:
+            if column not in frame.columns:
+                frame[column] = pd.NA
+
     # ---- fundamentals (optional)
     if fundamentals is not None and not fundamentals.empty:
         frame = frame.merge(fundamentals, on=["ts", "zone"], how="left")
@@ -178,10 +199,10 @@ def build_features(
         "price_lag_672h",
         "price_zone_yesterday_profile",
     ]
-    for column in numeric:
+    for column in [*numeric, *RAW_WEATHER_COLUMNS]:
         frame[column] = pd.to_numeric(frame[column], errors="coerce")
 
-    frame = frame[FEATURE_COLUMNS].sort_values(["zone", "ts"]).reset_index(drop=True)
+    frame = frame[[*FEATURE_COLUMNS, *RAW_WEATHER_COLUMNS]].sort_values(["zone", "ts"]).reset_index(drop=True)
     log.info(
         "Features: %s rows, %s with official price",
         len(frame),

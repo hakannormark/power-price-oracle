@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=20261004g">
+<link rel="stylesheet" href="assets/style.css?v=20261006c">
 </head>
 <body data-page="accuracy">
 
@@ -159,17 +159,25 @@
         upprepa förra veckan. Den högsta stapeln i en grupp är den modell som träffat bäst på
         det avståndet. Standardmodellen har sajtens gröna färg.</p>
       <div class="chart small" id="skill-chart"></div>
-      <p class="sub"><b>Varför är den färska nivån så mycket sämre första dygnet?</b>
-        Modellen <i>Väderskalad, färsk nivå</i> lutar sig till 70 % på priset samma timme
-        dagen innan. För de timmar som går att poängsätta på 0–24 h — natten och förmiddagen i
-        morgon, prognoserade i dag innan auktionen — är ”dagen innan” alltså i dag. I början av
-        september 2026 svängde priset kraftigt från dag till dag (SE3: 50, 103, 62 och 100
-        EUR/MWh den 8–11 september), och då missar en modell som säger ”som i dag” åt samma håll
-        som svängen. De andra modellerna utgår från en jämnare nivå — förra veckans pris dämpat
-        mot medianen av fyra veckor — och drabbas mindre. I backtestet såg den färska nivån bäst
-        ut, men det testet räknade felaktigt med timmar vars pris redan var publicerat; se
-        <a href="metod.html">Metod</a>. Underlaget här är ännu några hundra timmar, så
-        ordningen mellan modellerna kan ändras.</p>
+      <p class="sub"><b>Varför byter modellerna plats?</b>
+        Modellen <i>Väderskalad, färsk nivå</i> lutar sig till 70 % på priset samma timme dagen
+        innan. De första veckorna i september 2026 svängde priset kraftigt från dag till dag, och
+        då var den sämst det första dygnet. Över en längre period har den i stället varit bättre
+        än den dämpade nivån dygn 1–2. Ordningen mellan modeller beror alltså på vilka veckor som
+        mäts — därför finns regeln nedan för när en modell får bli standard.</p>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Kandidater mot standardmodellen</h2>
+      </div>
+      <p class="sub">Varje modell jämförd med standardmodellen på exakt de prognoser båda har
+        ställt ut. <b>Skillnad</b> är modellens medelfel minus standardmodellens: ett minustal
+        betyder att modellen missar mindre. <b>Intervallet</b> visar hur osäker skillnaden är.
+        Det räknas genom att dra om hela leveransdygn, eftersom timmarna inom ett dygn delar väder
+        och prisnivå och inte är oberoende mätningar.</p>
+      <p class="sub" id="promotion-rule"></p>
+      <div id="promotion-table"><p class="loading">Läser in jämförelsen…</p></div>
     </section>
 
     <section class="card">
@@ -226,7 +234,7 @@
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.6.0/echarts.min.js" defer></script>
-<script src="assets/charts.js" defer></script>
-<script src="assets/app.js" defer></script>
+<script src="assets/charts.js?v=20261006c" defer></script>
+<script src="assets/app.js?v=20261006c" defer></script>
 </body>
 </html>

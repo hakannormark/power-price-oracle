@@ -6,6 +6,7 @@ from .ensemble import Ensemble
 from .horizon_hybrid import HorizonHybrid
 from .lightgbm_v1 import LightGbmV1
 from .lightgbm_v2 import LightGbmV2
+from .lightgbm_v3 import LightGbmV3
 from .market_scaled import MarketScaled
 from .official import Official
 from .recency_scaled import RecencyScaled
@@ -23,6 +24,7 @@ BASE_MODELS = [
     RelativeScaled(),
     LightGbmV1(),
     LightGbmV2(),
+    LightGbmV3(),  # candidate: trained on forecasts of the right age, retrained weekly
 ]
 
 # Derived models are built from base-model output after the base pass.
@@ -53,13 +55,30 @@ MODELS = [*BASE_MODELS, *DERIVED_MODELS]
 #
 # recency_scaled was briefly the default on the strength of a back-test that did
 # not apply the cutoff, and so credited it for hours whose price the exchange had
-# already published. Live it is the worst of the five. See src/research/backtest.py.
+# already published. Its first weeks live were poor; over a longer record it has
+# been better than shrunk_scaled on days 1-2. Neither statement is frozen here:
+# api/v1/accuracy.json has the current numbers.
 #
-# horizon_hybrid was promoted to site default in October 2026 after scoring 26.98
-# MAE across 5 000+ live out-of-sample delivery hours, outperforming shrunk_scaled
-# (40.42 MAE) by 33 % nationwide and delivering near-zero bias (-0.94 EUR/MWh).
+# horizon_hybrid became the default on 2026-10-02, five days after lightgbm_v2
+# was first logged. The evidence for days 1-2 was strong and has held (about
+# 47 % better than the reference). For days 3-7 there was almost none, and on
+# the hours every horizon forecast the blend has so far been WORSE than
+# lightgbm_v2 alone. It stays the default until the rule below says otherwise,
+# because nine days is not a measurement either way.
+#
+# THE RULE (src/evaluate/score.py, promotion_table): a model replaces the default
+# only after 21 shared delivery days, with the 90 % interval on the difference in
+# MAE wholly below zero overall and not wholly above zero at any horizon. The
+# interval resamples whole delivery days. accuracy.json carries the verdict.
 DEFAULT_MODEL_ID = "horizon_hybrid"
 REFERENCE_MODEL_ID = "seasonal_naive"  # skill is measured against this one
+
+# When the model behind an id last changed. Forecasts issued before this are a
+# different model's and are not scored under the id. horizon_hybrid was 100 %
+# market level beyond 72 h until commit 192840f made it 60 % LightGBM.
+MODEL_DEFINED_SINCE = {
+    "horizon_hybrid": "2026-10-02T10:01:36+02:00",
+}
 
 OFFICIAL = Official()
 

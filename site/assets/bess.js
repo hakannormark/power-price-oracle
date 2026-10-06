@@ -126,6 +126,7 @@
       })
       .then((payload) => {
         state.data = payload;
+        showDataProblem(dataProblem(payload));
         bindControls();
         renderAll();
       })
@@ -136,6 +137,42 @@
           container.innerHTML = `<div class="card"><p class="sub">Kunde inte läsa in batterikalkylen: ${err.message}</p></div>`;
         }
       });
+  }
+
+  // The published file has twice held no price history at all: every zone then
+  // carried the same placeholder statistics and an empty back-test, and the page
+  // went on showing a calculation as if nothing were wrong. Say so instead.
+  function dataProblem(payload) {
+    const zones = (payload && payload.zones) || {};
+    const ids = Object.keys(zones);
+    if (!ids.length) return "Prisunderlaget saknas helt.";
+    const broken = ids.filter((z) => {
+      const st = zones[z].stats || {};
+      const bt = zones[z].backtest || {};
+      return bt.ok === false || !(st.mean_daily_spread_sek_kwh > 0);
+    });
+    if (broken.length) return `Prisunderlag saknas för ${broken.join(", ")}.`;
+    return null;
+  }
+
+  function showDataProblem(message) {
+    const old = document.getElementById("bess-data-problem");
+    if (old) old.remove();
+    if (!message) return;
+    const host = document.querySelector("main .wrap") || document.querySelector("main");
+    if (!host) return;
+    const box = document.createElement("div");
+    box.id = "bess-data-problem";
+    box.className = "banner";
+    box.setAttribute("role", "alert");
+    box.style.cssText = "border:1px solid #ef4444; background:rgba(239,68,68,0.12); color:#fecaca; padding:0.85rem 1rem; border-radius:8px; margin-bottom:1rem;";
+    box.innerHTML = `<strong>Kalkylen bygger just nu på schablonvärden, inte på elområdets priser.</strong> ${message} Siffrorna nedan är därför desamma för alla elområden och ska inte användas som underlag. Felet ligger i sajtens datauppdatering.`;
+    host.insertBefore(box, host.firstChild);
+  }
+
+  // Numbers from the data file, shown with a decimal comma.
+  function sv(value) {
+    return String(value).replace(".", ",");
   }
 
   function getZoneData() {
@@ -699,7 +736,7 @@
     const res = computeCustomSystem();
     summaryEl.innerHTML = `
       <span style="color: #38bdf8; font-weight: 700;">${c.cap_kwh} kWh</span> batteri · 
-      <span style="color: #38bdf8; font-weight: 700;">${c.p_kw} kW</span> växelriktare (${res.cRate.toFixed(2)} C) · 
+      <span style="color: #38bdf8; font-weight: 700;">${c.p_kw} kW</span> växelriktare (${res.cRate.toFixed(2).replace(".", ",")} C) · 
       <span style="color: #38bdf8; font-weight: 700;">${c.current_fuse || 16} A</span> säkring · 
       <span style="color: #38bdf8; font-weight: 700;">${c.load_kwh.toLocaleString("sv-SE")} kWh/år</span> förbrukning · 
       <span style="color: #38bdf8; font-weight: 700;">${c.pv_kwp} kWp</span> solceller · 
@@ -805,9 +842,9 @@
     const stats = zd.stats || {};
     infoBox.innerHTML = `
       <strong>Valt elområde: ${zd.name}</strong> · 
-      Snittspot: <strong>${(stats.mean_spot_sek_kwh * 100).toFixed(1)} öre/kWh</strong> · 
-      Snitt-dygnsspread: <strong>${(stats.mean_daily_spread_sek_kwh * 100).toFixed(1)} öre/kWh</strong> · 
-      Värde av lagrad solel: <strong>${stats.solar_avoided_cost_sek_kwh ? stats.solar_avoided_cost_sek_kwh.toFixed(2) : "1,65"} kr/kWh</strong> · 
+      Snittspot: <strong>${(stats.mean_spot_sek_kwh * 100).toFixed(1).replace(".", ",")} öre/kWh</strong> · 
+      Snitt-dygnsspread: <strong>${(stats.mean_daily_spread_sek_kwh * 100).toFixed(1).replace(".", ",")} öre/kWh</strong> · 
+      Värde av lagrad solel: <strong>${stats.solar_avoided_cost_sek_kwh ? stats.solar_avoided_cost_sek_kwh.toFixed(2).replace(".", ",") : "1,65"} kr/kWh</strong> · 
       Arbitragekapacitet: <strong>${fmtKr(stats.arbitrage_yield_sek_per_kwh)}/kWh/år</strong>
     `;
   }
@@ -820,7 +857,7 @@
     const capLabel = document.getElementById("bess-cap-val");
     if (capLabel) capLabel.textContent = `${c.cap_kwh} kWh`;
     const capHint = document.getElementById("bess-cap-hint");
-    if (capHint) capHint.textContent = `Användbar kapacitet (90 % DoD): ${res.usableKwh.toFixed(1)} kWh`;
+    if (capHint) capHint.textContent = `Användbar kapacitet (90 % DoD): ${res.usableKwh.toFixed(1).replace(".", ",")} kWh`;
 
     const pLabel = document.getElementById("bess-p-val");
     if (pLabel) pLabel.textContent = `${c.p_kw} kW`;
@@ -842,15 +879,15 @@
       let msg = "";
       let color = "var(--faint)";
       if (c.p_kw < 3) {
-        msg = `C-tal: ${res.cRate.toFixed(2)} C ⚠️ Under 3 kW: Aggregatorer kräver normalt minst 3 kW för att delta i stödtjänster. ${fuseMsg}`;
+        msg = `C-tal: ${res.cRate.toFixed(2).replace(".", ",")} C ⚠️ Under 3 kW: Aggregatorer kräver normalt minst 3 kW för att delta i stödtjänster. ${fuseMsg}`;
         color = "#f87171";
       } else if (res.cRate > 1.2) {
         const minDuration = Math.round(60 / res.cRate);
-        msg = `C-tal: ${res.cRate.toFixed(2)} C ⚡ Tömning på ca ${minDuration} min. ${fuseMsg}`;
+        msg = `C-tal: ${res.cRate.toFixed(2).replace(".", ",")} C ⚡ Tömning på ca ${minDuration} min. ${fuseMsg}`;
         color = "#facc15";
       } else {
-        const enduranceH = (1 / res.cRate).toFixed(1);
-        msg = `C-tal: ${res.cRate.toFixed(2)} C ✅ Ca ${enduranceH} h uthållighet vid maxeffekt (godkänd för SvK:s 20-min krav). ${fuseMsg}`;
+        const enduranceH = (1 / res.cRate).toFixed(1).replace(".", ",");
+        msg = `C-tal: ${res.cRate.toFixed(2).replace(".", ",")} C ✅ Ca ${enduranceH} h uthållighet vid maxeffekt (godkänd för SvK:s 20-min krav). ${fuseMsg}`;
         color = "var(--faint)";
       }
       cRateHint.textContent = msg;
@@ -953,7 +990,7 @@
             <td>${fmtKr(cf.arbitrage_profit)}</td>
             <td>${fmtKr(cf.ancillary_revenue)}</td>
             <td><strong>${fmtKr(cf.total_revenue)}</strong></td>
-            <td>${(cf.capacity_retention * 100).toFixed(1)} %</td>
+            <td>${(cf.capacity_retention * 100).toFixed(1).replace(".", ",")} %</td>
             <td style="color: ${cumColor}; font-weight: 600;">${fmtKr(cf.cumulative_cash_flow)}</td>
           </tr>
         `;
@@ -989,7 +1026,7 @@
           <strong style="color: #38bdf8;">Anpassad anläggning</strong><br>
           <small style="color: var(--muted);">${c.pv_kwp} kWp sol · ${c.load_kwh} kWh förbrukning</small>
         </td>
-        <td>${c.cap_kwh} kWh<br><small style="color: var(--muted);">${c.p_kw} kW (${customRes.cRate.toFixed(2)} C)</small></td>
+        <td>${c.cap_kwh} kWh<br><small style="color: var(--muted);">${c.p_kw} kW (${customRes.cRate.toFixed(2).replace(".", ",")} C)</small></td>
         <td>${fmtKr(c.gross_price)}</td>
         <td>
           <strong>${fmtKr(customRes.netPrice)}</strong>
@@ -1027,7 +1064,7 @@
             <strong>${o.name}</strong><br>
             <small style="color: var(--muted);">${o.hardware}</small>
           </td>
-          <td>${o.capacity_kwh} kWh<br><small style="color: var(--muted);">${o.battery_max_power_kw} kW (${o.c_rate} C)</small></td>
+          <td>${sv(o.capacity_kwh)} kWh<br><small style="color: var(--muted);">${sv(o.battery_max_power_kw)} kW (${sv(o.c_rate)} C)</small></td>
           <td>${fmtKr(o.gross_price)}</td>
           <td>
             <strong>${fmtKr(net)}</strong>
@@ -1082,7 +1119,7 @@
           <td>${fmtKr(cf.arbitrage_profit)}</td>
           <td>${fmtKr(cf.ancillary_revenue)}</td>
           <td><strong>${fmtKr(cf.total_revenue)}</strong></td>
-          <td>${(cf.capacity_retention * 100).toFixed(1)} %</td>
+          <td>${(cf.capacity_retention * 100).toFixed(1).replace(".", ",")} %</td>
           <td style="color: ${cumColor}; font-weight: 600;">${fmtKr(cf.cumulative_cash_flow)}</td>
         </tr>
       `;
@@ -1125,7 +1162,7 @@
 
         <div style="background: rgba(255, 255, 255, 0.03); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9em;">
           <strong>Tekniska villkor & Inlåsning:</strong><br>
-          • <strong>Växelriktare / C-tal:</strong> ${offer.inverter_kw} kW märkeffekt, men batteriets maxeffekt är ${offer.battery_max_power_kw} kW (${offer.c_rate} C).<br>
+          • <strong>Växelriktare / C-tal:</strong> ${offer.inverter_kw} kW märkeffekt, men batteriets maxeffekt är ${sv(offer.battery_max_power_kw)} kW (${sv(offer.c_rate)} C).<br>
           • <strong>Garanti:</strong> ${offer.warranty_years} år${offer.warranty_cycles ? ` eller ${offer.warranty_cycles} cykler` : ""}.<br>
           • <strong>Inlåsning:</strong> ${offer.lock_in_desc}<br>
           • <strong>Ö-drift & Utomhus:</strong> Ö-drift: ${offer.islanding === "yes" ? "Integrerad" : offer.islanding === "option" ? "Tillval mot kostnad" : "Kräver extern brytare"}. Utomhusplacering: ${offer.outdoor_placement ? "Ja (IP65/IP66)" : "Nej (kräver frostfritt)"}.
@@ -1329,7 +1366,7 @@
       }
 
       const spreadStr = yData.mean_daily_spread_sek_kwh 
-        ? `${(yData.mean_daily_spread_sek_kwh * 100).toFixed(1)} öre`
+        ? `${(yData.mean_daily_spread_sek_kwh * 100).toFixed(1).replace(".", ",")} öre`
         : "—";
       const negHoursStr = (yData.neg_hours !== undefined) ? `${yData.neg_hours} h` : "—";
 
@@ -1337,7 +1374,7 @@
         <tr ${yNum === 2022 ? 'style="background: rgba(250, 204, 21, 0.08);"' : (yNum <= 2020 ? 'style="opacity: 0.85;"' : '')}>
           <td><strong>${year}</strong></td>
           <td>${eraBadge}</td>
-          <td>${(yData.mean_spot_sek_kwh * 100).toFixed(1)} öre/kWh</td>
+          <td>${(yData.mean_spot_sek_kwh * 100).toFixed(1).replace(".", ",")} öre/kWh</td>
           <td style="color: #38bdf8; font-weight: 600;">${spreadStr}</td>
           <td>${negHoursStr}</td>
           <td>${fmtKr(prim.solar)}</td>
@@ -1375,15 +1412,15 @@
 
     const classicM = calcEraMetrics(classicYears);
     const modernM = calcEraMetrics(modernYears);
-    const mult = classicM.meanTot > 0 ? (modernM.meanTot / classicM.meanTot).toFixed(1) : "—";
+    const mult = classicM.meanTot > 0 ? (modernM.meanTot / classicM.meanTot).toFixed(1).replace(".", ",") : "—";
 
     let summaryBlock = `
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
         <div style="background: rgba(148, 163, 184, 0.05); border: 1px solid var(--border); border-radius: 8px; padding: 1rem;">
           <div style="font-weight: 600; color: #94a3b8; font-size: 0.95em; margin-bottom: 0.5rem;">Gamla eran (2015–2020) Snitt för ${primarySample.shortName}:</div>
           <div style="font-size: 0.88em; color: var(--muted); line-height: 1.6;">
-            • Snittspot: <strong>${(classicM.meanSpot * 100).toFixed(1)} öre/kWh</strong><br>
-            • Dygnsspread: <strong>${(classicM.meanSpread * 100).toFixed(1)} öre/kWh</strong><br>
+            • Snittspot: <strong>${(classicM.meanSpot * 100).toFixed(1).replace(".", ",")} öre/kWh</strong><br>
+            • Dygnsspread: <strong>${(classicM.meanSpread * 100).toFixed(1).replace(".", ",")} öre/kWh</strong><br>
             • Spotarbitrage: <strong>${fmtKr(classicM.meanArb)}/år</strong><br>
             • Totalt årsvärde: <strong>${fmtKr(classicM.meanTot)}/år</strong><br>
             • Slutsats: <em>För låg volatilitet. Batteri olönsamt (payback &gt;40 år).</em>
@@ -1393,8 +1430,8 @@
         <div style="background: rgba(56, 189, 248, 0.06); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem;">
           <div style="font-weight: 600; color: #38bdf8; font-size: 0.95em; margin-bottom: 0.5rem;">Moderna eran (2022–2026) Snitt för ${primarySample.shortName}:</div>
           <div style="font-size: 0.88em; color: var(--text); line-height: 1.6;">
-            • Snittspot: <strong>${(modernM.meanSpot * 100).toFixed(1)} öre/kWh</strong><br>
-            • Dygnsspread: <strong>${(modernM.meanSpread * 100).toFixed(1)} öre/kWh</strong><br>
+            • Snittspot: <strong>${(modernM.meanSpot * 100).toFixed(1).replace(".", ",")} öre/kWh</strong><br>
+            • Dygnsspread: <strong>${(modernM.meanSpread * 100).toFixed(1).replace(".", ",")} öre/kWh</strong><br>
             • Spotarbitrage: <strong>${fmtKr(modernM.meanArb)}/år</strong><br>
             • Totalt årsvärde: <strong>${fmtKr(modernM.meanTot)}/år</strong><br>
             • Slutsats: <em>${mult}× högre årsvärde i moderna eran! Batteri når 4–7 års återbetalningstid.</em>

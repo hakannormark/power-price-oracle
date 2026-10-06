@@ -350,13 +350,20 @@ def reservoir_bullet(state: dict | None) -> str | None:
     anomaly = state.get("week_anomaly")
     if fill is None:
         return None
+    # The reading is weekly and arrives late; say which week it is, so a stale
+    # one cannot pass for the present.
+    when = ""
+    try:
+        when = f" (mätvecka från {parse_iso(state['ts']).date().isoformat()})"
+    except (KeyError, TypeError, ValueError):
+        pass
     if anomaly is None:
-        return f"Vattenmagasinen är fyllda till {sv_num(100 * fill, 0)} %."
+        return f"Vattenmagasinen var fyllda till {sv_num(100 * fill, 0)} %{when}."
     direction = "under" if anomaly < 0 else "över"
     return (
-        f"Vattenmagasinen är fyllda till {sv_num(100 * fill, 0)} %, "
+        f"Vattenmagasinen var fyllda till {sv_num(100 * fill, 0)} %, "
         f"{sv_num(abs(100 * anomaly), 0)} procentenheter {direction} det normala för "
-        "årstiden."
+        f"årstiden{when}."
     )
 
 
@@ -461,6 +468,15 @@ def global_blurb(drivers: dict[str, dict], degraded: bool) -> str:
         )
     if any(regime == "cold_tight" for regime in regimes.values()):
         return "Kylan driver förbrukningen uppåt och lyfter prisnivån i hela landet."
+    # An outage regime used to fall through to "Lugnt läge" below, so the page
+    # could call the system calm above a box saying three reactors were out.
+    tight = [zone for zone, regime in regimes.items() if regime == "outage_tight"]
+    if tight:
+        lead = next((z for z in ("SE3", "SE4", "SE2", "SE1") if z in tight), tight[0])
+        headline = (drivers.get(lead) or {}).get("headline_sv")
+        if headline:
+            return headline
+        return f"Bortfall i produktion eller överföring stramar åt {', '.join(sorted(tight))}."
     if all(regime == "windy_cheap" for regime in regimes.values()):
         return "Det blåser i hela landet kommande dygn, vilket pressar priserna i alla fyra elområden."
     if any(regime == "windy_cheap" for regime in regimes.values()):

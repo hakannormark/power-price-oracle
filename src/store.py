@@ -223,25 +223,43 @@ def upsert_reservoirs(rows: Iterable[dict[str, Any]]) -> int:
 
 # ---------------------------------------------------------------- forecasts
 #
-# Partitioned one file per ISO week of issue, in Stockholm time. A single log
-# grew 0.8 MiB a run and would have passed GitHub's 100 MiB push limit about a
-# month after launch, and the old size-triggered rotation could not help: it
-# only moved rows older than 180 days. A week stays near 20 MiB however long the
-# site runs, and a run only ever appends to the current one.
+# Partitioned one file per day of issue, in Stockholm time. Git stores a new
+# copy of a file every time it changes, so what a run costs the repository is
+# the size of the file it appends to, not the size of what it appends. The log
+# was first one file (0.8 MiB a run, heading for GitHub's 100 MiB push limit),
+# then one file per ISO week; with ten models a week reached 61 MiB and every
+# run rewrote all of it. A day holds four runs and stays near 5 MiB.
+#
+# Weekly files written before 2026-10-06 are left as they are and still read.
+
+
+def _forecast_day_path(issued: datetime) -> Path:
+    return FORECASTS_DIR / f"{to_local(issued).date().isoformat()}.jsonl"
 
 
 def _forecast_week_path(issued: datetime) -> Path:
+    """Where rows from the single legacy log are migrated to. New rows go per day."""
     year, week, _ = to_local(issued).isocalendar()
     return FORECASTS_DIR / f"{year}-W{week:02d}.jsonl"
 
 
-def _forecast_week_start(path: Path) -> datetime | None:
-    year, _, week = path.stem.partition("-W")
+def _forecast_file_span(path: Path) -> tuple[datetime, int] | None:
+    """(first instant, days covered) of a log file's issue times, from its name."""
+    stem = path.stem
     try:
-        day = date.fromisocalendar(int(year), int(week), 1)
+        if "-W" in stem:
+            year, _, week = stem.partition("-W")
+            day, days = date.fromisocalendar(int(year), int(week), 1), 7
+        else:
+            day, days = date.fromisoformat(stem), 1
     except ValueError:
         return None
-    return datetime(day.year, day.month, day.day, tzinfo=TZ)
+    return datetime(day.year, day.month, day.day, tzinfo=TZ), days
+
+
+def _forecast_week_start(path: Path) -> datetime | None:
+    span = _forecast_file_span(path)
+    return span[0] if span else None
 
 
 def _forecast_key(row: dict[str, Any]) -> tuple:
@@ -274,12 +292,12 @@ def load_forecasts(since=None) -> list[dict[str, Any]]:
         return []
     rows = []
     for path in sorted(FORECASTS_DIR.glob("*.jsonl")):
-        week_start = _forecast_week_start(path)
-        # Nothing issued in a week targets an hour beyond its end plus the horizon.
+        span = _forecast_file_span(path)
+        # Nothing issued in a file targets an hour beyond its end plus the horizon.
         if (
             since is not None
-            and week_start is not None
-            and week_start + timedelta(days=7, hours=HORIZON_HOURS) < since
+            and span is not None
+            and span[0] + timedelta(days=span[1], hours=HORIZON_HOURS) < since
         ):
             continue
         for row in read_jsonl(path):
@@ -290,11 +308,11 @@ def load_forecasts(since=None) -> list[dict[str, Any]]:
 
 
 def append_forecasts(rows: Iterable[dict[str, Any]]) -> int:
-    """Append issued forecasts to their week's file. Existing rows are never rewritten."""
+    """Append issued forecasts to their day's file. Existing rows are never rewritten."""
     _migrate_legacy_forecasts()
     grouped: dict[Path, list[dict[str, Any]]] = {}
     for row in rows:
-        grouped.setdefault(_forecast_week_path(parse_iso(row["issued_at"])), []).append(row)
+        grouped.setdefault(_forecast_day_path(parse_iso(row["issued_at"])), []).append(row)
     return sum(append_jsonl(path, part) for path, part in grouped.items())
 
 

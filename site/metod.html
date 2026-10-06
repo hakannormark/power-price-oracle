@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=20261004g">
+<link rel="stylesheet" href="assets/style.css?v=20261006c">
 </head>
 <body data-page="static">
 
@@ -105,7 +105,7 @@
           heller ingen förbättring — se nedan.</dd>
       </dl>
 
-      <h2>Vad v1 faktiskt gör</h2>
+      <h2>Vad sajten faktiskt gör</h2>
       <ol>
         <li>Hämtar officiella day-ahead-priser från ENTSO-E och sparar dem som fakta. Svarar
           ENTSO-E inte hämtas samma priser från elprisetjustnu.se.</li>
@@ -116,13 +116,16 @@
         <li>Sätter en grundnivå: priset samma veckodag och timme förra veckan, vägt
           70/30 mot medianen för samma timme de fyra senaste veckorna.</li>
         <li>Skalar den nivån med vädret enligt en formel med fasta vikter per elområde.</li>
-        <li>Sparar varje modells prognos med tidsstämpel. Standardmodellen är den
-          som mätt sig bäst, inte en sammanvägning — varje blandning testades och
-          blev sämre.</li>
+        <li>Kör dessutom två trädmodeller (LightGBM) som lär sig avvikelsen från den
+          nivån ur fyra års priser och väder, och en <i>horisonthybrid</i> som använder
+          trädmodellen ensam de första 36 timmarna och sedan blandar den med en
+          marknadsjusterad nivå. Hybriden är standardmodell sedan 2 oktober 2026 — se
+          <i>Standardmodellen sedan oktober 2026</i> nedan.</li>
+        <li>Sparar varje modells prognos med tidsstämpel.</li>
         <li>Jämför senare mot utfallet, sorterat efter hur långt i förväg prognosen gjordes.</li>
         <li>Hämtar terminsmarknadens priser från Euronext Nord Pool. De används av
           långtidsprognosen och av en provmodell som flyttar standardmodellens nivå till
-          marknadens pris för nästa vecka — se <i>Vad v1 inte gör</i> nedan.</li>
+          marknadens pris för nästa vecka — se <i>Vad sajten inte gör</i> nedan.</li>
       </ol>
       <p>Skalfaktorn i <code>weather_scaled</code> är avsiktligt enkel och läsbar:
         vindindex över det normala drar ner priset, kyla drar upp det, sol mitt på dagen
@@ -131,6 +134,36 @@
         när skalfaktorn avviker mycket från 1, alltså när vädret säger något ovanligt.
         Finns ENTSO-E:s publicerade prognoser för last och vindkraft används residuallasten
         i stället för rå vindhastighet.</p>
+
+      <h2>Standardmodellen sedan oktober 2026</h2>
+      <p>Trädmodellen <code>lightgbm_v2</code> är det största enskilda lyftet hittills: på
+        riktiga utfärdade prognoser är felet dygn 1–2 ungefär hälften av de väderskalade
+        modellernas. Den blev därför grund för standardmodellen, <code>horizon_hybrid</code>.</p>
+      <p>Tre saker ska du veta om den:</p>
+      <ul>
+        <li><b>Den är väl belagd på kort sikt, inte på lång.</b> Den gjordes till standard
+          fem dagar efter att trädmodellen började loggas. För dygn 3–7 fanns då nästan inget
+          underlag, och blandningens vikter (60 % trädmodell, 40 % marknadsnivå) är satta för
+          hand. Hittills har blandningen varit sämre än trädmodellen ensam bortom dygn 2.</li>
+        <li><b>Trädmodellen är tränad på vädret som det blev</b>, inte på väderprognoser, och
+          den har inte tränats om sedan 27 september 2026. Skarpt får den en prognos som
+          blir sämre för varje dygn, vilket den aldrig har sett. Det syns i att bandet är för
+          smalt och nivån ofta fel dygn 4–7.</li>
+        <li><b>Den byts bara mot något bättre enligt en fast regel:</b> minst 21 gemensamma
+          leveransdygn, säkert bättre totalt och inte säkert sämre på någon horisont.
+          Jämförelsen finns på <a href="traffsakerhet.html">träffsäkerhetssidan</a>, där
+          osäkerheten räknas per leveransdygn.</li>
+      </ul>
+      <p>En efterföljare, <code>lightgbm_v3</code>, loggas som kandidat. Den är tränad på
+        arkiverade väderprognoser med rätt framförhållning, har framförhållningen som egen
+        variabel, läser tyskt och danskt väder, gaspris och utsläppsrätter, och tränas om varje
+        vecka. Den testas innan den används: modellen tränas om före var och en av de sex
+        senaste månaderna och poängsätts på den månaden.</p>
+      <p>Ett resultat av det testet ska sägas rakt ut. Att träna på väderprognoser av rätt
+        ålder, i stället för på det färskaste vädret, gav <b>ingen mätbar vinst</b> — de två
+        varianterna hamnade inom ett par procent från varandra. Det som skiljer kandidaten från
+        föregångaren är alltså de övriga ändringarna, och om de räcker avgörs på skarpa
+        prognoser, inte i testet. Den blir inte standard förrän regeln ovan är uppfylld.</p>
 
       <h2>Vad som faktiskt är mätt</h2>
       <p>Sedan hösten 2026 finns fyra års prishistorik, fyra års väderarkiv och
@@ -353,7 +386,7 @@
         <a href="traffsakerhet.html">träffsäkerhetssidan</a>, som mäter utfärdade
         prognoser mot verkliga utfall, med riktiga väderprognoser.</p>
 
-      <h2>Vad v1 inte gör</h2>
+      <h2>Vad sajten inte gör</h2>
       <ul>
         <li>Ingen marknadskoppling. Ingen Euphemia, inga budkurvor, ingen simulering av
           överföringsbegränsningar mellan elområdena.</li>
@@ -474,6 +507,6 @@
   </div>
 </footer>
 
-<script src="assets/app.js" defer></script>
+<script src="assets/app.js?v=20261006c" defer></script>
 </body>
 </html>

@@ -15,6 +15,7 @@ import sys
 from datetime import timedelta
 
 from .config import (
+    API_DIR,
     EVAL_WINDOW_DAYS,
     FIXTURE_ACTUALS_PATH,
     HORIZON_HOURS,
@@ -44,10 +45,12 @@ from .models.registry import (
     BASE_MODELS,
     DEFAULT_MODEL_ID,
     DERIVED_MODELS,
+    MODEL_DEFINED_SINCE,
     REFERENCE_MODEL_ID,
     model_ids,
 )
 from .publish import api as publish_api
+from .schedule import is_due, last_run_from_status
 from .publish import site_data as publish_site
 from .store import (
     append_forecasts,
@@ -74,6 +77,23 @@ def _load_demo_actuals() -> list[dict]:
     rows = list(read_jsonl(FIXTURE_ACTUALS_PATH))
     log.warning("No official prices available — falling back to %s demo rows", len(rows))
     return rows
+
+
+FALLBACK_FX_RATE = 11.3
+
+
+def fx_rate_of(fx: dict | None) -> float:
+    """EUR/SEK as a number, from the ECB record the pipeline carries around.
+
+    `fx` is {"rate": ..., "date": ..., "source": ...}. Passing the whole record
+    where a rate was expected failed the battery step in every run from
+    2026-10-04 and left those pages on built-in numbers, identical for all zones.
+    """
+    try:
+        rate = float((fx or {}).get("rate"))
+    except (TypeError, ValueError):
+        return FALLBACK_FX_RATE
+    return rate if rate > 0 else FALLBACK_FX_RATE
 
 
 def run(skip_fetch: bool = False, record: bool | None = None) -> int:
@@ -220,8 +240,19 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
     # code, and sometimes on demo prices, and every one of those rows is scored
     # as if the site had published it. Recording is therefore opt-in, and CI
     # opts in by being CI.
+    #
+    # And only the first run in a schedule slot is recorded. Scoring already
+    # keeps just that one, so every further run in the slot — a push to main, a
+    # late poll — added a megabyte of rows nothing ever read. In a week of
+    # development that took one log file to 61 MiB, against a 100 MiB push limit.
     written = 0
+    slot_taken = False
     if record:
+        previous_run = last_run_from_status(API_DIR / "status.json")
+        slot_taken = previous_run is not None and not is_due(previous_run, now)
+    if record and slot_taken:
+        log.info("Not recording forecasts — this slot already has a recorded run.")
+    elif record:
         for model_id, points in predictions.items():
             rows = [p.as_row(model_id, issued_at, run_id) for p in points]
             written += append_forecasts(rows)
@@ -232,7 +263,7 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
     # ---- 9. evaluation --------------------------------------------------
     forecasts = load_forecasts(since=now - timedelta(days=EVAL_WINDOW_DAYS + 1))
     accuracy = evaluate(
-        forecasts, actuals, model_ids(), REFERENCE_MODEL_ID, now, DEFAULT_MODEL_ID
+        forecasts, actuals, model_ids(), REFERENCE_MODEL_ID, now, DEFAULT_MODEL_ID, MODEL_DEFINED_SINCE
     )
 
     # ---- 10. drivers ----------------------------------------------------
@@ -272,24 +303,28 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
         sources["longterm"] = {"ok": False, "error": str(exc)[:200]}
 
     # ---- 10c. bess / battery valuation ---------------------------------
+    # Two independent steps. They used to share one try block, so the failure of
+    # the first also kept the second from ever running.
+    fx_rate = fx_rate_of(fx)
     try:
         from .bess import publish as bess_publish
 
-        bess_payload = bess_publish.build_bess_payload(actuals, fx_rate=fx, zone="SE4", now=now)
+        bess_payload = bess_publish.build_bess_payload(actuals, fx_rate=fx_rate, zone="SE4", now=now)
         bess_publish.write_bess(bess_payload)
         sources["bess"] = {"ok": True, "offers": len(bess_payload.get("offers", []))}
-
-        try:
-            from .geo import market as geo_market
-            geo_payload = geo_market.build_market(actuals, fx_rate=fx, now=now, fetch=True)
-            geo_market.write_market(geo_payload)
-            sources["bess_map_market"] = {"ok": True}
-        except Exception as geo_exc:  # noqa: BLE001
-            log.warning("BESS map market refresh failed: %s", geo_exc)
-            sources["bess_map_market"] = {"ok": False, "error": str(geo_exc)[:200]}
     except Exception as exc:  # noqa: BLE001
         log.exception("BESS valuation failed: %s", exc)
         sources["bess"] = {"ok": False, "error": str(exc)[:200]}
+
+    try:
+        from .geo import market as geo_market
+
+        geo_payload = geo_market.build_market(actuals, fx_rate=fx_rate, now=now, fetch=not skip_fetch)
+        geo_market.write_market(geo_payload)
+        sources["bess_map_market"] = {"ok": True}
+    except Exception as geo_exc:  # noqa: BLE001
+        log.warning("BESS map market refresh failed: %s", geo_exc)
+        sources["bess_map_market"] = {"ok": False, "error": str(geo_exc)[:200]}
 
     # ---- 11-12. publish -------------------------------------------------
     meta = {

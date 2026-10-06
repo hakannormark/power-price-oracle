@@ -180,7 +180,7 @@ def build_bess_payload(
         "questions_before_signing": [
             "Hur många ägare finns på fastigheten, och hur mycket avdragsutrymme för grön teknik återstår i år?",
             "Vilken batterimodell ingår i offerten, och vem bär garantin år 11–15?",
-            "Vilket C-tal har batteripaketet? SAJ HS3 ligger på 0,5 (alltså 7,5 kW biddbar effekt av 12 kW växelriktare).",
+            "Vilket C-tal har batteripaketet? Vid 0,5 ger ett 15 kWh-batteri bara 7,5 kW budbar effekt, även om växelriktaren klarar 12 kW.",
             "Begär prislista och historisk ersättning för stödtjänsterna (ingen leverantör lämnar fast garanti på detta).",
         ],
     }

@@ -554,6 +554,60 @@ function scoredRangeText(accuracy) {
   } dygnen; prognoserna har loggats sedan 4 september 2026, så perioden växer tills den når 90 dygn.`;
 }
 
+// A model id can outlive its definition. Say when the one behind the default
+// last changed, since its record starts over from that day.
+function definedSinceText(accuracy) {
+  const since = (accuracy.defined_since || {})[accuracy.default_model];
+  if (!since) return "";
+  return ` Standardmodellens nuvarande definition gäller sedan <b>${fmtDay(since)}</b>; prognoser den ställde ut dessförinnan var en annan modell och räknas inte.`;
+}
+
+const PROMOTION_VERDICTS = {
+  too_early: ["För tidigt", "var(--muted)"],
+  eligible: ["Uppfyller regeln", "#34d399"],
+  worse: ["Sämre än standard", "#f87171"],
+  not_shown: ["Ingen säker skillnad", "var(--muted)"],
+};
+
+function renderPromotion(accuracy) {
+  const box = el("promotion-table");
+  if (!box) return;
+  const promo = accuracy.promotion || {};
+  const rule = el("promotion-rule");
+  if (rule) {
+    rule.innerHTML = `<b>Regeln för att bli standard:</b> minst ${promo.min_days || 21} gemensamma leveransdygn, hela ${Math.round(
+      (promo.confidence || 0.9) * 100
+    )}-procentsintervallet under noll totalt, och inte säkert sämre på någon enskild horisont.`;
+  }
+  const rows = Object.entries(promo.candidates || {}).sort((x, y) => x[1].overall.diff - y[1].overall.diff);
+  if (!rows.length) {
+    box.innerHTML = '<p class="sub">Ingen jämförelse än — standardmodellen saknar poängsatta prognoser.</p>';
+    return;
+  }
+  const signed = (v) => (v === null || v === undefined ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + fmtPrice(Math.abs(v)));
+  const body = rows
+    .map(([id, c]) => {
+      const o = c.overall;
+      const [label, color] = PROMOTION_VERDICTS[c.verdict] || [c.verdict, "var(--muted)"];
+      const interval = o.lo === null || o.hi === null ? "för få dygn" : `${signed(o.lo)} till ${signed(o.hi)}`;
+      const worse = (c.worse_at || []).length ? ` · sämre på ${c.worse_at.join(", ").replace(/h/g, " h")}` : "";
+      return `<tr>
+        <td>${state.modelNames[id] || id}</td>
+        <td class="num">${o.days}</td>
+        <td class="num">${fmtPrice(o.mae)}</td>
+        <td class="num">${fmtPrice(o.mae_default)}</td>
+        <td class="num">${signed(o.diff)}</td>
+        <td class="num">${interval}</td>
+        <td><span style="color:${color}; font-weight:600;">${label}</span>${worse}</td>
+      </tr>`;
+    })
+    .join("");
+  box.innerHTML = `<div class="table-scroll"><table>
+    <thead><tr><th>Modell</th><th class="num">Leveransdygn</th><th class="num">Medelfel, ${unitLabel()}</th><th class="num">Standard, samma timmar</th>
+    <th class="num">Skillnad</th><th class="num">Intervall</th><th>Utfall</th></tr></thead>
+    <tbody>${body}</tbody></table></div>`;
+}
+
 function accuracyRows(metrics, modelId) {
   const buckets = Object.keys(metrics || {});
   return buckets.map((bucket) => ({ bucket, stats: metrics[bucket] }));
@@ -655,7 +709,8 @@ async function initAccuracy() {
   renderFooterMeta(overview);
 
   const windowNote = el("accuracy-window");
-  if (windowNote) windowNote.innerHTML = scoredRangeText(accuracy);
+  if (windowNote) windowNote.innerHTML = scoredRangeText(accuracy) + definedSinceText(accuracy);
+  renderPromotion(accuracy);
 
   const zoneSelect = el("acc-zone");
   const modelSelect = el("acc-model");
@@ -673,7 +728,10 @@ async function initAccuracy() {
   if (comparableBox) comparableBox.addEventListener("change", draw);
   zoneSelect.addEventListener("change", draw);
   modelSelect.addEventListener("change", draw);
-  bindUnitToggle(draw);
+  bindUnitToggle(() => {
+    draw();
+    renderPromotion(accuracy);
+  });
   draw();
 
   await drawHistory();

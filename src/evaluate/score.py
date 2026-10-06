@@ -89,10 +89,35 @@ def _first_run_per_slot(frame: pd.DataFrame) -> pd.DataFrame:
     return frame[frame["issued_at"] == first]
 
 
-def scored_rows(forecasts: list[dict], actuals: list[dict], now: datetime | None = None) -> pd.DataFrame:
+def _drop_earlier_definitions(frame: pd.DataFrame, defined_since: dict[str, str] | None) -> pd.DataFrame:
+    """Leave out forecasts a model issued before its current definition.
+
+    A model id is a name, and the thing behind it has changed without the name
+    changing: horizon_hybrid went from 100 % market level beyond 72 h to 60 %
+    LightGBM on 2026-10-02. Scoring both under one id credits today's model with
+    another model's record.
+    """
+    if not defined_since or frame.empty:
+        return frame
+    keep = pd.Series(True, index=frame.index)
+    for model_id, since in defined_since.items():
+        cutoff = pd.Timestamp(since).tz_convert("UTC")
+        keep &= ~((frame["model_id"] == model_id) & (frame["issued_at"] < cutoff))
+    return frame[keep]
+
+
+def scored_rows(
+    forecasts: list[dict],
+    actuals: list[dict],
+    now: datetime | None = None,
+    defined_since: dict[str, str] | None = None,
+) -> pd.DataFrame:
     """Forecast rows joined to outcomes, filtered to genuine predictions."""
     now = now or now_local()
     frame = _to_frame(forecasts)
+    if frame.empty:
+        return frame.assign(actual=[], bucket=[])
+    frame = _drop_earlier_definitions(frame, defined_since)
     if frame.empty:
         return frame.assign(actual=[], bucket=[])
 
@@ -194,6 +219,104 @@ def _add_skill(per_model: dict, frame: pd.DataFrame, reference_id: str) -> None:
                 stats["skill_vs_naive"] = r3(1.0 - mae / baseline)
 
 
+# ------------------------------------------------------------------ promotion
+#
+# The rule a model must pass before it replaces the default. Twice a model was
+# made the default on evidence that did not hold: recency_scaled on a back-test
+# that scored already-published hours, and horizon_hybrid after five days.
+PROMOTION_MIN_DAYS = 21      # delivery days shared with the default
+PROMOTION_CONFIDENCE = 0.90  # width of the interval on the difference in MAE
+_BOOTSTRAP_ROUNDS = 400
+
+
+def _day_block_interval(day_sums: pd.DataFrame) -> tuple[float, float] | None:
+    """Interval on MAE(candidate) - MAE(default), resampling whole delivery days.
+
+    Hours inside a day share weather and a price level, so they are not
+    independent observations; treating them as such makes every interval far
+    too narrow. The day is the unit that is resampled.
+    """
+    if len(day_sums) < 5:
+        return None
+    import numpy as np
+
+    rng = np.random.default_rng(0)  # fixed: the page must not flicker between runs
+    diff = day_sums["diff_sum"].to_numpy()
+    n = day_sums["n"].to_numpy()
+    picks = rng.integers(0, len(diff), size=(_BOOTSTRAP_ROUNDS, len(diff)))
+    samples = diff[picks].sum(axis=1) / n[picks].sum(axis=1)
+    tail = (1.0 - PROMOTION_CONFIDENCE) / 2.0
+    return float(np.quantile(samples, tail)), float(np.quantile(samples, 1.0 - tail))
+
+
+def promotion_table(frame: pd.DataFrame, model_ids: list[str], default_id: str) -> dict:
+    """Each model against the default, on the forecasts both issued."""
+    out: dict = {
+        "min_days": PROMOTION_MIN_DAYS,
+        "confidence": PROMOTION_CONFIDENCE,
+        "default_model": default_id,
+        "candidates": {},
+    }
+    if frame.empty or default_id not in set(frame["model_id"]):
+        return out
+    keys = ["issued_at", "zone", "ts"]
+    default = frame[frame["model_id"] == default_id][keys + ["p50"]].rename(columns={"p50": "p50_default"})
+    for model_id in model_ids:
+        if model_id == default_id:
+            continue
+        paired = frame[frame["model_id"] == model_id].merge(default, on=keys, how="inner")
+        if paired.empty:
+            continue
+        paired = paired.assign(
+            err=(paired["p50"] - paired["actual"]).abs(),
+            err_default=(paired["p50_default"] - paired["actual"]).abs(),
+            day=paired["ts"].dt.tz_convert("Europe/Stockholm").dt.date,
+        )
+        paired["diff_sum"] = paired["err"] - paired["err_default"]
+
+        def block(group: pd.DataFrame) -> dict | None:
+            if len(group) < MIN_SAMPLES_FOR_STATS:
+                return None
+            days = group.groupby("day").agg(diff_sum=("diff_sum", "sum"), n=("diff_sum", "size"))
+            interval = _day_block_interval(days)
+            return {
+                "n": int(len(group)),
+                "days": int(len(days)),
+                "mae": r3(group["err"].mean()),
+                "mae_default": r3(group["err_default"].mean()),
+                "diff": r3(group["diff_sum"].mean()),
+                "lo": r3(interval[0]) if interval else None,
+                "hi": r3(interval[1]) if interval else None,
+            }
+
+        overall = block(paired)
+        if overall is None:
+            continue
+        buckets = {}
+        for bucket in BUCKET_LABELS:
+            stats = block(paired[paired["bucket"] == bucket])
+            if stats:
+                buckets[bucket] = stats
+
+        # Better overall with the whole interval below zero, on enough days, and
+        # not reliably worse at any single horizon.
+        enough = overall["days"] >= PROMOTION_MIN_DAYS
+        better = overall["hi"] is not None and overall["hi"] < 0
+        worse_somewhere = [b for b, st in buckets.items() if st["lo"] is not None and st["lo"] > 0]
+        if not enough:
+            verdict = "too_early"
+        elif better and not worse_somewhere:
+            verdict = "eligible"
+        elif overall["lo"] is not None and overall["lo"] > 0:
+            verdict = "worse"
+        else:
+            verdict = "not_shown"
+        out["candidates"][model_id] = {
+            "overall": overall, "buckets": buckets, "verdict": verdict, "worse_at": worse_somewhere,
+        }
+    return out
+
+
 def evaluate(
     forecasts: list[dict],
     actuals: list[dict],
@@ -201,10 +324,11 @@ def evaluate(
     reference_id: str = "seasonal_naive",
     now: datetime | None = None,
     default_id: str = "ensemble",
+    defined_since: dict[str, str] | None = None,
 ) -> dict:
     """Full accuracy payload: per zone, overall, plus the compact MAE table."""
     now = now or now_local()
-    frame = scored_rows(forecasts, actuals, now)
+    frame = scored_rows(forecasts, actuals, now, defined_since)
 
     zones: dict[str, dict] = {}
     for zone in ZONES:
@@ -248,6 +372,8 @@ def evaluate(
         "overall": overall,
     }
     payload["table"] = table
+    payload["defined_since"] = dict(defined_since or {})
+    payload["promotion"] = promotion_table(frame, model_ids, default_id)
     payload["comparable"] = {
         "hours": 0 if fair.empty else int(fair.groupby(["zone", "ts"]).ngroups),
         "table": fair_table,

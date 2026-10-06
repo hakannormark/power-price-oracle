@@ -31,9 +31,11 @@ class LightGbmV2:
     id = "lightgbm_v2"
     name_sv = "Residual-LightGBM"
     description_sv = (
-        "Kvantilregression tränad på prisavvikelsen från dämpad basnivå med explicit "
-        "horisontfaktor. Förenar LightGBM:s dygnsform och väderprecision med stabil "
-        "prisnivå på längre sikt, vilket eliminerar nivåbiasen på dag 4–7."
+        "Kvantilregression tränad på prisavvikelsen från den dämpade basnivån. Halverar "
+        "ungefär felet dygn 1–2 mot de väderskalade modellerna. Tränad en gång, den "
+        "27 september 2026, på väderarkiv – alltså på vädret som det blev, inte på "
+        "väderprognoser – och horisonten finns bara som två lägen i träningen. På dygn "
+        "4–7 ligger den därför ofta fel i nivå och bandet är för smalt."
     )
     quantiles = True
     derived = False

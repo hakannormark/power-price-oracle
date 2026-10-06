@@ -1,15 +1,14 @@
-"""horizon_hybrid: Seamless horizon-dependent blending of short-term and long-term specialists.
+"""horizon_hybrid: horizon-dependent blend of a short-term and a level model.
 
-Empirical measurement over real out-of-sample delivery hours demonstrated:
-- On hours 0-36 (days 1-2): Gradient Boosting (LightGBM) outperforms all other
-  models by 33-53 % with a correlation of 0.85+.
-- On hours 72-168 (days 4-7): The damped / market-scaled level provides the most
-  stable, robust long-term baseline.
+- h <= 36:      100 % LightGBM (lightgbm_v2, else lightgbm_v1)
+- 36 < h < 72:  linear ramp
+- h >= 72:      60 % LightGBM, 40 % market_scaled (else shrunk_scaled)
 
-horizon_hybrid bridges the two with a smooth transition:
-- h <= 36: 100 % LightGBM
-- 36 < h < 72: Linear ramp between LightGBM and ShrunkScaled / MarketScaled
-- h >= 72: 100 % ShrunkScaled / MarketScaled
+Until 2026-10-02 the long end was 100 % market level. The weight was then set
+to 60/40 by hand. On the hours every horizon forecast, the blend has so far
+been worse than lightgbm_v2 alone beyond day 2; see registry.py for why it is
+still the default and what would change that. registry.MODEL_DEFINED_SINCE
+keeps the two definitions from being scored as one.
 """
 
 from __future__ import annotations
@@ -33,9 +32,10 @@ class HorizonHybrid:
     id = "horizon_hybrid"
     name_sv = "Horisonthybrid"
     description_sv = (
-        "Kombinerar LightGBM:s överlägsna precision på kort sikt (0–36 h) med en balanserad "
-        "blandning (60/40) av LightGBM och marknadsjusterad basnivå på längre horisonter (48–168 h). "
-        "Sajtens standardmodell sedan oktober 2026."
+        "LightGBM ensam de första 36 timmarna, därefter en gradvis övergång till en "
+        "blandning av 60 % LightGBM och 40 % marknadsjusterad basnivå från 72 timmar. "
+        "Sajtens standardmodell sedan 2 oktober 2026. Dygn 1–2 är väl belagda; för dygn "
+        "3–7 är underlaget ännu tunt och blandningens vikter är satta för hand."
     )
     quantiles = True
     derived = True

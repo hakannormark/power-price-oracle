@@ -166,6 +166,23 @@ a:hover { text-decoration: underline; }
   font-size: 0.95rem;
 }
 
+/* Three tabs do not fit a phone next to the brand; without this every page was
+   32 px wider than the screen and scrolled sideways. */
+@media (max-width: 640px) {
+  .portal-nav {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .portal-nav::-webkit-scrollbar { display: none; }
+  .portal-tab {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  .portal-tab-icon { display: none; }
+}
+
 .site-nav {
   display: flex;
   gap: 4px;

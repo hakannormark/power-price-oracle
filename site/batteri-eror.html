@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=20261004g">
+<link rel="stylesheet" href="assets/style.css?v=20261006c">
 <style>
   .zone-pills {
     display: flex;
@@ -223,12 +223,12 @@
           </label>
           <select class="field" id="bess-backtest-offer" style="width: 100%;">
             <option value="custom" selected>⭐ Ditt val: Egen anläggning (från kalkylatorn)</option>
-            <option value="solis_dyness_15">Solis S6 & Dyness (15 kWh / 10 kW)</option>
-            <option value="sigenergy_18">Sigenergy SigenStor (18 kWh / 12 kW)</option>
-            <option value="svea_solar_10">Svea Solar Home (10 kWh / 10 kW)</option>
-            <option value="greenely_polarium_13_8">Greenely & Polarium (13,8 kWh / 8 kW)</option>
-            <option value="elteknik_saj_15">Elteknik & SAJ (15 kWh / 10 kW)</option>
-            <option value="evify_saj_15">Evify & SAJ (15 kWh / 10 kW)</option>
+            <option value="solis_dyness_15">Typfall A (15 kWh / 10 kW, fritt aggregatorval)</option>
+            <option value="sigenergy_18">Typfall B (18 kWh / 12 kW, allt-i-ett)</option>
+            <option value="svea_solar_10">Typfall C (10 kWh / 10 kW, bundet elavtal)</option>
+            <option value="greenely_polarium_13_8">Typfall D (13,8 kWh / 8 kW, bindningstid)</option>
+            <option value="elteknik_saj_15">Typfall E (15 kWh / 10 kW, lågt C-tal)</option>
+            <option value="evify_saj_15">Typfall F (15 kWh / 10 kW, lågt C-tal)</option>
           </select>
         </div>
 
@@ -237,13 +237,13 @@
             Jämför mot referenssystem:
           </label>
           <select class="field" id="bess-backtest-compare" style="width: 100%;">
-            <option value="solis_dyness_15" selected>Solis S6 & Dyness (15 kWh / 10 kW)</option>
-            <option value="sigenergy_18">Sigenergy SigenStor (18 kWh / 12 kW)</option>
+            <option value="solis_dyness_15" selected>Typfall A (15 kWh / 10 kW, fritt aggregatorval)</option>
+            <option value="sigenergy_18">Typfall B (18 kWh / 12 kW, allt-i-ett)</option>
             <option value="custom">Ditt val: Egen anläggning</option>
-            <option value="svea_solar_10">Svea Solar Home (10 kWh / 10 kW)</option>
-            <option value="greenely_polarium_13_8">Greenely & Polarium (13,8 kWh / 8 kW)</option>
-            <option value="elteknik_saj_15">Elteknik & SAJ (15 kWh / 10 kW)</option>
-            <option value="evify_saj_15">Evify & SAJ (15 kWh / 10 kW)</option>
+            <option value="svea_solar_10">Typfall C (10 kWh / 10 kW, bundet elavtal)</option>
+            <option value="greenely_polarium_13_8">Typfall D (13,8 kWh / 8 kW, bindningstid)</option>
+            <option value="elteknik_saj_15">Typfall E (15 kWh / 10 kW, lågt C-tal)</option>
+            <option value="evify_saj_15">Typfall F (15 kWh / 10 kW, lågt C-tal)</option>
             <option value="none">Ingen jämförelse (Visa enbart valt system)</option>
           </select>
         </div>
@@ -345,6 +345,6 @@
   </div>
 </main>
 
-<script src="assets/bess.js?v=20261004g"></script>
+<script src="assets/bess.js?v=20261006c"></script>
 </body>
 </html>

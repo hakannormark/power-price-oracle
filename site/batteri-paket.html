@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leverantörspaket & Offertjämförelse — Batterikalkyl & BESS</title>
-<meta name="description" content="Sida-vid-sida-jämförelse av 6 kommersiella hembatteripaket (Solis, Sigenergy, Svea Solar, Greenely, Elteknik, Evify). Simulering av årsvärde, C-tal, inlåsning och 15-årigt kassaflöde.">
+<title>Typfall & Offertjämförelse — Batterikalkyl & BESS</title>
+<meta name="description" content="Sida-vid-sida-jämförelse av sex typfall av hembatteripaket. Simulering av årsvärde, C-tal, inlåsning och 15-årigt kassaflöde.">
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=20261004g">
+<link rel="stylesheet" href="assets/style.css?v=20261006c">
 <style>
   .zone-pills {
     display: flex;
@@ -85,8 +85,8 @@
   <div class="wrap stack" id="bess-app">
 
     <div class="page-head">
-      <h1>Leverantörspaket & Offertjämförelse</h1>
-      <p class="lede">Sida-vid-sida-jämförelse av sex vanliga kommersiella hårdvaru- och leverantörskonfigurationer på svenska marknaden. Simulerade mot det valda elområdets faktiska spotpriser, dygnsspreadar och solförhållanden.</p>
+      <h1>Typfall & Offertjämförelse</h1>
+      <p class="lede">Sida-vid-sida-jämförelse av sex typfall: vanliga upplägg på den svenska marknaden, utan leverantörsnamn. Pris och villkor är exempel och ska ersättas med din egen offert. Simulerade mot det valda elområdets faktiska spotpriser, dygnsspreadar och solförhållanden.</p>
     </div>
 
     <!-- Val av Elprisområde -->
@@ -117,7 +117,7 @@
             Laddar anläggningskonfiguration…
           </div>
           <div style="font-size: 0.85em; color: var(--muted); margin-top: 0.25rem;">
-            Dina inställningar visas som referensrad ("Ditt val") i tabellen så att du kan jämföra kommersiella paket direkt mot din egen anpassade anläggning.
+            Dina inställningar visas som referensrad ("Ditt val") i tabellen så att du kan jämföra typfallen direkt mot din egen anpassade anläggning.
           </div>
         </div>
         <a href="batteri.html" class="btn btn-secondary" style="font-size: 0.85em; padding: 0.5rem 1rem; white-space: nowrap; text-decoration: none;">
@@ -176,9 +176,9 @@
     <!-- Sida vid sida offerttabell för färdiga paket -->
     <section class="card">
       <div class="section-title">
-        <h2>2. Sida-vid-sida-jämförelse av leverantörsspår</h2>
+        <h2>2. Sida-vid-sida-jämförelse av typfall</h2>
       </div>
-      <p class="sub">Jämförelse av sex kommersiella paket simulerade för det valda elområdet. Ändra förutsättningar nedan för att se direkt hur skattereduktion och kassaflöden förändras.</p>
+      <p class="sub">Jämförelse av sex typfall simulerade för det valda elområdet. Ändra förutsättningar nedan för att se direkt hur skattereduktion och kassaflöden förändras.</p>
 
       <!-- Filterkontroller för offerttabellen -->
       <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: flex-end;">
@@ -213,7 +213,7 @@
           <thead>
             <tr>
               <th>Rank</th>
-              <th>Leverantör & Hårdvara</th>
+              <th>Typfall &amp; hårdvara</th>
               <th>Kapacitet (Effekt / C-tal)</th>
               <th>Bruttopris</th>
               <th>Nettopris</th>
@@ -246,7 +246,7 @@
 
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
           <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">2. Vad är batteriets verkliga C-tal?</h3>
-          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Låt dig inte luras av att växelriktaren har 10–12 kW effekt. Ett batteripaket med C-tal 0,5 (t.ex. SAJ HS3 15 kWh) kan bara leverera 7,5 kW kontinuerlig effekt. Detta stryper din budbara kapacitet till aggregatorn och minskar intäkterna.</p>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Låt dig inte luras av att växelriktaren har 10–12 kW effekt. Ett batteripaket på 15 kWh med C-tal 0,5 kan bara leverera 7,5 kW kontinuerlig effekt. Detta stryper din budbara kapacitet till aggregatorn och minskar intäkterna.</p>
         </div>
 
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
@@ -264,6 +264,6 @@
   </div>
 </main>
 
-<script src="assets/bess.js?v=20261004g"></script>
+<script src="assets/bess.js?v=20261006c"></script>
 </body>
 </html>
