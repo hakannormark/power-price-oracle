@@ -69,7 +69,9 @@ def compute_lifecycle(
     base_fcr = dispatch_res.ancillary_revenue_sek
 
     # Extreme year multipliers schedule over 15 years
-    # Nordic baseline frequency: 1.5 positive (2.3x) and 0.5 negative (0.5x) per decade
+    # Nordic baseline frequency: 1.5 positive (2.3x) and 0.5 negative (0.6x) per decade.
+    # 2.0x is the threshold that defines a positive extreme year; 2.3x is the size applied,
+    # the mean of 2022 over the 2023-2025 average spot arbitrage across SE1-SE4 (1.97-2.95x).
     # Place positive extreme years on year 3 and year 11; negative extreme year on year 7
     extreme_mults = [1.0] * horizon_years
     if scenario == "nordic_frequency":

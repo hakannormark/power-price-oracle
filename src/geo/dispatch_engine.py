@@ -1,342 +1,447 @@
-"""Chronological 8760h Multi-Market Dispatch Engine for Utility BESS.
+"""Hourly multi-market dispatch back-test for a utility-scale BESS.
 
-Simulates physical battery state-of-charge (SoC), C-rate power limits,
-round-trip efficiency (RTE = 88%), and hourly revenue co-optimization across:
-1. Day-ahead spot arbitrage (charging in low hours, discharging in peaks)
-2. mFRR capacity market (capacity reservation + activation call options)
-3. aFRR capacity market (automatic frequency restoration reserves)
-4. FCR reserves (FCR-N symmetric & FCR-D asymmetric frequency response)
+A linear programme per week, normalised to 1 MW of nameplate power, that
+co-optimises day-ahead arbitrage with seven capacity products:
 
-Enforces physical constraints:
-- Cannot sell the same MW twice in the same hour.
-- Round-trip efficiency losses: 88% AC-AC RTE.
-- Hourly SoC continuity: SoC(t) = SoC(t-1) + charge * sqrt(RTE) - discharge / sqrt(RTE).
-- Duration / capacity limits: 1h, 2h, and 4h BESS duration constraints.
+    mFRR up / down, aFRR up / down      Svenska kraftnät capacity markets, per zone
+    FCR-N, FCR-D up, FCR-D down         national market (SE + DK2)
+
+Every price is the actual hourly clearing price. Nothing is assumed about hit
+rates: the battery is a price taker that is paid the marginal price for what it
+offers, and how much it can offer is limited two ways:
+
+* physically – power head-room in each direction, and enough stored energy
+  (or empty room) at the start of the hour to deliver the product for its
+  required duration on top of the spot schedule;
+* by market depth – at most `rho x procured volume` per MW installed, where
+  `rho = market share / plant MW`. The file holds a grid of rho values and the
+  web page interpolates, so a 300 MW plant cannot sell more than the market buys.
+
+What the model does NOT contain, on purpose, and what the page says so:
+activation energy (assumed settled at the balancing price, neutral on the
+state of charge), price impact of the plant's own bids, intraday trading,
+forecast error (perfect foresight inside each week) and outages.
+
+Two families of result are written:
+
+* `coopt`      full co-optimisation for the periods where every market has data
+               (calendar 2024, 2025 and the last 12 months);
+* `spot_years` arbitrage-only LP for every calendar year since 2015. The page
+               uses the ratio between two of these to restate the spot part of a
+               co-optimised result for another price year (for instance 2022,
+               the "extreme year"), leaving the ancillary part untouched.
+
+Run by hand (needs scipy, see requirements-geo.txt):
+
+    python -m src.geo.dispatch_engine
 """
 
 from __future__ import annotations
 
 import json
+import logging
 import math
+import os
 from collections import defaultdict
-from dataclasses import dataclass
-from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor
+from datetime import date, datetime, timedelta, timezone
+from functools import lru_cache
 from typing import Any
 
-from ..config import DATA_DIR, SITE_DATA_DIR
+import numpy as np
+
+from ..config import ACTUALS_DIR, SITE_DATA_DIR
+from ..timeutil import TZ, iso
+from . import svk_data
 from .market import RTE, ZONES
 
+log = logging.getLogger(__name__)
 
-@dataclass
-class DispatchEpochResult:
-    epoch: str
-    zone: str
-    duration_hours: float
-    total_revenue_eur_mw_yr: float
-    spot_revenue_eur_mw_yr: float
-    mfrr_revenue_eur_mw_yr: float
-    afrr_revenue_eur_mw_yr: float
-    fcr_revenue_eur_mw_yr: float
-    equivalent_cycles: float
-    avg_soc_percent: float
-    sample_week: list[dict[str, Any]]
+OUT_PATH = SITE_DATA_DIR / "bess-map" / "dispatch_backtest.json"
+VERSION = "2026.10-dispatch-v2"
+
+SOC_MIN, SOC_MAX, SOC_START = 0.05, 0.95, 0.50
+# Cycle hurdle in the objective, EUR per MWh discharged. Keeps the LP from
+# cycling for a spread that would not pay for the wear. Not deducted from the
+# reported revenue: the page charges wear separately from the reported cycles.
+WEAR_EUR_MWH = 7.0
+BLOCK_H = 168
+DURATIONS = (1.0, 2.0, 4.0)
+# rho = market share / plant MW. 0 is arbitrage only; 0.06 is effectively uncapped.
+RHO_GRID = (0.0, 0.0003, 0.0006, 0.0012, 0.0025, 0.005, 0.01, 0.02, 0.06)
+SAMPLE_RHO = 0.0025  # ~ a 40 MW plant taking 10 % of each market
+
+# key, uses up-power, uses down-power, hours of energy up, hours of energy down
+RESERVES: tuple[tuple[str, int, int, float, float], ...] = (
+    ("mfrr_up", 1, 0, 1.0, 0.0),
+    ("mfrr_down", 0, 1, 0.0, 1.0),
+    ("afrr_up", 1, 0, 1.0, 0.0),
+    ("afrr_down", 0, 1, 0.0, 1.0),
+    ("fcr_n", 1, 1, 1.0, 1.0),
+    ("fcr_d_up", 1, 0, 1.0 / 3.0, 0.0),
+    ("fcr_d_down", 0, 1, 0.0, 1.0 / 3.0),
+)
+PRODUCTS = ("spot",) + tuple(r[0] for r in RESERVES)
+FIRST_FULL_YEAR = 2015
 
 
-def simulate_hourly_utility_dispatch(
-    spot_series: list[float],
-    mfrr_up_prices: list[float] | None,
-    mfrr_down_prices: list[float] | None,
-    afrr_down_prices: list[float] | None,
-    fcr_prices: list[float] | None,
-    duration_h: float = 2.0,
-    strategy: str = "co_optimized",  # "co_optimized", "ancillary_focus", "arbitrage_focus"
+# ------------------------------------------------------------------ the LP
+@lru_cache(maxsize=None)
+def _structure(n: int, with_reserves: bool):
+    """Constraint matrices for a block of n hours. Depends on nothing but n."""
+    from scipy import sparse
+
+    eta = math.sqrt(RTE)
+    res = RESERVES if with_reserves else ()
+    nv = 3 + len(res)  # c, d, soc, reserves...
+    c0, d0, s0 = 0, n, 2 * n
+    r0 = [3 * n + i * n for i in range(len(res))]
+    t = np.arange(n)
+
+    # soc_t - soc_{t-1} - eta*c_t + d_t/eta = 0   (soc_{-1} is a constant on the rhs)
+    rows = np.concatenate([t, t[1:], t, t])
+    cols = np.concatenate([s0 + t, s0 + t[1:] - 1, c0 + t, d0 + t])
+    vals = np.concatenate([np.ones(n), -np.ones(n - 1), -eta * np.ones(n), np.ones(n) / eta])
+    a_eq = sparse.csr_matrix((vals, (rows, cols)), shape=(n, nv * n))
+
+    r_, c_, v_ = [], [], []
+
+    def add(block: int, col: np.ndarray, val: float | np.ndarray, hours: np.ndarray = t) -> None:
+        r_.append(block * n + hours)
+        c_.append(col)
+        v_.append(np.broadcast_to(val, hours.shape).astype(float))
+
+    add(0, d0 + t, 1.0)                       # 0: discharge + up reserves <= 1
+    add(1, c0 + t, 1.0)                       # 1: charge + down reserves <= 1
+    add(2, c0 + t, 1.0); add(2, d0 + t, 1.0)  # 2: charge + discharge <= 1
+    add(3, d0 + t, 1.0 / eta)                 # 3: energy to deliver upwards <= soc_{t-1} - min
+    add(3, s0 + t[1:] - 1, -1.0, t[1:])
+    add(4, c0 + t, eta)                       # 4: energy to absorb downwards <= max - soc_{t-1}
+    add(4, s0 + t[1:] - 1, 1.0, t[1:])
+    for i, (_, up_p, dn_p, up_e, dn_e) in enumerate(res):
+        if up_p:
+            add(0, r0[i] + t, 1.0)
+        if dn_p:
+            add(1, r0[i] + t, 1.0)
+        if up_e:
+            add(3, r0[i] + t, up_e / eta)
+        if dn_e:
+            add(4, r0[i] + t, dn_e * eta)
+    a_ub = sparse.csr_matrix(
+        (np.concatenate(v_), (np.concatenate(r_), np.concatenate(c_))), shape=(5 * n, nv * n)
+    )
+    return a_eq, a_ub, nv
+
+
+def solve_block(
+    spot: np.ndarray,
+    duration_h: float,
+    prices: np.ndarray | None = None,
+    caps: np.ndarray | None = None,
+) -> dict[str, np.ndarray]:
+    """Optimal schedule for one block, per MW. `prices`/`caps` are (7, n) or None for arbitrage only."""
+    from scipy.optimize import linprog
+
+    n = len(spot)
+    with_res = prices is not None
+    a_eq, a_ub, nv = _structure(n, with_res)
+    e = duration_h
+    smin, smax, sstart = SOC_MIN * e, SOC_MAX * e, SOC_START * e
+
+    cost = np.zeros(nv * n)
+    cost[0:n] = spot
+    cost[n : 2 * n] = -(spot - WEAR_EUR_MWH)
+    lo = np.zeros(nv * n)
+    hi = np.ones(nv * n)
+    lo[2 * n : 3 * n] = smin
+    hi[2 * n : 3 * n] = smax
+    lo[3 * n - 1] = sstart  # leave the block as full as it was entered
+    if with_res:
+        cost[3 * n :] = -prices.reshape(-1)
+        hi[3 * n :] = np.where(prices.reshape(-1) > 0, np.clip(caps.reshape(-1), 0.0, 1.0), 0.0)
+
+    b_eq = np.zeros(n)
+    b_eq[0] = sstart
+    b_ub = np.concatenate([np.ones(3 * n), np.full(n, -smin), np.full(n, smax)])
+    b_ub[3 * n] = sstart - smin
+    b_ub[4 * n] = smax - sstart
+
+    res = linprog(cost, A_ub=a_ub, b_ub=b_ub, A_eq=a_eq, b_eq=b_eq, bounds=np.column_stack([lo, hi]), method="highs")
+    if res.status != 0:
+        raise RuntimeError(f"dispatch LP failed: {res.message}")
+    x = res.x
+    out = {"charge": x[0:n], "discharge": x[n : 2 * n], "soc": x[2 * n : 3 * n]}
+    if with_res:
+        out["reserves"] = x[3 * n :].reshape(len(RESERVES), n)
+    return out
+
+
+def _blocks(n: int) -> list[tuple[int, int]]:
+    edges = list(range(0, n, BLOCK_H)) + [n]
+    if len(edges) > 2 and edges[-1] - edges[-2] < 48:  # fold a short tail into the last full week
+        edges.pop(-2)
+    return list(zip(edges[:-1], edges[1:]))
+
+
+def run_period(
+    spot: np.ndarray,
+    duration_h: float,
+    prices: np.ndarray | None = None,
+    volumes: np.ndarray | None = None,
+    rho: float = 0.0,
+    trace: tuple[int, int] | None = None,
 ) -> dict[str, Any]:
-    """Run chronological hourly dispatch over the input time series."""
-    n = len(spot_series)
-    if n == 0:
-        return {}
-
-    # Battery specs (normalized to 1.0 MW nameplate power)
-    mw_cap = 1.0
-    mwh_cap = mw_cap * duration_h
-    eff_charge = math.sqrt(RTE)
-    eff_discharge = math.sqrt(RTE)
-
-    soc_min = 0.05 * mwh_cap
-    soc_max = 0.95 * mwh_cap
-    soc = 0.50 * mwh_cap  # start at 50%
-
-    total_spot_rev = 0.0
-    total_mfrr_rev = 0.0
-    total_afrr_rev = 0.0
-    total_fcr_rev = 0.0
-    total_throughput_mwh = 0.0
-
-    # Weekly sample trace for inspection UI (winter peak week: hours 300 to 468)
-    sample_week_records: list[dict[str, Any]] = []
-
-    # Daily spot percentiles for opportunistic arbitrage triggers
-    chunk_size = 24
-    daily_troughs = {}
-    daily_peaks = {}
-    for day_idx in range(math.ceil(n / chunk_size)):
-        day_slice = spot_series[day_idx * chunk_size : min(n, (day_idx + 1) * chunk_size)]
-        if day_slice:
-            sorted_slice = sorted(day_slice)
-            k = max(1, int(round(duration_h)))
-            daily_troughs[day_idx] = sorted_slice[min(len(sorted_slice) - 1, k - 1)]
-            daily_peaks[day_idx] = sorted_slice[max(0, len(sorted_slice) - k)]
-
-    # Hourly simulation
-    for t in range(n):
-        day_idx = t // chunk_size
-        p_spot = spot_series[t]
-        p_mfrr_up = mfrr_up_prices[t % len(mfrr_up_prices)] if mfrr_up_prices else 0.0
-        p_mfrr_down = mfrr_down_prices[t % len(mfrr_down_prices)] if mfrr_down_prices else 0.0
-        p_afrr_down = afrr_down_prices[t % len(afrr_down_prices)] if afrr_down_prices else 0.0
-        p_fcr = fcr_prices[t % len(fcr_prices)] if fcr_prices else 6.0
-
-        # Co-optimization value signals
-        # Value of reserving 1 MW for ancillary services vs cycling spot
-        trough = daily_troughs.get(day_idx, p_spot)
-        peak = daily_peaks.get(day_idx, p_spot)
-        spread_opp = max(0.0, peak - (trough / RTE))
-
-        # Decision logic per strategy
-        alloc_mfrr_up = 0.0
-        alloc_mfrr_down = 0.0
-        alloc_afrr = 0.0
-        alloc_fcr = 0.0
-        spot_charge = 0.0
-        spot_discharge = 0.0
-
-        # Check if this hour is a prime spot charging or discharging hour
-        is_charging_hour = (p_spot <= trough) and (soc < soc_max)
-        is_discharging_hour = (p_spot >= peak) and (soc > soc_min)
-
-        # True co-optimization decision:
-        # Check if the economic value of cycling spot this hour exceeds ancillary reserve value
-        spot_arb_value = 0.0
-        if is_charging_hour:
-            # Opportunity value: buy cheap now, sell at peak later
-            spot_arb_value = max(0.0, (peak * eff_discharge) - (p_spot / eff_charge))
-        elif is_discharging_hour:
-            # Opportunity value: sell high now vs previously charged at trough
-            spot_arb_value = max(0.0, (p_spot * eff_discharge) - (trough / eff_charge))
-
-        # Decision: execute spot arbitrage if spread opportunity dominates ancillary capacity price
-        do_spot = (is_charging_hour or is_discharging_hour) and (spot_arb_value > (p_mfrr_up * 0.45) or strategy == "arbitrage_focus")
-
-        if do_spot:
-            if is_charging_hour:
-                charge_p = min(mw_cap, (soc_max - soc) / eff_charge)
-                spot_charge = charge_p
-                soc += charge_p * eff_charge
-                total_spot_rev -= charge_p * p_spot
-                total_throughput_mwh += charge_p
-
-                # With remaining capacity, battery can offer down-regulation or FCR-D down
-                rem_mw = mw_cap - spot_charge
-                if rem_mw > 0.1 and (soc_max - soc) >= (0.8 * rem_mw):
-                    alloc_mfrr_down = min(rem_mw, (soc_max - soc) / eff_charge)
-            elif is_discharging_hour:
-                dis_p = min(mw_cap, (soc - soc_min) * eff_discharge)
-                spot_discharge = dis_p
-                soc -= dis_p / eff_discharge
-                total_spot_rev += dis_p * p_spot
-                total_throughput_mwh += dis_p
-
-                # With remaining capacity, battery can offer up-regulation
-                rem_mw = mw_cap - spot_discharge
-                if rem_mw > 0.1 and (soc - soc_min) >= (0.8 * rem_mw):
-                    alloc_mfrr_up = min(rem_mw, (soc - soc_min) * eff_discharge)
-        else:
-            # Battery dedicates capacity to ancillary reserves
-            # Calculate physical headroom for up-regulation vs down-regulation
-            headroom_discharge = (soc - soc_min) * eff_discharge
-            headroom_charge = (soc_max - soc) / eff_charge
-
-            # Choose highest yielding reserve product matching battery state
-            if p_mfrr_up >= p_mfrr_down and headroom_discharge >= 0.5 * mw_cap:
-                alloc_mfrr_up = min(mw_cap, headroom_discharge)
-                # Remainder can provide down if headroom allows
-                rem_mw = mw_cap - alloc_mfrr_up
-                if rem_mw > 0.1 and headroom_charge >= 0.5 * rem_mw:
-                    alloc_mfrr_down = min(rem_mw, headroom_charge)
-            elif headroom_charge >= 0.5 * mw_cap:
-                alloc_mfrr_down = min(mw_cap, headroom_charge)
-                rem_mw = mw_cap - alloc_mfrr_down
-                if rem_mw > 0.1 and headroom_discharge >= 0.5 * rem_mw:
-                    alloc_mfrr_up = min(rem_mw, headroom_discharge)
-            else:
-                alloc_fcr = 0.5 * mw_cap
-
-            # Physical energy activations during reserve provision:
-            # SVK activates ~8-12% of contracted mFRR/aFRR energy when called
-            # Up activations discharge battery; Down activations charge battery
-            act_up = alloc_mfrr_up * 0.08
-            act_down = (alloc_mfrr_down + alloc_afrr) * 0.08
-            if act_up > 0 and (soc - soc_min) >= act_up:
-                soc -= act_up / eff_discharge
-                total_throughput_mwh += act_up
-                total_mfrr_rev += act_up * max(p_spot, p_mfrr_up * 1.5)  # Activation premium
-            if act_down > 0 and (soc_max - soc) >= act_down:
-                soc += act_down * eff_charge
-                total_throughput_mwh += act_down
-
-        # Ancillary capacity reservation payment
-        total_mfrr_rev += (alloc_mfrr_up * p_mfrr_up * 0.40) + (alloc_mfrr_down * p_mfrr_down * 0.40)
-        total_afrr_rev += alloc_afrr * p_afrr_down * 0.35
-        total_fcr_rev += alloc_fcr * p_fcr * 0.42
-
-        # Record sample week for UI transparency
-        if 300 <= t < 468:
-            sample_week_records.append({
-                "t": t,
-                "spot": round(p_spot, 2),
-                "soc_pct": round((soc / mwh_cap) * 100, 1),
-                "mfrr_up_mw": round(alloc_mfrr_up, 2),
-                "mfrr_down_mw": round(alloc_mfrr_down, 2),
-                "afrr_down_mw": round(alloc_afrr, 2),
-                "spot_charge_mw": round(spot_charge, 2),
-                "spot_discharge_mw": round(spot_discharge, 2),
-            })
-
-    # Scale to full annual basis (8760h)
+    """Annualised result per MW for one series. `trace=(i0, i1)` also returns the hourly schedule there."""
+    n = len(spot)
+    with_res = prices is not None and rho > 0
+    caps = np.minimum(1.0, rho * volumes) if with_res else None
+    rev = np.zeros(len(PRODUCTS))
+    mwh = np.zeros(len(PRODUCTS))   # MW-hours sold per product; for spot: MWh discharged
+    hrs = np.zeros(len(PRODUCTS))
+    rows: list[list[float]] = []
+    for a, b in _blocks(n):
+        sol = solve_block(spot[a:b], duration_h, prices[:, a:b] if with_res else None, caps[:, a:b] if with_res else None)
+        c, d = sol["charge"], sol["discharge"]
+        rev[0] += float(np.sum(spot[a:b] * (d - c)))
+        mwh[0] += float(np.sum(d))
+        hrs[0] += float(np.sum((d > 0.01) | (c > 0.01)))
+        if with_res:
+            r = sol["reserves"]
+            rev[1:] += np.sum(prices[:, a:b] * r, axis=1)
+            mwh[1:] += np.sum(r, axis=1)
+            hrs[1:] += np.sum(r > 0.01, axis=1)
+        if trace and a < trace[1] and b > trace[0]:
+            for i in range(max(a, trace[0]), min(b, trace[1])):
+                j = i - a
+                row = [float(spot[i]), 100.0 * float(sol["soc"][j]) / duration_h, float(c[j]), float(d[j])]
+                row += [float(sol["reserves"][k][j]) for k in range(len(RESERVES))] if with_res else [0.0] * len(RESERVES)
+                rows.append(row)
     scale = 8760.0 / n
-    annual_spot = max(0.0, total_spot_rev * scale)
-    annual_mfrr = total_mfrr_rev * scale
-    annual_afrr = total_afrr_rev * scale
-    annual_fcr = total_fcr_rev * scale
-    total_rev = annual_spot + annual_mfrr + annual_afrr + annual_fcr
-    cycles = (total_throughput_mwh / (2.0 * mwh_cap)) * scale
+    out: dict[str, Any] = {
+        "rev": [round(float(v) * scale, 1) for v in rev],
+        "mw": [round(float(v) / n, 4) for v in mwh],            # average MW held per MW installed
+        "hrs": [round(float(v) / n, 4) for v in hrs],           # share of hours with a position
+        "cycles": round(float(mwh[0]) * scale / duration_h, 1),  # full equivalent cycles a year
+    }
+    if trace:
+        out["trace"] = rows
+    return out
+
+
+# ------------------------------------------------------------------- data
+def load_spot() -> dict[str, dict[datetime, float]]:
+    """{zone: {utc_hour: EUR/MWh}} from data/actuals, with the 2020-10..2021-12 hole filled from SvK."""
+    out: dict[str, dict[datetime, float]] = {z: {} for z in ZONES}
+    for path in sorted(ACTUALS_DIR.glob("*.jsonl")):
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                row = json.loads(line)
+                zone, price = row.get("zone"), row.get("price_eur_mwh")
+                if zone in out and price is not None:
+                    out[zone][datetime.fromisoformat(row["ts"]).astimezone(timezone.utc)] = float(price)
+    for zone, hours in svk_data.spot_fill().items():
+        for ts, price in hours.items():
+            out[zone].setdefault(ts, price)
+    return out
+
+
+def _year_hours(year: int) -> list[datetime]:
+    start = datetime(year, 1, 1, tzinfo=TZ).astimezone(timezone.utc)
+    end = datetime(year + 1, 1, 1, tzinfo=TZ).astimezone(timezone.utc)
+    return [start + timedelta(hours=i) for i in range(int((end - start).total_seconds() // 3600))]
+
+
+def _series(hours: list[datetime], lookup: dict[datetime, float]) -> tuple[np.ndarray, int]:
+    """Values for `hours`; a missing hour is carried forward. Returns (array, number missing)."""
+    vals, missing, last = [], 0, None
+    for h in hours:
+        v = lookup.get(h)
+        if v is None:
+            missing += 1
+            v = last
+        last = v if v is not None else last
+        vals.append(v)
+    first = next((v for v in vals if v is not None), 0.0)
+    return np.array([first if v is None else v for v in vals], dtype=float), missing
+
+
+def _reserve_arrays(hours, zone, mfrr, afrr, fcr) -> tuple[np.ndarray, np.ndarray]:
+    """(prices, volumes), each (7, n). An hour without a record had no procurement: price 0, volume 0."""
+    src = {
+        "mfrr_up": mfrr.get((zone, "up"), {}), "mfrr_down": mfrr.get((zone, "down"), {}),
+        "afrr_up": afrr.get((zone, "up"), {}), "afrr_down": afrr.get((zone, "down"), {}),
+        "fcr_n": fcr["fcr_n"], "fcr_d_up": fcr["fcr_d_up"], "fcr_d_down": fcr["fcr_d_down"],
+    }
+    prices = np.zeros((len(RESERVES), len(hours)))
+    vols = np.zeros((len(RESERVES), len(hours)))
+    for i, (key, *_rest) in enumerate(RESERVES):
+        s = src[key]
+        for j, h in enumerate(hours):
+            rec = s.get(h)
+            if rec:
+                prices[i, j], vols[i, j] = max(0.0, rec[0]), rec[1]
+    return prices, vols
+
+
+def _task(args: tuple) -> tuple:
+    key, spot, dur, prices, vols, rho, trace = args
+    return key, run_period(spot, dur, prices, vols, rho, trace)
+
+
+# ------------------------------------------------------------------ build
+def build(workers: int | None = None, now: datetime | None = None) -> dict[str, Any]:
+    now = now or datetime.now(timezone.utc)
+    spot = load_spot()
+    mfrr = svk_data.capacity_series("mfrr")
+    afrr = svk_data.capacity_series("afrr")
+    fcr = svk_data.fcr_series(date(2023, 12, 1), now.date())
+
+    # The last 12 months end where both spot and the capacity markets have data.
+    last_mfrr = min(max(mfrr[(z, d)]) for z in ZONES for d in ("up", "down"))
+    last_spot = min(max(h for h in spot[z] if h <= now) for z in ZONES)
+    end = min(last_mfrr, last_spot, max(fcr["fcr_n"])).replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    l12 = [end - timedelta(hours=8760 - i) for i in range(8760)]
+
+    full_years = [
+        y for y in range(FIRST_FULL_YEAR, now.astimezone(TZ).year)
+        if all(sum(1 for h in _year_hours(y) if h in spot[z]) >= 0.97 * len(_year_hours(y)) for z in ZONES)
+    ]
+    coopt_periods: dict[str, list[datetime]] = {"last12m": l12}
+    for y in (2024, 2025):
+        if y in full_years:
+            coopt_periods[str(y)] = _year_hours(y)
+
+    tasks: list[tuple] = []
+    meta_missing: dict[str, int] = defaultdict(int)
+    market: dict[str, Any] = {}
+    sample_idx: dict[str, tuple[int, int]] = {}
+
+    # Arbitrage only: every full calendar year, plus the last 12 months as the common denominator.
+    spot_periods = {str(y): _year_hours(y) for y in full_years}
+    spot_periods["last12m"] = l12
+    for pname, hours in spot_periods.items():
+        for z in ZONES:
+            arr, miss = _series(hours, spot[z])
+            meta_missing[pname] += miss
+            for dur in DURATIONS:
+                tasks.append((("spot", pname, z, dur, 0.0), arr, dur, None, None, 0.0, None))
+
+    for pname, hours in coopt_periods.items():
+        market[pname] = {}
+        for z in ZONES:
+            arr, _ = _series(hours, spot[z])
+            prices, vols = _reserve_arrays(hours, z, mfrr, afrr, fcr)
+            market[pname][z] = {
+                key: {
+                    "price_mean": round(float(prices[i].mean()), 2),
+                    "price_when_procured": round(float(prices[i][vols[i] > 0].mean()), 2) if (vols[i] > 0).any() else 0.0,
+                    "volume_mean_mw": round(float(vols[i].mean()), 1),
+                    "hours_share": round(float((vols[i] > 0).mean()), 3),
+                    "value_eur_mw_yr": round(float(prices[i].sum()) * 8760.0 / len(hours), 0),
+                }
+                for i, (key, *_r) in enumerate(RESERVES)
+            }
+            market[pname][z]["spot"] = {
+                "mean": round(float(arr.mean()), 2),
+                "neg_share": round(float((arr < 0).mean()), 4),
+            }
+            for dur in DURATIONS:
+                for rho in RHO_GRID[1:]:
+                    trace = None
+                    if pname == "last12m" and rho == SAMPLE_RHO:
+                        # A winter week: the Monday on or after 12 January inside the window.
+                        local = [h.astimezone(TZ) for h in hours]
+                        i0 = next(i for i, t in enumerate(local) if t.month == 1 and t.day >= 12 and t.weekday() == 0 and t.hour == 0)
+                        trace = (i0, i0 + 168)
+                        sample_idx[z] = trace
+                    tasks.append((("coopt", pname, z, dur, rho), arr, dur, prices, vols, rho, trace))
+
+    log.info("dispatch: %s LP runs", len(tasks))
+    workers = workers or max(1, (os.cpu_count() or 2) - 1)
+    results: dict[tuple, dict] = {}
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        for k, (key, res) in enumerate(pool.map(_task, tasks, chunksize=4)):
+            results[key] = res
+            if k % 100 == 0:
+                log.info("dispatch: %s / %s", k, len(tasks))
+
+    def dkey(d: float) -> str:
+        return str(int(d))
+
+    spot_years: dict[str, Any] = {z: {dkey(d): {} for d in DURATIONS} for z in ZONES}
+    for (kind, pname, z, dur, _rho), res in results.items():
+        if kind == "spot":
+            spot_years[z][dkey(dur)][pname] = {"rev": res["rev"][0], "cycles": res["cycles"]}
+
+    coopt: dict[str, Any] = {}
+    sample: dict[str, Any] = {}
+    for pname in coopt_periods:
+        coopt[pname] = {}
+        for z in ZONES:
+            coopt[pname][z] = {}
+            for dur in DURATIONS:
+                base = results[("spot", pname, z, dur, 0.0)] if pname in spot_periods else None
+                zero = {
+                    "rev": [base["rev"][0]] + [0.0] * len(RESERVES), "mw": [0.0] * len(PRODUCTS),
+                    "hrs": [0.0] * len(PRODUCTS), "cycles": base["cycles"],
+                }
+                levels = [zero] + [results[("coopt", pname, z, dur, rho)] for rho in RHO_GRID[1:]]
+                coopt[pname][z][dkey(dur)] = {
+                    "rev": [lv["rev"] for lv in levels],
+                    "mw": [lv["mw"] for lv in levels],
+                    "hrs": [lv["hrs"] for lv in levels],
+                    "cycles": [lv["cycles"] for lv in levels],
+                }
+                tr = results[("coopt", pname, z, dur, SAMPLE_RHO)].get("trace") if pname == "last12m" else None
+                if tr:
+                    i0 = sample_idx[z][0]
+                    sample.setdefault(z, {})[dkey(dur)] = {
+                        "start": iso(coopt_periods[pname][i0]),
+                        "rows": [[round(v, 2) for v in row] for row in tr],
+                    }
+
+    def span(hours: list[datetime]) -> dict[str, Any]:
+        return {"from": iso(hours[0]), "to": iso(hours[-1] + timedelta(hours=1)), "hours": len(hours)}
 
     return {
-        "duration_h": duration_h,
-        "total_rev_eur_mw_yr": round(total_rev, 1),
-        "spot_rev_eur_mw_yr": round(annual_spot, 1),
-        "mfrr_rev_eur_mw_yr": round(annual_mfrr, 1),
-        "afrr_rev_eur_mw_yr": round(annual_afrr, 1),
-        "fcr_rev_eur_mw_yr": round(annual_fcr, 1),
-        "equivalent_cycles": round(cycles, 1),
-        "sample_week": sample_week_records,
-    }
-
-
-def build_historical_dispatch_matrix() -> dict[str, Any]:
-    """Precomputes chronological multi-market dispatch across historical years and zones."""
-    # 1. Load hourly spot actuals
-    spot_by_year_zone: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
-    for year in [2022, 2023, 2024, 2025, 2026]:
-        fpath = DATA_DIR / "actuals" / f"{year}.jsonl"
-        if fpath.exists():
-            with open(fpath) as f:
-                for line in f:
-                    row = json.loads(line)
-                    z = row.get("zone")
-                    p = row.get("price_eur_mwh")
-                    if z in ZONES and p is not None:
-                        spot_by_year_zone[str(year)][z].append(float(p))
-
-    # 2. Load capacity market benchmarks
-    with open(SITE_DATA_DIR / "bess-map" / "market.json") as f:
-        market_data = json.load(f)
-
-    # 3. Simulate dispatch per Epoch (last12m, 3y, 5y, 10y, 2022, 2024) and Duration (1h, 2h, 4h)
-    results: dict[str, Any] = {
-        "metadata": {
-            "version": "2026.10-dispatch-v1",
-            "model": "Chronological 8760h multi-market LP/heuristic dispatch",
-            "rte": RTE,
-            "zones": list(ZONES),
+        "version": VERSION,
+        "generated_at": iso(now),
+        "model": "Veckovis linjärprogrammering per MW, pristagare, perfekt förutseende inom veckan",
+        "assumptions": {
+            "rte": RTE, "soc_min": SOC_MIN, "soc_max": SOC_MAX, "wear_hurdle_eur_mwh": WEAR_EUR_MWH,
+            "block_hours": BLOCK_H,
+            "reserve_energy_hours": {r[0]: max(r[3], r[4]) for r in RESERVES},
+            "not_modelled": [
+                "aktiveringsenergi", "egen prispåverkan", "intradag", "prognosfel", "otillgänglighet",
+            ],
         },
-        "epochs": {},
+        "products": list(PRODUCTS),
+        "durations": [int(d) for d in DURATIONS],
+        "rho_grid": list(RHO_GRID),
+        "sample_rho": SAMPLE_RHO,
+        "sample_cols": ["spot", "soc_pct", "charge", "discharge"] + [r[0] for r in RESERVES],
+        "periods": {p: span(h) for p, h in coopt_periods.items()},
+        "full_years": full_years,
+        "spot_missing_hours": dict(meta_missing),
+        "sources": {
+            "spot": "ENTSO-E / Nord Pool day-ahead (data/actuals); 2020-10–2021-12 från Svenska kraftnät Data Service",
+            "mfrr": "Svenska kraftnät Data Service, mfrr_capacity_market (marginalpris EUR/MW och volym per elområde och timme)",
+            "afrr": "Svenska kraftnät Data Service, afrr_capacity_market",
+            "fcr": "Svenska kraftnät Mimer, FCR-N / FCR-D upp / FCR-D ned (volymvägt pris, total volym SE + DK2)",
+        },
+        "market": market,
+        "spot_years": spot_years,
+        "coopt": coopt,
+        "sample_week": sample,
     }
 
-    epochs = ["last12m", "3y", "5y", "10y", "2022", "2024"]
-    durations = [1.0, 2.0, 4.0]
 
-    for ep in epochs:
-        results["epochs"][ep] = {}
-        for z in ZONES:
-            # Compose spot series for this epoch
-            if ep == "2022":
-                spots = spot_by_year_zone.get("2022", {}).get(z, [])
-            elif ep == "2024":
-                spots = spot_by_year_zone.get("2024", {}).get(z, [])
-            elif ep == "last12m":
-                spots = spot_by_year_zone.get("2025", {}).get(z, [])[-4000:] + spot_by_year_zone.get("2026", {}).get(z, [])
-                if len(spots) < 4000:
-                    spots = spot_by_year_zone.get("2025", {}).get(z, [])
-            elif ep == "3y":
-                spots = (spot_by_year_zone.get("2023", {}).get(z, []) +
-                         spot_by_year_zone.get("2024", {}).get(z, []) +
-                         spot_by_year_zone.get("2025", {}).get(z, []))
-            elif ep == "5y":
-                spots = (spot_by_year_zone.get("2022", {}).get(z, []) +
-                         spot_by_year_zone.get("2023", {}).get(z, []) +
-                         spot_by_year_zone.get("2024", {}).get(z, []) +
-                         spot_by_year_zone.get("2025", {}).get(z, []))
-            else:  # 10y
-                spots = []
-                for y in ["2016", "2017", "2018", "2019", "2022", "2023", "2024", "2025"]:
-                    fpath = DATA_DIR / "actuals" / f"{y}.jsonl"
-                    if fpath.exists():
-                        with open(fpath) as f:
-                            for line in f:
-                                row = json.loads(line)
-                                if row.get("zone") == z and row.get("price_eur_mwh") is not None:
-                                    spots.append(float(row["price_eur_mwh"]))
-
-            if not spots:
-                spots = [45.0] * 8760
-
-            # Tailor ancillary price levels to epoch
-            mfrr_up = market_data.get("capacity", {}).get("mfrr_cm", {}).get(z, {}).get("up", {}).get("price_mean", 15.0)
-            mfrr_down = market_data.get("capacity", {}).get("mfrr_cm", {}).get(z, {}).get("down", {}).get("price_mean", 15.0)
-            afrr_down = market_data.get("capacity", {}).get("afrr_cm", {}).get(z, {}).get("down", {}).get("price_mean", 16.0)
-
-            # Historical scaling
-            if ep == "2022":
-                fcr_price = 64.66
-                # in 2022 mFRR-CM was not yet established; market paid purely energy activations
-                mfrr_up_list = [10.0] * 24
-                mfrr_down_list = [8.0] * 24
-                afrr_down_list = [12.0] * 24
-            elif ep == "2024":
-                fcr_price = 10.51
-                mfrr_up_list = [mfrr_up * 0.8] * 24
-                mfrr_down_list = [mfrr_down * 0.8] * 24
-                afrr_down_list = [afrr_down * 0.8] * 24
-            else:
-                fcr_price = 26.85 if ep in ("3y", "5y") else 6.06
-                mfrr_up_list = [mfrr_up] * 24
-                mfrr_down_list = [mfrr_down] * 24
-                afrr_down_list = [afrr_down] * 24
-
-            fcr_list = [fcr_price] * 24
-
-            results["epochs"][ep][z] = {}
-            for d in durations:
-                res = simulate_hourly_utility_dispatch(
-                    spot_series=spots,
-                    mfrr_up_prices=mfrr_up_list,
-                    mfrr_down_prices=mfrr_down_list,
-                    afrr_down_prices=afrr_down_list,
-                    fcr_prices=fcr_list,
-                    duration_h=d,
-                    strategy="co_optimized",
-                )
-                results["epochs"][ep][z][f"{d:.1f}h"] = res
-
-    # Save artifact for frontend consumption
-    target_path = SITE_DATA_DIR / "bess-map" / "dispatch_backtest.json"
-    with open(target_path, "w", encoding="utf-8") as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
-
-    return results
+def main() -> None:  # pragma: no cover - manual build
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+    payload = build()
+    OUT_PATH.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print("written", OUT_PATH, OUT_PATH.stat().st_size, "bytes; full years", payload["full_years"])
 
 
-if __name__ == "__main__":
-    matrix = build_historical_dispatch_matrix()
-    print("Dispatch matrix built successfully. Epochs:", list(matrix["epochs"].keys()))
+if __name__ == "__main__":  # pragma: no cover
+    main()

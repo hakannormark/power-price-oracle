@@ -244,15 +244,26 @@ def load_protected() -> list[dict[str, Any]]:
     """Naturvårdsregistret, protected areas, GML 3.2 in EPSG:3006 (axis order N, E)."""
     ns = {"gml": "http://www.opengis.net/gml/3.2", "n": "https://geodata.naturvardsverket.se/naturvardsregistret/wfs"}
     out: list[dict[str, Any]] = []
-    start, page = 0, 1000
+    # 500 is the server's own page size. Past index 1000 it ignores `count` and
+    # returns everything that is left in one large response, which is fine.
+    start, page = 0, 500
     while True:
         params = urllib.parse.urlencode({
             "service": "WFS", "version": "2.0.0", "request": "GetFeature",
             "typeNames": "Naturvardsregistret_WFS:SkyddadeOmraden", "count": page, "startIndex": start,
         })
-        body = _fetch(f"{NVR_WFS}?{params}", f"nvr_{start:06d}.gml")
-        root = ET.fromstring(body)
-        members = root.findall("{http://www.opengis.net/wfs/2.0}member")
+        # The service sometimes answers with a header that promises features and a
+        # body that holds none. Trust the count in the header and ask again.
+        for attempt in range(5):
+            body = _fetch(f"{NVR_WFS}?{params}", f"nvr_{start:06d}.gml", refresh=attempt > 0)
+            root = ET.fromstring(body)
+            members = root.findall("{http://www.opengis.net/wfs/2.0}member")
+            if len(members) >= int(root.get("numberReturned") or len(members)):
+                break
+            log.warning("NVR page at %s truncated (%s of %s), retrying", start, len(members), root.get("numberReturned"))
+        else:
+            raise RuntimeError(f"Naturvårdsregistret page at {start} kept coming back truncated")
+        matched = int(root.get("numberMatched") or 0)
         for m in members:
             feat = m[0]
             typ = (feat.findtext("n:SKYDDSTYP", default="", namespaces=ns) or "").strip()
@@ -274,9 +285,13 @@ def load_protected() -> list[dict[str, Any]]:
                 geom = MultiPolygon(polys).buffer(0) if len(polys) > 1 else polys[0].buffer(0)
                 out.append({"type": typ, "name": name, "geom": geom})
         log.info("NVR page at %s: %s features", start, len(members))
-        if len(members) < page:
+        # The server caps a page below the requested count (500 at the time of
+        # writing), so a short page is not the last page. Only an empty one is.
+        start += len(members)
+        if not members or (matched and start >= matched):
             break
-        start += page
+    if matched and start < matched:
+        raise RuntimeError(f"Naturvårdsregistret: read {start} of {matched} features")
     return out
 
 
@@ -388,6 +403,59 @@ def build_cells(zones, concessions, subs, protected) -> list[dict[str, Any]]:
     return cells
 
 
+def refresh_protection() -> dict[str, int]:
+    """Recompute only `prot`, `prot_name` and `water` in the published cells.
+
+    For when Naturvårdsregistret has changed (or was read incompletely) and the
+    slow OpenStreetMap download is not needed. Uses the same land clipping and
+    the same shares as build_cells, so the result is identical to a full build.
+    """
+    zones = load_zones()
+    land = unary_union(list(zones.values()))
+    protected = load_protected()
+    hard = [p for p in protected if p["type"] in HARD_PROTECTION]
+    water = [p for p in protected if p["type"].lower().startswith("vattenskydd")]
+    trees = {"hard": STRtree([p["geom"] for p in hard]), "water": STRtree([p["geom"] for p in water])}
+    items = {"hard": hard, "water": water}
+
+    def _share(kind: str, land_part) -> tuple[float, str | None]:
+        hits = [items[kind][i] for i in trees[kind].query(land_part)]
+        parts = [(land_part.intersection(h["geom"]), h) for h in hits if land_part.intersects(h["geom"])]
+        parts = [(g, h) for g, h in parts if not g.is_empty]
+        if not parts:
+            return 0.0, None
+        share = unary_union([g for g, _ in parts]).area / land_part.area
+        biggest = max(parts, key=lambda gh: gh[0].area)[1]
+        return share, f'{biggest["type"]}: {biggest["name"]}'
+
+    path = OUT_DIR / "cells.json"
+    cells = json.loads(path.read_text(encoding="utf-8"))
+    changed = 0
+    for c in cells:
+        x, y = (int(v) * 1000 for v in c["id"].split("_"))
+        land_part = box(x, y, x + CELL_M, y + CELL_M).intersection(land)
+        if land_part.is_empty:
+            continue
+        prot, name = _share("hard", land_part)
+        wat, _ = _share("water", land_part)
+        new = (round(prot, 2), name, round(wat, 2))
+        if new != (c.get("prot"), c.get("prot_name"), c.get("water")):
+            changed += 1
+        c["prot"], c["prot_name"], c["water"] = new
+    _write("cells.json", cells)
+
+    meta_path = OUT_DIR / "meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    layer = meta["layers"]["protected"]
+    layer.update({
+        "retrieved_at": _retrieved("nvr_000000.gml"), "valid_from": _retrieved("nvr_000000.gml")[:10],
+        "count": len(protected), "count_excluding": len(hard), "count_water": len(water),
+    })
+    meta["sizes_bytes"]["cells.json"] = path.stat().st_size
+    _write("meta.json", meta)
+    return {"protected": len(protected), "hard": len(hard), "water": len(water), "cells_changed": changed}
+
+
 # ---------------------------------------------------------------------- main
 def _write(name: str, payload: Any) -> int:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -458,4 +526,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if "--protection-only" in sys.argv:
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+        print(refresh_protection())
+    else:
+        main()

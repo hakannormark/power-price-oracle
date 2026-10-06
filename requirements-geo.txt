@@ -1,5 +1,7 @@
-# Optional: only for rebuilding the static BESS map layers (python -m src.geo.build_static).
+# Optional: only for rebuilding the static BESS map layers (python -m src.geo.build_static)
+# and the dispatch back-test (python -m src.geo.dispatch_engine, needs scipy only).
 # The scheduled pipeline does not need these.
 pyshp>=2.3
 shapely>=2.0
 pyproj>=3.6
+scipy>=1.11
