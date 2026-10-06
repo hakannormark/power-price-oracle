@@ -242,9 +242,17 @@ const inv = (over = {}) => M.investmentModel(Object.assign({
   near(deg.rows[1].spot, 100 * 0.98, 'degradation hits spot fully');
   near(deg.rows[1].anc, 100 * (1 - 0.5 * 0.02), 'and ancillary by half');
   const aug = inv({ degradationPct: 2, augmentYear: 5, augmentPctOfBattery: 20 });
-  near(aug.rows[4].augmentation, 120, 'augmentation cost in its year');
+  // Five years at 2 % have cost 9.6 % of the capacity; that is what is bought, not the 20 % allowed.
+  const lost = 1 - Math.pow(0.98, 5);
+  near(aug.rows[4].augmentation, 600 * lost, 'augmentation buys back what was lost, no more');
+  near(aug.rows[4].capacity, Math.pow(0.98, 4), 'the year of the purchase still runs on the worn battery');
   near(aug.rows[5].capacity, 1, 'capacity restored the year after');
   ok(aug.rows[6].capacity < 1, 'and degrades again');
+  // A purchase smaller than the loss restores only that much.
+  const small = inv({ degradationPct: 2, augmentYear: 5, augmentPctOfBattery: 5 });
+  near(small.rows[4].augmentation, 600 * 0.05, 'a small purchase costs what it is');
+  near(small.rows[5].capacity, Math.pow(0.98, 5) + 0.05, 'and brings back five points, not all of it');
+  ok(small.rows[5].capacity < 1, 'so the battery is not as new');
 
   const trend = inv({ ancTrendPct: -5, inflationPct: 2 });
   near(trend.rows[2].anc, 100 * 0.95 * 0.95 * 1.02 * 1.02, 'ancillary trend and inflation compound');

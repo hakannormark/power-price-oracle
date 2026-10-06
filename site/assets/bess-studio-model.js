@@ -384,7 +384,12 @@
     const negSet = new Set((p.negativeYearList || []).filter((y) => y >= 1 && y <= N && !extSet.has(y)));
     const spotNeg = p.spotNegative === undefined ? p.spot : p.spotNegative;
     const augYear = p.augmentYear >= 1 && p.augmentYear < N ? Math.round(p.augmentYear) : 0;
-    const augCost = augYear ? p.batteryEnergyCapex * p.augmentPctOfBattery / 100 : 0;
+    // New cells bring back capacity in proportion to what is bought, and no
+    // more is bought than what has been lost by then. Before, any purchase,
+    // however small, restored the battery to 100 %.
+    const augLost = augYear ? 1 - Math.pow(1 - deg, augYear) : 0;
+    const augBought = augYear ? Math.max(0, Math.min(p.augmentPctOfBattery / 100, augLost)) : 0;
+    const augCost = augBought * p.batteryEnergyCapex;
     const depYears = Math.max(1, Math.round(p.depreciationYears));
 
     const debt0 = p.capexTotal * p.gearingPct / 100;
@@ -398,7 +403,6 @@
     let debt = debt0;
     let lossU = 0;
     let lossL = 0;
-    let sinceRefresh = 0;
     let minDscr = null;
     let cumDisc = -p.capexTotal;
     let cum = -p.capexTotal;
@@ -406,7 +410,9 @@
     let payback = null;
 
     for (let t = 1; t <= N; t++) {
-      const cap = Math.pow(1 - deg, sinceRefresh);
+      const cap = augYear && t > augYear
+        ? (Math.pow(1 - deg, augYear) + augBought) * Math.pow(1 - deg, t - 1 - augYear)
+        : Math.pow(1 - deg, t - 1);
       const price = Math.pow(1 + infl, t - 1);
       const isExt = extSet.has(t);
       const isNeg = negSet.has(t);
@@ -454,7 +460,6 @@
         interest, principal, tax: taxU, taxLevered: taxL, augmentation, residual, fcff: cfU, fcfe: cfL,
         cumulative: cum, cumulativeDiscounted: cumDisc,
       });
-      sinceRefresh = t === augYear ? 0 : sinceRefresh + 1;
     }
 
     return {
