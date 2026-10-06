@@ -12,7 +12,7 @@ from ..config import SITE_DATA_DIR
 from ..publish.api import write_json
 from ..timeutil import TZ, iso, now_local
 from .backtest import run_historical_backtest
-from .dispatch import simulate_battery_dispatch
+from .dispatch import household_prices, simulate_battery_dispatch
 from .lifecycle import compute_lifecycle
 from .offers import OFFERS, get_offer
 from .profiles import generate_household_profiles
@@ -51,6 +51,16 @@ def _build_single_zone_data(
         spot_sek_kwh = [0.85] * 8760
 
     profile_df = generate_household_profiles(timestamps)
+    # The calculator in the browser runs the same optimisation on the same hours.
+    # Weights sum to a million over the window, so load = weight * annual kWh / 1e6.
+    n_hours = len(profile_df)
+    hourly = {
+        "spot": [round(float(v), 4) for v in spot_sek_kwh],
+        "w_load": [round(float(v), 1) for v in profile_df["load_kwh"] / profile_df["load_kwh"].sum() * 1e6],
+        "w_pv": [round(float(v), 1) for v in profile_df["pv_kwh"] / max(profile_df["pv_kwh"].sum(), 1e-9) * 1e6],
+        "from": iso(timestamps[0]) if timestamps else None,
+        "hours": n_hours,
+    }
 
     offers_data: list[dict[str, Any]] = []
     for offer in OFFERS:
@@ -121,12 +131,17 @@ def _build_single_zone_data(
         "mean_daily_spread_sek_kwh": mean_spread,
         "arbitrage_yield_sek_per_kwh": round(mean_spread * 0.88 * 230.0, 1),
         "solar_avoided_cost_sek_kwh": round(mean_spot + 0.855, 3),
+        # What a household pays and is paid on average, which is what the value
+        # of storing a kWh actually hangs on.
+        "mean_import_price_sek_kwh": round(float(household_prices(spot_arr)[0].mean()), 3),
+        "mean_export_price_sek_kwh": round(float(household_prices(spot_arr)[1].mean()), 3),
     }
 
     return {
         "zone": zone,
         "name": ZONE_NAMES.get(zone, zone),
         "stats": stats,
+        "_hourly": hourly,
         "offers": offers_data,
         "backtest": backtest_data,
     }
@@ -160,7 +175,7 @@ def build_bess_payload(
         "key_reforms_2026": [
             {
                 "title": "1. 60-öringen är slopad",
-                "desc": "Skattereduktionen för mikroproduktion (60 öre/kWh) togs bort 1 januari 2026. Inmatad el ger nu endast spotpris plus ca 6 öre i nätnytta. Värdet av en lagrad och egenanvänd kWh steg därmed från ca 0,50 kr till ca 1,65 kr.",
+                "desc": "Skattereduktionen för mikroproduktion (60 öre/kWh) togs bort 1 januari 2026. Inmatad el ger nu endast spotpris plus ca 6 öre i nätnytta. Värdet av att lagra en kWh i stället för att sälja den steg därmed med 60 öre – till omkring 0,6 kr i SE1–SE2, 1,0 kr i SE3 och 1,4 kr i SE4 med det senaste årets priser.",
             },
             {
                 "title": "2. Effektavgiftskravet upphävt",
@@ -197,8 +212,44 @@ def build_bess_payload(
     return payload
 
 
+def hourly_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Prices and household shapes for the browser calculator, and the constants both sides share."""
+    from .dispatch import (
+        ENERGY_TAX_SEK, FCR_WINDOW_RESERVE, GRID_BENEFIT_EXPORT_SEK, GRID_TRANSFER_FEE_SEK,
+        MODEL_VERSION, REALISATION, RETAIL_MARGIN_SEK, SPOT_VAT,
+    )
+    from .optimal import LEVELS, WEAR_HURDLE_SEK_PER_KWH
+
+    zones = payload.get("zones", {})
+    first = next((z["_hourly"] for z in zones.values() if z.get("_hourly")), None) or {}
+    return {
+        "generated_at": payload.get("generated_at"),
+        "model": MODEL_VERSION,
+        "from": first.get("from"),
+        "hours": first.get("hours", 0),
+        "constants": {
+            "spot_vat": SPOT_VAT,
+            "import_adders_sek": round(ENERGY_TAX_SEK + GRID_TRANSFER_FEE_SEK + RETAIL_MARGIN_SEK, 4),
+            "export_adder_sek": GRID_BENEFIT_EXPORT_SEK,
+            "realisation": REALISATION,
+            "wear_hurdle_sek_per_kwh": WEAR_HURDLE_SEK_PER_KWH,
+            "fcr_window_reserve": FCR_WINDOW_RESERVE,
+            "levels": LEVELS,
+        },
+        "w_load": first.get("w_load", []),
+        "w_pv": first.get("w_pv", []),
+        "spot": {zone: data["_hourly"]["spot"] for zone, data in zones.items() if data.get("_hourly")},
+    }
+
+
 def write_bess(payload: dict[str, Any]) -> None:
     """Save bess payload to api and site directories."""
+    hourly = hourly_payload(payload)
+    for data in payload.get("zones", {}).values():
+        data.pop("_hourly", None)
+    (SITE_DATA_DIR / "bess-hourly.json").write_text(
+        json.dumps(hourly, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+    )
     write_json("bess.json", payload)
     site_file = SITE_DATA_DIR / "bess.json"
     site_file.parent.mkdir(parents=True, exist_ok=True)

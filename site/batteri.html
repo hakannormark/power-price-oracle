@@ -368,6 +368,14 @@
       </div>
 
       <!-- Exportera & Fäll ut kassaflöde -->
+      <p class="bess-hint" style="margin: 0.9rem 0 0; line-height: 1.55;">
+        <strong>Så räknas årsvärdet.</strong> Sol och arbitrage är skillnaden mellan hushållets elräkning utan batteri och med,
+        där batteriet körs på det billigaste sättet timme för timme mot det valda elområdets priser det senaste året.
+        Solel och prisarbitrage delar alltså på samma batteri och samma cykler – inget räknas två gånger. Köppriset är
+        spotpris med moms plus energiskatt, nätöverföring och påslag; säljpriset är spotpris plus nätnytta. Resultatet är
+        90 % av det teoretiskt bästa, eftersom en verklig styrning inte känner förbrukning och sol exakt i förväg.
+        Stödtjänster läggs till som en ersättning per kW och reserverar en del av lagret.
+      </p>
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; align-items: center;" class="bess-export-actions">
         <button type="button" class="btn btn-secondary" id="bess-btn-export-csv" style="cursor: pointer;">
           📥 Ladda ner CSV-kalkyl
@@ -470,7 +478,7 @@
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
           <h3 style="color: #38bdf8; margin-top: 0; font-size: 1.1em;">1. 60-öringen är borta</h3>
-          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Skattereduktionen för mikroproduktion slopades 1 januari 2026. Inmatad el ger nu bara spotpris plus nätnytta (ca 6 öre). Värdet av en lagrad och egenanvänd kWh steg därmed från ca 0,50 kr till ca 1,65–1,80 kr (undviken nätimport inklusive energiskatt och moms).</p>
+          <p style="font-size: 0.9em; color: var(--muted); line-height: 1.5;">Skattereduktionen för mikroproduktion slopades 1 januari 2026. Inmatad el ger nu bara spotpris plus nätnytta (ca 6 öre). Värdet av att lagra en kWh i stället för att sälja den steg därmed med 60 öre. Det som räknas är skillnaden mellan vad en kWh kostar att köpa på kvällen och vad den hade gett vid försäljning mitt på dagen, efter förluster i batteriet. Med priserna det senaste året är det omkring 0,6 kr/kWh i SE1–SE2, 1,0 kr i SE3 och 1,4 kr i SE4 – inte hela köppriset, eftersom den sålda elen också hade gett spotpriset.</p>
         </div>
 
         <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
@@ -521,6 +529,7 @@
   </div>
 </main>
 
-<script src="assets/bess.js?v=20261006c"></script>
+<script src="assets/bess-dispatch.js?v=20261007a"></script>
+<script src="assets/bess.js?v=20261007a"></script>
 </body>
 </html>

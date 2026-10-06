@@ -59,18 +59,23 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const lerpArr = (a, b, t) => a.map((v, i) => lerp(v, b[i], t));
 
-  /** Samoptimerat utfall per MW för en period, zon, varaktighet (h) och marknadstak rho (andel / MW). */
-  function stackAt(data, period, zone, durationH, rho) {
-    const zoneData = data.coopt[period] && data.coopt[period][zone];
+  /**
+   * Samoptimerat utfall per MW för en period, zon, varaktighet (h) och marknadstak rho (andel / MW).
+   * table väljer körning: 'coopt' (periodens egna priser) eller 'coopt_extreme' (2022 års spot).
+   */
+  function stackAt(data, period, zone, durationH, rho, table) {
+    const source = data[table || 'coopt'];
+    const zoneData = source && source[period] && source[period][zone];
     if (!zoneData) return null;
     const [d0, d1, dt] = bracket(data.durations, durationH);
     const [r0, r1, rt] = bracket(data.rho_grid, rho);
     const at = (di) => {
       const e = zoneData[String(data.durations[di])];
+      const zeros = e.rev[r0].map(() => 0);
       return {
         rev: lerpArr(e.rev[r0], e.rev[r1], rt),
-        mw: lerpArr(e.mw[r0], e.mw[r1], rt),
-        hrs: lerpArr(e.hrs[r0], e.hrs[r1], rt),
+        mw: e.mw ? lerpArr(e.mw[r0], e.mw[r1], rt) : zeros,
+        hrs: e.hrs ? lerpArr(e.hrs[r0], e.hrs[r1], rt) : zeros,
         cycles: lerp(e.cycles[r0], e.cycles[r1], rt),
       };
     };
@@ -151,27 +156,35 @@
    * Normalår  = stödtjänster + spotdel, båda ur den samoptimerade körningen för basperioden.
    *             För ett spotscenario skalas spotdelen med kvoten mellan ren arbitrageintäkt
    *             i scenariots prisår och i basperioden.
-   * Extremår  = samma stödtjänster, men spotdelen skalad till 2022 års priser i samma zon.
-   *             Aldrig lägre än normalåret (se extremeFloorApplied).
+   * Positivt extremår = en egen samoptimering med 2022 års spotpriser mot basperiodens
+   *             stödtjänstpriser. Batteriet flyttar då från reserverna till arbitrage, så
+   *             spotdelen växer mer och stödtjänstdelen krymper något. Att bara skala
+   *             normalårets spotdel underskattade effekten. Stödtjänstdelen kan dessutom
+   *             multipliceras (ancillaryExtremeMult) för att pröva ett år där även
+   *             reservpriserna stiger. Aldrig lägre än normalåret (extremeFloorApplied).
    * Negativt extremår = samma stödtjänster, spotdelen × 0,6 (NEGATIVE_FACTOR).
+   * Prisunderlaget "som 2022" använder extremårskörningen som normalår.
    */
   function siteRevenue(data, o) {
     const ds = o.dataset;
     const basePeriod = ds.kind === 'actual' ? ds.period : 'last12m';
     const share = Math.max(0, o.marketSharePct) / 100;
     const rho = o.mw > 0 ? share / o.mw : 0;
-    const stack = stackAt(data, basePeriod, o.zone, o.durationH, rho);
-    if (!stack) return null;
+    const baseStack = stackAt(data, basePeriod, o.zone, o.durationH, rho);
+    if (!baseStack) return null;
+    const extStack = stackAt(data, basePeriod, o.zone, o.durationH, rho, 'coopt_extreme');
+    const extremeIsBase = ds.kind === 'spot' && ds.years.length === 1 && ds.years[0] === EXTREME_YEAR;
+    const stack = extremeIsBase && extStack ? Object.assign({}, baseStack, { rev: extStack.rev, cycles: extStack.cycles }) : baseStack;
     const realization = o.realizationPct / 100;
     const k = o.mw * o.fx * realization * (o.revMult === undefined ? 1 : o.revMult);
+    const ancMult = o.ancillaryExtremeMult === undefined ? 1 : Math.max(0, o.ancillaryExtremeMult);
 
     const arbBase = spotOnly(data, o.zone, o.durationH, basePeriod);
     const arbScenario = ds.kind === 'spot' ? spotOnlyMean(data, o.zone, o.durationH, ds.years) : arbBase;
     const arbExtreme = spotOnly(data, o.zone, o.durationH, EXTREME_YEAR);
-    const spotFactor = arbBase > 0 && arbScenario !== null ? arbScenario / arbBase : 1;
-    const rawExtFactor = arbBase > 0 && arbExtreme !== null ? arbExtreme / arbBase : spotFactor;
-    const extremeFloorApplied = rawExtFactor < spotFactor;
-    const extFactor = Math.max(rawExtFactor, spotFactor);
+    // The 2022 data set is the extreme run itself; no further scaling of its spot part.
+    const spotFactor = extremeIsBase && extStack ? 1 : (arbBase > 0 && arbScenario !== null ? arbScenario / arbBase : 1);
+    const arbRatio = arbBase > 0 && arbExtreme !== null ? arbExtreme / arbBase : 1;
 
     const products = data.products;
     const perProduct = {};
@@ -180,34 +193,60 @@
     });
     const spot = perProduct.spot;
     const anc = products.slice(1).reduce((s, p) => s + perProduct[p], 0);
-    const spotExtreme = stack.rev[0] * k * extFactor;
+
+    // Extreme year: its own optimisation where the file has one, else the old scaling.
+    let spotExtreme;
+    let ancExtremeBase;
+    if (extStack) {
+      spotExtreme = extStack.rev[0] * k;
+      ancExtremeBase = extStack.rev.slice(1).reduce((s, v) => s + v, 0) * k;
+    } else {
+      spotExtreme = baseStack.rev[0] * k * arbRatio;
+      ancExtremeBase = anc;
+    }
+    let ancExtreme = ancExtremeBase * ancMult;
+    let extremeFloorApplied = false;
+    if (extremeIsBase) {
+      // Every year is already 2022; an "extreme year" is just another of the same.
+      spotExtreme = spot;
+      ancExtreme = anc;
+    } else if (spotExtreme + ancExtreme < (spot + anc) * (1 - 1e-9)) {
+      extremeFloorApplied = true;
+      spotExtreme = spot;
+      ancExtreme = anc;
+    }
     const spotNegative = spot * NEGATIVE_FACTOR;
 
     const market = (data.market[basePeriod] || {})[o.zone] || {};
     const sold = {};
     products.forEach((p, i) => {
-      const mwSold = stack.mw[i] * o.mw;
+      const mwSold = baseStack.mw[i] * o.mw;
       const vol = market[p] && market[p].volume_mean_mw;
       sold[p] = {
         mw: mwSold,
-        hoursShare: stack.hrs[i],
+        hoursShare: baseStack.hrs[i],
         marketShare: i > 0 && vol > 0 ? mwSold / vol : null,
-        avgPrice: i > 0 && stack.mw[i] > 0 ? stack.rev[i] / (stack.mw[i] * 8760) : null,
+        avgPrice: i > 0 && baseStack.mw[i] > 0 ? baseStack.rev[i] / (baseStack.mw[i] * 8760) : null,
       };
     });
 
+    // 2022 as it actually was for a battery, for reference only.
+    const actual = data.actual_2022 ? stackAt({ durations: data.durations, rho_grid: data.rho_grid, x: { y: data.actual_2022 } }, 'y', o.zone, o.durationH, rho, 'x') : null;
+
+    const gross = spot + anc;
     return {
-      basePeriod, rho, perProduct, spot, anc,
-      gross: spot + anc,
-      spotExtreme,
-      grossExtreme: spotExtreme + anc,
+      basePeriod, rho, perProduct, spot, anc, gross,
+      spotExtreme, ancExtreme,
+      grossExtreme: spotExtreme + ancExtreme,
       spotNegative,
       grossNegative: spotNegative + anc,
-      spotFactor, extFactor, rawExtFactor, extremeFloorApplied,
-      // 2022 i förhållande till normalåret, att jämföra med gränsen 2,0 ×.
-      extremeRatio: spotFactor > 0 ? extFactor / spotFactor : 1,
-      extremeMeetsThreshold: spotFactor > 0 && extFactor / spotFactor >= POSITIVE_THRESHOLD,
-      extremeIsBase: ds.kind === 'spot' && ds.years.length === 1 && ds.years[0] === EXTREME_YEAR,
+      spotFactor, extremeFloorApplied, extremeIsBase,
+      reoptimised: !!extStack,
+      // 2022 års rena arbitrage i förhållande till normalårets, att jämföra med gränsen 2,0 ×.
+      extremeRatio: spotFactor > 0 ? arbRatio / (extremeIsBase ? arbRatio : spotFactor) : 1,
+      extremeMeetsThreshold: !extremeIsBase && spotFactor > 0 && arbRatio / spotFactor >= POSITIVE_THRESHOLD,
+      // Hela intäkten 2022 som den var, mot normalåret (utan stödtjänstmultiplikator).
+      actual2022Gross: actual ? actual.rev.reduce((s, v) => s + v, 0) * k : null,
       cycles: stack.cycles,
       theoreticalPerMwEur: stack.rev.reduce((s, v, i) => s + v * (i === 0 ? spotFactor : 1), 0),
       sold,
@@ -357,7 +396,8 @@
       const isExt = extSet.has(t);
       const isNeg = negSet.has(t);
       const spot = (isExt ? p.spotExtreme : isNeg ? spotNeg : p.spot) * Math.pow(1 + gSpot, t - 1) * cap * price;
-      const anc = p.anc * Math.pow(1 + gAnc, t - 1) * (1 - 0.5 * (1 - cap)) * price;
+      const ancYear = isExt && p.ancExtreme !== undefined ? p.ancExtreme : p.anc;
+      const anc = ancYear * Math.pow(1 + gAnc, t - 1) * (1 - 0.5 * (1 - cap)) * price;
       const revenue = spot + anc;
       const fee = revenue * p.feePct / 100;
       const fixed = p.fixedOpex * price;

@@ -51,13 +51,19 @@ ZONES.forEach((zone) => DURS.forEach((durationH) => MWS.forEach((mw) => SHARES.f
     const tag = `${zone} ${durationH}h ${mw}MW ${marketSharePct}% ${dataset.id}`;
     ok(rev.gross >= 0 && isFinite(rev.gross), `${tag}: gross is finite`);
     ok(rev.grossExtreme >= rev.gross - EPS, `${tag}: extreme year ${rev.grossExtreme} >= normal year ${rev.gross}`);
-    near(rev.grossExtreme - rev.gross, rev.spotExtreme - rev.spot, `${tag}: only the spot part differs in an extreme year`);
+    near(rev.grossExtreme, rev.spotExtreme + rev.ancExtreme, `${tag}: extreme year is its own spot and ancillary parts`);
+    ok(rev.reoptimised, `${tag}: the extreme year comes from its own optimisation`);
+    if (!rev.extremeIsBase) {
+      // Re-optimised against 2022's spreads the battery leans on arbitrage: more spot, no more reserves.
+      ok(rev.spotExtreme >= rev.spot - EPS, `${tag}: extreme year has at least the normal year's spot revenue`);
+      ok(rev.ancExtreme <= rev.anc + Math.max(1, 0.01 * rev.anc), `${tag}: and no more ancillary revenue than a normal year`);
+    }
     if (rev.extremeFloorApplied) floorHits++;
     // Negative extreme year: ancillary untouched, spot at 0.6 x the normal year.
     near(rev.spotNegative, M.NEGATIVE_FACTOR * rev.spot, `${tag}: negative year spot is 0.6 x normal`);
     near(rev.grossNegative, rev.anc + M.NEGATIVE_FACTOR * rev.spot, `${tag}: negative year keeps the ancillary part`);
     ok(rev.grossNegative <= rev.gross + EPS && rev.gross <= rev.grossExtreme + EPS, `${tag}: negative <= normal <= extreme`);
-    near(rev.extremeRatio * rev.spot, rev.spotExtreme, `${tag}: extreme ratio is 2022 over the normal year`);
+    ok(rev.extremeRatio > 0 && isFinite(rev.extremeRatio), `${tag}: extreme ratio is a number`);
     ok(rev.extremeMeetsThreshold === (rev.extremeRatio >= M.POSITIVE_THRESHOLD), `${tag}: threshold flag`);
     {
       const f0 = M.simpleFinancials(baseInputs({ mw, durationH, extremeYears: 1, negativeYears: 0, marketSharePct }), rev);
@@ -86,6 +92,13 @@ ZONES.forEach((zone) => DURS.forEach((durationH) => MWS.forEach((mw) => SHARES.f
     });
     near(fins[1].netExtreme - fins[1].netNormal, (rev.grossExtreme - rev.gross) * (1 - M.DEFAULTS.feePct / 100),
       `${tag}: extreme year adds its extra gross less the fee, nothing else`);
+    {
+      // A reserve-price multiplier above one can only add to the extreme year.
+      const up = M.siteRevenue(data, { zone, mw, durationH, dataset, marketSharePct, realizationPct: 75, fx: FX, ancillaryExtremeMult: 2 });
+      ok(up.grossExtreme >= rev.grossExtreme - EPS, `${tag}: higher reserve prices in the extreme year never lower it`);
+      near(up.gross, rev.gross, `${tag}: and leave the normal year alone`);
+      if (!rev.extremeIsBase && !up.extremeFloorApplied) near(up.ancExtreme, 2 * rev.ancExtreme, `${tag}: the multiplier acts on the ancillary part`);
+    }
     ok(fins[1].tenYear >= fins[0].tenYear - EPS && fins[2].tenYear >= fins[1].tenYear - EPS, `${tag}: ten-year cash flow rises with extreme years`);
     if (fins[0].payback !== null) {
       ok(fins[1].payback !== null && fins[1].payback <= fins[0].payback + EPS, `${tag}: payback 1 extreme <= 0 extreme`);
@@ -95,6 +108,16 @@ ZONES.forEach((zone) => DURS.forEach((durationH) => MWS.forEach((mw) => SHARES.f
   });
 }))));
 ok(floorHits === 0, `the extreme-year floor never had to act (${floorHits} hits): 2022 is above every scenario`);
+
+// The re-optimised extreme year is worth more than scaling the spot part was, where spot matters.
+{
+  const rev = M.siteRevenue(data, { zone: 'SE4', mw: 50, durationH: 2, dataset: dsets[0], marketSharePct: 5, realizationPct: 100, fx: 1 });
+  const scaled = rev.anc + rev.spot * M.spotOnly(data, 'SE4', 2, '2022') / M.spotOnly(data, 'SE4', 2, 'last12m');
+  ok(rev.grossExtreme > scaled, 'SE4: re-optimising beats scaling the spot part');
+  ok(rev.actual2022Gross > 2 * rev.gross, 'SE4: 2022 as it was paid more than twice a normal year');
+  const y2022 = M.siteRevenue(data, { zone: 'SE4', mw: 50, durationH: 2, dataset: dsets.find((x) => x.id === 'spot2022'), marketSharePct: 5, realizationPct: 100, fx: 1 });
+  near(y2022.gross, rev.grossExtreme, 'the 2022 price data set is the extreme year itself');
+}
 
 // --------------------------------------------------------------- market depth
 ZONES.forEach((zone) => DURS.forEach((durationH) => {
@@ -186,6 +209,9 @@ const inv = (over = {}) => M.investmentModel(Object.assign({
 
   const e1 = inv({ extremeYearList: [5] });
   near(e1.rows[4].revenue - m.rows[4].revenue, 200, 'extreme year replaces the spot part only');
+  const e1anc = inv({ extremeYearList: [5], ancExtreme: 80 });
+  near(e1anc.rows[4].revenue - m.rows[4].revenue, 180, 'and the ancillary part when the extreme year has its own');
+  near(e1anc.rows[5].revenue, m.rows[5].revenue, 'only in that year');
   ok(e1.rows[4].extreme && !e1.rows[3].extreme, 'extreme flag on the right year');
   near(e1.npv - m.npv, 200 / Math.pow(1.08, 5), 'extreme year adds its discounted spot uplift');
   ok(inv({ extremeYearList: [2] }).npv > e1.npv, 'an earlier extreme year is worth more');

@@ -109,14 +109,40 @@ Testet är gjort på arkiverade prognoser, en gång per dygn före auktionen. De
 - Decimalkomma i visade tal.
 - Sex namngivna leverantörer är ersatta med typfall A–F. Pris och villkor är kvar som exempel.
 
-**Kvar – två metodfrågor jag inte ändrade på osäker grund**
+**De två metodfrågorna – rättade 2026-10-07**
 
-1. **Batteriet räknas möjligen dubbelt.** Den egna kalkylen räknar 180 cykler solel och 280 cykler arbitrage per år på samma batteri, alltså 460, och stödtjänster därutöver. Den timvisa simuleringen bakom typfallen ger ändå ett högre värde, så jag vet inte vilken som har rätt.
-2. **Värdet av lagrad solel** räknas som fullt importpris. Det riktiga är importpriset på kvällen minus vad elen hade gett vid export mitt på dagen. Skillnaden kan vara liten när solpriset är nära noll, men den är inte mätt.
+Båda visade sig vara verkliga fel, och större än jag trodde.
 
-Båda kräver en genomgång av `src/bess/dispatch.py` mot timdata.
+1. **Batteriet räknades två gånger.** Värdet av solel och värdet av arbitrage räknades fram var för sig och lades ihop: 180 cykler solel plus 280 cykler arbitrage, alltså 460 om året på ett batteri. Det fanns en timvis simulering, men det var inte dess flöden som värderades.
+2. **Lagrad solel värderades till hela köppriset.** Den sålda elen hade också gett spotpriset, så det riktiga värdet är köppriset på kvällen minus säljpriset mitt på dagen.
 
-Påståendet att torkåret 2018 var ett positivt extremår är också kvar, trots att det inte uppfyller definitionen i mina data.
+Nu räknas ett enda körschema: det billigaste sättet att köra batteriet timme för timme mot elområdets priser. Batteriets värde är elräkningen utan batteri minus elräkningen med. Sol och arbitrage delar på samma batteri, och arbitragedelen är vad nätladdning tillför utöver solen.
+
+Typfall A (15 kWh, 10 kW), energidelen före stödtjänster:
+
+| Elområde | Före | Efter | Värde per lagrad kWh solel |
+|---|---|---|---|
+| SE1 | 5 051 kr | 1 941 kr | 0,64 kr |
+| SE3 | – | 3 297 kr | 0,99 kr |
+| SE4 | 7 956 kr | 4 533 kr | 1,38 kr |
+
+Sidan angav tidigare 1,65–1,80 kr per lagrad kWh.
+
+Återbetalningstid för förvald anläggning i kalkylatorn (15 kWh, 65 000 kr brutto, med stödtjänster):
+
+| Elområde | Efter fas A | Nu |
+|---|---|---|
+| SE1 | 4,9 år | 8,2 år |
+| SE3 | 3,5 år | 5,6 år |
+| SE4 | 2,9 år | 4,5 år |
+
+Övrigt som följde med:
+- Hushållet betalar moms på spotpriset vid köp; det saknades.
+- Resultatet är 90 % av det teoretiskt bästa, eftersom en verklig styrning inte känner förbrukning och sol exakt i förväg. Det står på sidan.
+- Kalkylatorn i webbläsaren kör samma algoritm som Python mot samma timpriser. Ett test jämför de två för alla typfall, elområden och driftstrategier; de skiljer mindre än 1 %.
+- Stödtjänsterna är oförändrade: en ersättning per kW som användaren själv anger. De står nu för 40–60 % av årsvärdet, så det antagandet väger tyngst.
+
+Påståendet att torkåret 2018 var ett positivt extremår är kvar, trots att det inte uppfyller definitionen i mina data.
 
 ---
 

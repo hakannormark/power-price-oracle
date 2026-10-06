@@ -28,8 +28,15 @@ Two families of result are written:
                (calendar 2024, 2025 and the last 12 months);
 * `spot_years` arbitrage-only LP for every calendar year since 2015. The page
                uses the ratio between two of these to restate the spot part of a
-               co-optimised result for another price year (for instance 2022,
-               the "extreme year"), leaving the ancillary part untouched.
+               co-optimised result for another price year.
+* `coopt_extreme` the same co-optimisation with the spot prices of 2022 laid over
+               each period's own capacity-market prices: the "extreme year".
+               Scaling only the spot part understated it, because a battery that
+               sees 2022's spreads moves out of the reserves and into arbitrage.
+* `actual_2022` 2022 as it was for a battery: its own spot and FCR prices, aFRR
+               from May, and no mFRR capacity market. For reference only. FCR-D
+               paid 63 EUR/MW/h then against about 5 now, on a market batteries
+               had not yet filled.
 
 Run by hand (needs scipy, see requirements-geo.txt):
 
@@ -58,7 +65,7 @@ from .market import RTE, ZONES
 log = logging.getLogger(__name__)
 
 OUT_PATH = SITE_DATA_DIR / "bess-map" / "dispatch_backtest.json"
-VERSION = "2026.10-dispatch-v2"
+VERSION = "2026.10-dispatch-v3"
 
 SOC_MIN, SOC_MAX, SOC_START = 0.05, 0.95, 0.50
 # Cycle hurdle in the objective, EUR per MWh discharged. Keeps the LP from
@@ -83,6 +90,7 @@ RESERVES: tuple[tuple[str, int, int, float, float], ...] = (
 )
 PRODUCTS = ("spot",) + tuple(r[0] for r in RESERVES)
 FIRST_FULL_YEAR = 2015
+EXTREME_YEAR = 2022
 
 
 # ------------------------------------------------------------------ the LP
@@ -283,6 +291,20 @@ def _reserve_arrays(hours, zone, mfrr, afrr, fcr) -> tuple[np.ndarray, np.ndarra
     return prices, vols
 
 
+def _aligned_extreme_spot(hours: list[datetime], lookup: dict[datetime, float]) -> np.ndarray:
+    """2022's spot price at the same month, day and hour (UTC) as each hour given."""
+    values = []
+    for h in hours:
+        try:
+            key = h.replace(year=EXTREME_YEAR)
+        except ValueError:  # 29 February
+            key = h.replace(year=EXTREME_YEAR, day=28)
+        values.append(lookup.get(key, np.nan))
+    arr = np.array(values, dtype=float)
+    arr[np.isnan(arr)] = np.nanmean(arr)
+    return arr
+
+
 def _task(args: tuple) -> tuple:
     key, spot, dur, prices, vols, rho, trace = args
     return key, run_period(spot, dur, prices, vols, rho, trace)
@@ -295,6 +317,7 @@ def build(workers: int | None = None, now: datetime | None = None) -> dict[str, 
     mfrr = svk_data.capacity_series("mfrr")
     afrr = svk_data.capacity_series("afrr")
     fcr = svk_data.fcr_series(date(2023, 12, 1), now.date())
+    fcr_extreme = svk_data.fcr_series(date(EXTREME_YEAR, 1, 1), date(EXTREME_YEAR, 12, 31))
 
     # The last 12 months end where both spot and the capacity markets have data.
     last_mfrr = min(max(mfrr[(z, d)]) for z in ZONES for d in ("up", "down"))
@@ -355,6 +378,20 @@ def build(workers: int | None = None, now: datetime | None = None) -> dict[str, 
                         trace = (i0, i0 + 168)
                         sample_idx[z] = trace
                     tasks.append((("coopt", pname, z, dur, rho), arr, dur, prices, vols, rho, trace))
+            # The extreme year for this period: 2022's spot, this period's reserves.
+            extreme = _aligned_extreme_spot(hours, spot[z])
+            for dur in DURATIONS:
+                for rho in RHO_GRID:
+                    tasks.append((("extreme", pname, z, dur, rho), extreme, dur, prices, vols, rho, None))
+
+    # 2022 as it was, for reference: its own FCR prices, aFRR from May, no mFRR market.
+    hours_2022 = _year_hours(EXTREME_YEAR)
+    for z in ZONES:
+        arr, _ = _series(hours_2022, spot[z])
+        prices, vols = _reserve_arrays(hours_2022, z, {}, afrr, fcr_extreme)
+        for dur in DURATIONS:
+            for rho in RHO_GRID:
+                tasks.append((("actual2022", str(EXTREME_YEAR), z, dur, rho), arr, dur, prices, vols, rho, None))
 
     log.info("dispatch: %s LP runs", len(tasks))
     workers = workers or max(1, (os.cpu_count() or 2) - 1)
@@ -400,6 +437,16 @@ def build(workers: int | None = None, now: datetime | None = None) -> dict[str, 
                         "rows": [[round(v, 2) for v in row] for row in tr],
                     }
 
+    def levels(kind: str, pname: str, z: str, dur: float) -> dict[str, Any]:
+        runs = [results[(kind, pname, z, dur, rho)] for rho in RHO_GRID]
+        return {"rev": [r["rev"] for r in runs], "cycles": [r["cycles"] for r in runs]}
+
+    coopt_extreme = {
+        pname: {z: {dkey(d): levels("extreme", pname, z, d) for d in DURATIONS} for z in ZONES}
+        for pname in coopt_periods
+    }
+    actual_2022 = {z: {dkey(d): levels("actual2022", str(EXTREME_YEAR), z, d) for d in DURATIONS} for z in ZONES}
+
     def span(hours: list[datetime]) -> dict[str, Any]:
         return {"from": iso(hours[0]), "to": iso(hours[-1] + timedelta(hours=1)), "hours": len(hours)}
 
@@ -432,6 +479,9 @@ def build(workers: int | None = None, now: datetime | None = None) -> dict[str, 
         "market": market,
         "spot_years": spot_years,
         "coopt": coopt,
+        "extreme_year": EXTREME_YEAR,
+        "coopt_extreme": coopt_extreme,
+        "actual_2022": actual_2022,
         "sample_week": sample,
     }
 

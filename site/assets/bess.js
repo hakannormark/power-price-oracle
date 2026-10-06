@@ -119,14 +119,19 @@
 
   function init() {
     loadState();
-    fetch("data/bess.json")
-      .then((r) => {
+    Promise.all([
+      fetch("data/bess.json", { cache: "no-cache" }).then((r) => {
         if (!r.ok) throw new Error("Could not load data/bess.json");
         return r.json();
-      })
-      .then((payload) => {
+      }),
+      // Hourly prices and household shapes for the calculator. Without them the
+      // calculator has nothing to optimise against, and says so.
+      fetch("data/bess-hourly.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    ])
+      .then(([payload, hourly]) => {
         state.data = payload;
-        showDataProblem(dataProblem(payload));
+        state.hourly = hourly && hourly.spot && window.BessDispatch ? hourly : null;
+        showDataProblem(dataProblem(payload) || (state.hourly ? null : "Timpriserna för kalkylatorn kunde inte läsas in."));
         bindControls();
         renderAll();
       })
@@ -397,14 +402,35 @@
     }
   }
 
+  // The optimisation takes about a tenth of a second, and one change of a
+  // slider asks for the same system several times over.
+  const energyCache = new Map();
+  function energyValue(c, usableKwh) {
+    const none = { solarSek: 0, arbitrageSek: 0, storedSolarKwh: 0, gridChargedKwh: 0, throughputKwh: 0 };
+    if (!state.hourly || !state.hourly.spot[state.selectedZone]) return none;
+    const o = {
+      zone: state.selectedZone,
+      loadKwh: c.load_kwh,
+      pvKwh: (c.pv_kwp || 0) * 850,
+      usableKwh,
+      powerKw: c.p_kw,
+      roundTripEff: 0.9,
+      strategy: state.strategy === "mixed" ? "mixed" : "energy_only",
+    };
+    const key = JSON.stringify(o);
+    if (!energyCache.has(key)) {
+      if (energyCache.size > 200) energyCache.clear();
+      energyCache.set(key, window.BessDispatch.valueBattery(state.hourly, o));
+    }
+    return energyCache.get(key);
+  }
+
   // Calculate dynamic custom battery system
   function computeCustomSystem() {
     const c = state.custom;
     const zd = getZoneData();
     const stats = (zd && zd.stats) || {};
 
-    const dailySpread = stats.mean_daily_spread_sek_kwh || 1.15;
-    const solarAvoidedCost = stats.solar_avoided_cost_sek_kwh || 1.65;
 
     // Green tech deduction
     const maxDeduction = state.numOwners === 1 ? 50000 : 100000;
@@ -423,26 +449,15 @@
     const fuseUpgradeAnnualCost = getFuseUpgradeAnnualCost(currentFuse, requiredFuse);
     const effectiveFuseDeduction = c.deduct_fuse_upgrade !== false ? fuseUpgradeAnnualCost : 0;
 
-    // Solar self-consumption
-    let storedSolarKwh = 0;
-    let solarSavingsSek = 0;
-    if (c.pv_kwp > 0) {
-      const annualPv = c.pv_kwp * 850;
-      // In high-load households (25k - 60k kWh), daytime base load absorbs more direct solar
-      const daytimeLoadFrac = c.load_kwh >= 25000 ? 0.45 : 0.35;
-      const directPv = Math.min(annualPv * 0.40, c.load_kwh * daytimeLoadFrac);
-      const surplusPv = Math.max(0, annualPv - directPv);
-      const nightLoad = c.load_kwh * 0.45;
-      storedSolarKwh = Math.min(surplusPv, usableKwh * 180, nightLoad);
-      solarSavingsSek = Math.round(storedSolarKwh * solarAvoidedCost);
-    }
-
-    // Spot arbitrage
-    // Limit per cycle: battery usable capacity or inverter power * window (approx 3.5h)
-    const maxCycleKwh = Math.min(usableKwh * 0.85, c.p_kw * 3.5);
-    const spreadMargin = Math.max(0, (dailySpread * 0.88) - 0.15);
-    const arbitrageKwh = Math.round(maxCycleKwh * 280);
-    const arbitrageProfitSek = Math.round(maxCycleKwh * spreadMargin * 280);
+    // Energy value: the cheapest schedule against the zone's hourly prices, for
+    // this household's load and solar. Solar storage and price arbitrage share
+    // one battery and one set of cycles; nothing is counted twice.
+    const energy = energyValue(c, usableKwh);
+    const storedSolarKwh = Math.round(energy.storedSolarKwh);
+    const solarSavingsSek = Math.round(energy.solarSek);
+    const arbitrageKwh = Math.round(energy.gridChargedKwh);
+    const arbitrageProfitSek = Math.round(energy.arbitrageSek);
+    const cyclesPerYear = c.cap_kwh > 0 ? energy.throughputKwh / c.cap_kwh : 0;
 
     // Ancillary services (FCR-D)
     let ancillaryRevSek = 0;
@@ -844,8 +859,8 @@
       <strong>Valt elområde: ${zd.name}</strong> · 
       Snittspot: <strong>${(stats.mean_spot_sek_kwh * 100).toFixed(1).replace(".", ",")} öre/kWh</strong> · 
       Snitt-dygnsspread: <strong>${(stats.mean_daily_spread_sek_kwh * 100).toFixed(1).replace(".", ",")} öre/kWh</strong> · 
-      Värde av lagrad solel: <strong>${stats.solar_avoided_cost_sek_kwh ? stats.solar_avoided_cost_sek_kwh.toFixed(2).replace(".", ",") : "1,65"} kr/kWh</strong> · 
-      Arbitragekapacitet: <strong>${fmtKr(stats.arbitrage_yield_sek_per_kwh)}/kWh/år</strong>
+      Köppris i snitt: <strong>${stats.mean_import_price_sek_kwh ? stats.mean_import_price_sek_kwh.toFixed(2).replace(".", ",") : "–"} kr/kWh</strong> · 
+      Säljpris i snitt: <strong>${stats.mean_export_price_sek_kwh ? stats.mean_export_price_sek_kwh.toFixed(2).replace(".", ",") : "–"} kr/kWh</strong>
     `;
   }
 

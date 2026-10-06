@@ -135,6 +135,27 @@ Hembatterisidan definierar ett positivt extremår som minst 2,0 × normalt värd
 - Testerna är utökade till 91 309 kontroller: negativt ≤ normalt ≤ positivt i alla 3 500 kombinationer, och ett negativt år kostar exakt 40 % av spotdelen minus arvodet.
 - På hembatterisidan sade texten 2,0 × men koden räknade med 2,3 ×. Texten är rättad till 2,3 ×. Koden är oförändrad, så inga hembatterisiffror ändras. 2,0 är gränsen i definitionen; 2,3 är storleken som tillämpas och motsvarar 2022 mot snittet 2023–2025 (1,97–2,95 × över elområdena, medel 2,3).
 
+### Tillägg 2026-10-07: extremåret vägde för lätt
+
+Frågan var om skillnaden med och utan extremår inte borde vara större. Den borde det, av två skäl.
+
+**1. Jag skalade bara spotdelen.** Normalårets spotintäkt multiplicerades med kvoten för 2022. Men ett batteri som ser 2022 års prisskillnader flyttar från reserverna till arbitrage. Nu optimeras batteriet om mot 2022 års spotpriser, med dagens stödtjänstpriser.
+
+| Elområde | Skalad spotdel (förut) | Omoptimerat (nu) |
+|---|---|---|
+| SE1 | +2 % | +4 % |
+| SE2 | +3 % | +5 % |
+| SE3 | +22 % | +37 % |
+| SE4 | +28 % | +37 % |
+
+50 MW / 100 MWh, 5 % marknadsandel. Bruttointäkt i ett extremår mot ett normalår.
+
+**2. Stödtjänsterna hölls oförändrade.** Det är ett antagande, och det går nu att ändra med ratten "Stödtjänster i positivt extremår". Som jämförelse är 2022 uträknat som det faktiskt var, med den tidens FCR-priser och utan mFRR-kapacitetsmarknad: omkring 3,6 gånger dagens normalår. Nästan allt kom från FCR-D på 63 EUR/MW/h mot omkring 5 i dag, på en marknad batterierna ännu inte hade fyllt. Det är en historisk uppgift och ingen prognos, så förvalet är kvar på × 1,00.
+
+**Varför återbetalningstiden ändå rör sig lite.** Ett extremår är ett av tio år. Även +37 % på ett år höjer tioårssumman med knappt 4 %. I SE4 går återbetalningen från 4,8 till 4,6 år med ett extremår och till 4,4 med två. Med stödtjänster × 3 i extremåren blir det 3,5 år.
+
+Prisunderlaget "Spotpriser som 2022" använder nu samma omoptimerade körning, så det stämmer med extremåret.
+
 ### Är definitionen berättigad?
 
 Prövad mot spotarbitrage per år 2015–2025, som kvot mot snittet av de tre föregående åren:

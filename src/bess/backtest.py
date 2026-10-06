@@ -9,17 +9,36 @@ Demonstrates the impact of:
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime
 import pandas as pd
+from typing import Any
 
-from ..config import ACTUALS_DIR
+from ..config import ACTUALS_DIR, DATA_DIR
 from ..store import load_actuals
-from .dispatch import simulate_battery_dispatch
+from .dispatch import MODEL_VERSION, simulate_battery_dispatch
 from .offers import OFFERS, BatteryOffer
 from .profiles import generate_household_profiles
 
 log = logging.getLogger(__name__)
+
+
+CACHE_PATH = DATA_DIR / "bess" / "backtest_cache.json"
+
+
+def _load_cache() -> dict[str, Any]:
+    try:
+        return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_cache(cache: dict[str, Any]) -> None:
+    # Entries from an earlier model version are dead weight; drop them.
+    live = {k: v for k, v in cache.items() if k.startswith(MODEL_VERSION + "|")}
+    CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    CACHE_PATH.write_text(json.dumps(live, separators=(",", ":"), sort_keys=True), encoding="utf-8")
 
 
 def run_historical_backtest(
@@ -44,6 +63,10 @@ def run_historical_backtest(
     df_act["year"] = df_act["ts"].dt.year
     df_act["price_sek_kwh"] = (df_act["price_eur_mwh"] * fx_rate) / 1000.0
 
+    cache = _load_cache()
+    cache_dirty = False
+    this_year = df_act["ts"].max().year
+
     yearly_results = {}
     for y in sorted(years):
         sub = df_act[df_act["year"] == y].sort_values("ts")
@@ -55,9 +78,20 @@ def run_historical_backtest(
         spot_series = sub["price_sek_kwh"].to_numpy()
 
         offer_scores = {}
+        # A finished year never changes, and each offer costs four optimisations.
+        # Without the cache the eleven years took minutes in every pipeline run.
+        finished = y < this_year and len(sub) >= 8000
         for offer in OFFERS:
+            key = "|".join(str(v) for v in (
+                MODEL_VERSION, zone, y, offer.id, offer.capacity_kwh, offer.usable_kwh,
+                offer.battery_max_power_kw, offer.round_trip_eff, round(fx_rate, 1),
+            ))
+            if finished and key in cache:
+                offer_scores[offer.id] = cache[key]
+                continue
             res_mixed = simulate_battery_dispatch(profile_df, spot_series, offer, strategy="mixed")
             res_energy = simulate_battery_dispatch(profile_df, spot_series, offer, strategy="energy_only")
+            cache_dirty = cache_dirty or finished
             offer_scores[offer.id] = {
                 "mixed": {
                     "solar_savings_sek": res_mixed.solar_savings_sek,
@@ -73,6 +107,9 @@ def run_historical_backtest(
                     "cycles": res_energy.equivalent_cycles,
                 },
             }
+
+            if finished:
+                cache[key] = offer_scores[offer.id]
 
         # Daily spreads
         daily_spreads = []
@@ -101,6 +138,9 @@ def run_historical_backtest(
             "neg_hours": neg_hours,
             "offers": offer_scores,
         }
+
+    if cache_dirty:
+        _save_cache(cache)
 
     # Summary by era
     classic_years = [y for y in yearly_results if int(y) <= 2020]

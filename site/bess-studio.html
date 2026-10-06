@@ -945,6 +945,11 @@
             <div class="bs-note" id="lbl-extreme-desc"></div>
           </div>
           <div class="bs-ctrl-group">
+            <label>Stödtjänster i positivt extremår <span class="bs-val" id="val-anc-ext"></span></label>
+            <input type="range" id="range-anc-ext" min="0.5" max="4" step="0.25" value="1">
+            <div class="bs-note" id="lbl-anc-ext-desc"></div>
+          </div>
+          <div class="bs-ctrl-group">
             <label for="sel-negative-years">Negativa extremår under tio år</label>
             <select id="sel-negative-years">
               <option value="0" selected>0 – inga</option>
@@ -1169,7 +1174,8 @@
     <h3>3. Extremår</h3>
     <p>Kalkylen använder samma konvention som hembatterikalkylen: ett <strong>positivt extremår</strong> är ett år där spotvärdet är minst 2,0 gånger det normala, ett <strong>negativt extremår</strong> ett år där det är 0,6 gånger det normala. Bara spotdelen ändras. Stödtjänstintäkten hålls oförändrad, eftersom kapacitetsmarknaderna inte fanns i dagens form under tidigare extremår.</p>
     <ul>
-      <li><strong>Positivt extremår</strong> räknas inte med en fast faktor utan med 2022 års faktiska spotpriser i elområdet: <code>stödtjänster + spotdel × (arbitrage 2022 ÷ arbitrage i basperioden)</code>. 2022 är det år med störst prisskillnader inom dygnet i alla fyra elområden sedan 2015. Mot snittet 2023–2025 motsvarar det 2,0–3,0 gånger normal spotarbitrage; mot de senaste 12 månaderna mindre, eftersom prisskillnaderna har ökat. Kvoten visas under väljaren.</li>
+      <li><strong>Positivt extremår</strong> räknas inte med en fast faktor. Batteriet optimeras om mot 2022 års faktiska spotpriser i elområdet, med basperiodens stödtjänstpriser. Det flyttar då från reserverna till arbitrage, så spotdelen växer och stödtjänstdelen krymper något. 2022 är det år med störst prisskillnader inom dygnet i alla fyra elområden sedan 2015. Kvoten mot normalårets rena arbitrage visas under väljaren.</li>
+      <li><strong>Stödtjänster i extremår</strong> är förvalt oförändrade (× 1,00). Ratten låter dig pröva ett år där även reservpriserna stiger. 2022 som det faktiskt var gav en batteriägare omkring tre och en halv gånger dagens normalår – men nästan allt kom från FCR-priser på 60 EUR/MW/h mot omkring 5 i dag, på en marknad som batterierna ännu inte hade fyllt. Det är en historisk uppgift, inte en prognos.</li>
       <li><strong>Negativt extremår</strong>: <code>stödtjänster + spotdel × 0,6</code>.</li>
     </ul>
     <p>Ett positivt extremår kan aldrig ge lägre intäkt än ett normalår, och ett negativt aldrig högre. Väljer du prisunderlaget "Spotpriser som 2022" är alla år redan positiva extremår. I den förenklade kalkylen byts år ut bland de tio; i investeringskalkylen anger du vilka år.</p>
@@ -1270,7 +1276,7 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="assets/bess-studio-model.js?v=20261006b"></script>
-<script src="assets/bess-studio.js?v=20261006b"></script>
+<script src="assets/bess-studio-model.js?v=20261007a"></script>
+<script src="assets/bess-studio.js?v=20261007a"></script>
 </body>
 </html>
