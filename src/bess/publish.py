@@ -13,9 +13,9 @@ from ..publish.api import write_json
 from ..timeutil import TZ, iso, now_local
 from .backtest import run_historical_backtest
 from .dispatch import household_prices, simulate_battery_dispatch
-from .lifecycle import compute_lifecycle
+from .lifecycle import EXTREME_YEAR, compute_lifecycle
 from .offers import OFFERS, get_offer
-from .profiles import generate_household_profiles
+from .profiles import CASE_HOUSE_PV_KWP_EFFECTIVE, generate_household_profiles
 
 log = logging.getLogger(__name__)
 
@@ -50,25 +50,49 @@ def _build_single_zone_data(
         timestamps = [base_t + timedelta(hours=i) for i in range(8760)]
         spot_sek_kwh = [0.85] * 8760
 
-    profile_df = generate_household_profiles(timestamps)
+    profile_df = generate_household_profiles(timestamps, zone=zone)
     # The calculator in the browser runs the same optimisation on the same hours.
     # Weights sum to a million over the window, so load = weight * annual kWh / 1e6.
     n_hours = len(profile_df)
-    hourly = {
-        "spot": [round(float(v), 4) for v in spot_sek_kwh],
-        "w_load": [round(float(v), 1) for v in profile_df["load_kwh"] / profile_df["load_kwh"].sum() * 1e6],
-        "w_pv": [round(float(v), 1) for v in profile_df["pv_kwh"] / max(profile_df["pv_kwh"].sum(), 1e-9) * 1e6],
-        "from": iso(timestamps[0]) if timestamps else None,
-        "hours": n_hours,
-    }
+
+    def _hourly_block(profile: Any, spot: Any) -> dict[str, Any]:
+        return {
+            "spot": [round(float(v), 4) for v in spot],
+            "w_load": [round(float(v), 1) for v in profile["load_kwh"] / profile["load_kwh"].sum() * 1e6],
+            # Production per installed kWp at the standard system factor.
+            "pv_per_kwp": [round(float(v), 4) for v in profile["pv_kwh"] / CASE_HOUSE_PV_KWP_EFFECTIVE],
+        }
+
+    hourly = _hourly_block(profile_df, spot_sek_kwh)
+    hourly["from"] = iso(timestamps[0]) if timestamps else None
+    hourly["hours"] = n_hours
+
+    # The extreme year, as it was: 2022's hourly prices and 2022's sun in this zone.
+    extreme_hourly = None
+    if zone_rows:
+        df_ext = df_z[df_z["ts"].dt.year == EXTREME_YEAR]
+        if len(df_ext) >= 8000:
+            ext_timestamps = [t.to_pydatetime() for t in df_ext["ts"]]
+            ext_spot = (df_ext["price_eur_mwh"] * fx_rate) / 1000.0
+            extreme_hourly = _hourly_block(generate_household_profiles(ext_timestamps, zone=zone), ext_spot)
+    hourly["extreme"] = extreme_hourly
+
+    # The back-test already values every offer on every year; its 2022 is the
+    # extreme year the lifecycle uses.
+    backtest_data = run_historical_backtest(actuals=actuals, fx_rate=fx_rate, zone=zone)
+    extreme_offers = (((backtest_data.get("years") or {}).get(str(EXTREME_YEAR)) or {}).get("offers")) or {}
+
+    def _extreme(offer_id: str) -> tuple[float, float] | None:
+        row = (extreme_offers.get(offer_id) or {}).get("mixed")
+        return (float(row["solar_savings_sek"]), float(row["arbitrage_profit_sek"])) if row else None
 
     offers_data: list[dict[str, Any]] = []
     for offer in OFFERS:
         disp_mixed = simulate_battery_dispatch(profile_df, spot_sek_kwh, offer, strategy="mixed")
         disp_energy = simulate_battery_dispatch(profile_df, spot_sek_kwh, offer, strategy="energy_only")
 
-        lc_nordic_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="nordic_frequency")
-        lc_nordic_1own = compute_lifecycle(offer, disp_mixed, num_owners=1, scenario="nordic_frequency")
+        lc_nordic_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="nordic_frequency", extreme=_extreme(offer.id))
+        lc_nordic_1own = compute_lifecycle(offer, disp_mixed, num_owners=1, scenario="nordic_frequency", extreme=_extreme(offer.id))
         lc_base_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="base_only")
         lc_base_1own = compute_lifecycle(offer, disp_mixed, num_owners=1, scenario="base_only")
         lc_cannibal_2own = compute_lifecycle(offer, disp_mixed, num_owners=2, scenario="cannibalization")
@@ -113,8 +137,6 @@ def _build_single_zone_data(
             "cannibalization_1_owner": _fmt_lc(lc_cannibal_1own),
         }
         offers_data.append(offer_entry)
-
-    backtest_data = run_historical_backtest(actuals=actuals, fx_rate=fx_rate, zone=zone)
 
     import numpy as np
     spot_arr = np.asarray(spot_sek_kwh)
@@ -219,9 +241,11 @@ def hourly_payload(payload: dict[str, Any]) -> dict[str, Any]:
         MODEL_VERSION, REALISATION, RETAIL_MARGIN_SEK, SPOT_VAT,
     )
     from .optimal import LEVELS, WEAR_HURDLE_SEK_PER_KWH
+    from .solar import SYSTEM_FACTOR
 
     zones = payload.get("zones", {})
     first = next((z["_hourly"] for z in zones.values() if z.get("_hourly")), None) or {}
+    first_extreme = next((z["_hourly"]["extreme"] for z in zones.values() if (z.get("_hourly") or {}).get("extreme")), None) or {}
     return {
         "generated_at": payload.get("generated_at"),
         "model": MODEL_VERSION,
@@ -235,10 +259,19 @@ def hourly_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "wear_hurdle_sek_per_kwh": WEAR_HURDLE_SEK_PER_KWH,
             "fcr_window_reserve": FCR_WINDOW_RESERVE,
             "levels": LEVELS,
+            "case_house_pv_kwp": CASE_HOUSE_PV_KWP_EFFECTIVE,
+            "pv_system_factor": SYSTEM_FACTOR,
         },
         "w_load": first.get("w_load", []),
-        "w_pv": first.get("w_pv", []),
         "spot": {zone: data["_hourly"]["spot"] for zone, data in zones.items() if data.get("_hourly")},
+        "pv_per_kwp": {zone: data["_hourly"]["pv_per_kwp"] for zone, data in zones.items() if data.get("_hourly")},
+        # 2022 in each zone, for the extreme year of the lifecycle.
+        "extreme": {
+            "year": EXTREME_YEAR,
+            "w_load": first_extreme.get("w_load", []),
+            "spot": {z: d["_hourly"]["extreme"]["spot"] for z, d in zones.items() if (d.get("_hourly") or {}).get("extreme")},
+            "pv_per_kwp": {z: d["_hourly"]["extreme"]["pv_per_kwp"] for z, d in zones.items() if (d.get("_hourly") or {}).get("extreme")},
+        },
     }
 
 

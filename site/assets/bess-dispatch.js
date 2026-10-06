@@ -94,24 +94,44 @@
     return { cost: bill, charged, chargedSolar, discharged };
   }
 
+  /** Timserierna för ett elområde: det senaste året, eller extremåret (2022) om extreme är sant. */
+  function seriesFor(hourly, zone, extreme) {
+    const src = extreme ? hourly.extreme : hourly;
+    if (!src || !src.spot || !src.spot[zone] || !src.pv_per_kwp || !src.pv_per_kwp[zone]) return null;
+    return { spot: src.spot[zone], pv: src.pv_per_kwp[zone], load: src.w_load };
+  }
+
+  /** Solproduktion per installerad kWp och år i elområdet, ur uppmätt instrålning. */
+  function yieldPerKwp(hourly, zone) {
+    const s = seriesFor(hourly, zone, false);
+    if (!s) return 0;
+    let sum = 0;
+    for (let t = 0; t < s.pv.length; t++) sum += s.pv[t];
+    return sum * 8760 / s.pv.length;
+  }
+
   /**
    * Årsvärdet av ett batteri i ett hushåll.
    *
-   * hourly: innehållet i data/bess-hourly.json. o: { zone, loadKwh, pvKwh,
-   * usableKwh, powerKw, roundTripEff, strategy }.
+   * hourly: innehållet i data/bess-hourly.json. o: { zone, loadKwh, pvKwp,
+   * usableKwh, powerKw, roundTripEff, strategy, extreme }. pvKwp är installerad
+   * effekt vid standardfaktorn; solen är elområdets uppmätta, timme för timme.
+   * Med extreme räknas samma anläggning mot 2022 års priser och sol.
    */
   function valueBattery(hourly, o) {
     const k = hourly.constants;
-    const spot = hourly.spot[o.zone];
+    const series = seriesFor(hourly, o.zone, !!o.extreme);
+    if (!series) return null;
+    const spot = series.spot;
     const n = spot.length;
     const yearShare = n / 8760;
     const net = new Float64Array(n);
     const imp = new Float64Array(n);
     const exp = new Float64Array(n);
     const loadScale = o.loadKwh * yearShare / 1e6;
-    const pvScale = o.pvKwh * yearShare / 1e6;
+    const pvKwp = o.pvKwp || 0;
     for (let t = 0; t < n; t++) {
-      net[t] = hourly.w_load[t] * loadScale - hourly.w_pv[t] * pvScale;
+      net[t] = series.load[t] * loadScale - series.pv[t] * pvKwp;
       imp[t] = spot[t] * k.spot_vat + k.import_adders_sek;
       exp[t] = spot[t] + k.export_adder_sek;
     }
@@ -133,5 +153,5 @@
     };
   }
 
-  return { LEVELS, billWithoutBattery, optimalSchedule, valueBattery };
+  return { LEVELS, billWithoutBattery, optimalSchedule, valueBattery, yieldPerKwp, seriesFor };
 });

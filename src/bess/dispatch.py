@@ -56,7 +56,7 @@ REALISATION = 0.90
 SPOT_VAT = 1.25  # a household pays VAT on the spot price it imports at, and gets none on what it exports
 # Share of the usable window kept free for frequency response, per strategy.
 FCR_WINDOW_RESERVE = {"energy_only": 0.0, "mixed": 0.20, "fcr_priority": 0.40}
-MODEL_VERSION = "optimal-v1"
+MODEL_VERSION = "optimal-v2"  # v2: measured sun per zone instead of a clear sky over Malmö
 
 
 def household_prices(spot_sek_kwh: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

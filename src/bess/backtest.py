@@ -74,7 +74,7 @@ def run_historical_backtest(
             continue
 
         timestamps = [t.to_pydatetime() for t in sub["ts"]]
-        profile_df = generate_household_profiles(timestamps)
+        profile_df = generate_household_profiles(timestamps, zone=zone)
         spot_series = sub["price_sek_kwh"].to_numpy()
 
         offer_scores = {}

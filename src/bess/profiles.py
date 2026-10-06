@@ -16,6 +16,12 @@ import pandas as pd
 
 from ..timeutil import TZ
 
+# The case house has 10 kWp on the roof but yields about 7 000 kWh a year in
+# Malmö, well under what 10 kWp facing south would. Expressed as the capacity
+# that gives the same yield at the standard system factor, so that the same
+# house in Luleå gets Luleå's sun rather than Malmö's 7 000 kWh.
+CASE_HOUSE_PV_KWP_EFFECTIVE = 6.8
+
 # Typical diurnal load curve weights (0 to 23 hours)
 # Morning peak at 07-09, evening peak at 17-21, night dip at 01-05
 HOURLY_BASE_LOAD_WEIGHTS = [
@@ -32,8 +38,16 @@ def generate_household_profiles(
     annual_load_kwh: float = 8_000.0,
     annual_pv_kwh: float = 7_000.0,
     pv_capacity_kwp: float = 10.0,
+    zone: str | None = None,
+    pv_kwp_effective: float | None = None,
 ) -> pd.DataFrame:
-    """Generate aligned hourly load and PV profiles for the given timestamps."""
+    """Generate aligned hourly load and PV profiles for the given timestamps.
+
+    With `zone`, solar production is the measured radiation at that zone's
+    reference point (bess/solar.py) times `pv_kwp_effective`: the real sun, hour
+    by hour, clouds included. Without it, or if no radiation is stored, the old
+    clear-sky curve for Malmö scaled to `annual_pv_kwh` is used.
+    """
     n = len(timestamps)
     if n == 0:
         return pd.DataFrame(columns=["ts", "hour", "dow", "load_kwh", "pv_kwh", "surplus_kwh", "deficit_kwh"])
@@ -91,6 +105,14 @@ def generate_household_profiles(
         pv_kwh = raw_pv * scaling_pv
     else:
         pv_kwh = np.zeros(n)
+
+    if zone is not None:
+        from . import solar
+
+        measured = solar.production_per_kwp(zone, dts)
+        if measured is not None:
+            kwp = CASE_HOUSE_PV_KWP_EFFECTIVE if pv_kwp_effective is None else pv_kwp_effective
+            pv_kwh = measured * kwp
 
     surplus = np.maximum(0.0, pv_kwh - load_kwh)
     deficit = np.maximum(0.0, load_kwh - pv_kwh)

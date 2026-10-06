@@ -34,6 +34,11 @@ class LifecycleCashFlow:
     cumulative_cash_flow: float
 
 
+EXTREME_YEAR = 2022
+NEGATIVE_FACTOR = 0.6
+FALLBACK_POSITIVE_FACTOR = 2.3  # only when the extreme year cannot be valued on its own prices
+
+
 @dataclass
 class LifecycleAnalysis:
     offer_id: str
@@ -57,8 +62,14 @@ def compute_lifecycle(
     num_owners: int = 2,
     scenario: str = "nordic_frequency",  # "base_only", "nordic_frequency", "cannibalization"
     horizon_years: int = 15,
+    extreme: tuple[float, float] | None = None,
 ) -> LifecycleAnalysis:
-    """Compute 10-15 year lifecycle economics for a battery offer."""
+    """Compute 10-15 year lifecycle economics for a battery offer.
+
+    `extreme` is (solar value, arbitrage value) for the same system in the
+    extreme year, valued on that year's own hourly prices and sun. Without it
+    the positive extreme year falls back to the fixed factor.
+    """
     net_inv = offer.net_price(num_owners)
     gross_inv = offer.gross_price
     ded_lost = offer.deduction_lost(num_owners)
@@ -68,24 +79,21 @@ def compute_lifecycle(
     base_arb = dispatch_res.arbitrage_profit_sek
     base_fcr = dispatch_res.ancillary_revenue_sek
 
-    # Extreme year multipliers schedule over 15 years
-    # Nordic baseline frequency: 1.5 positive (2.3x) and 0.5 negative (0.6x) per decade.
-    # 2.0x is the threshold that defines a positive extreme year; 2.3x is the size applied,
-    # the mean of 2022 over the 2023-2025 average spot arbitrage across SE1-SE4 (1.97-2.95x).
-    # Place positive extreme years on year 3 and year 11; negative extreme year on year 7
-    extreme_mults = [1.0] * horizon_years
+    # Which years are extreme. A positive one is 2022 as it was in the zone
+    # (see `extreme`); a negative one is a stress assumption, 0.6 x the energy
+    # value, because no year since 2015 has been that weak for arbitrage.
+    # Frequency follows the page: 1.5 positive and 0.5 negative per decade.
+    kinds = ["normal"] * horizon_years
     if scenario == "nordic_frequency":
-        if horizon_years >= 3:
-            extreme_mults[2] = 2.3  # Positive extreme year 3 (gas/dry shock)
-        if horizon_years >= 7:
-            extreme_mults[6] = 0.6  # Negative extreme year 7 (wet year)
-        if horizon_years >= 11:
-            extreme_mults[10] = 2.3  # Positive extreme year 11
-    elif scenario == "base_only":
-        extreme_mults = [1.0] * horizon_years
-    elif scenario == "cannibalization":
-        # Stressed saturation scenario: no positive shocks, FCR decays rapidly
-        extreme_mults = [1.0] * horizon_years
+        for index, kind in ((2, "positive"), (6, "negative"), (10, "positive")):
+            if horizon_years > index:
+                kinds[index] = kind
+    if extreme is not None:
+        extreme_solar, extreme_arb = extreme
+    else:
+        extreme_solar, extreme_arb = base_solar * (1 + (FALLBACK_POSITIVE_FACTOR - 1) * 0.2), base_arb * FALLBACK_POSITIVE_FACTOR
+    energy_base = base_solar + base_arb
+    positive_ratio = (extreme_solar + extreme_arb) / energy_base if energy_base > 0 else 1.0
 
     cash_flows: list[LifecycleCashFlow] = []
     cumulative = -net_inv
@@ -99,12 +107,18 @@ def compute_lifecycle(
         idx = y - 1
         # Capacity fade affects throughput/storage
         retention = max(0.65, 1.0 - (y - 1) * ANNUAL_DEGRADATION_RATE)
-        m_ext = extreme_mults[idx]
+        kind = kinds[idx]
+        m_ext = positive_ratio if kind == "positive" else (NEGATIVE_FACTOR if kind == "negative" else 1.0)
 
-        # Solar self-consumption: relatively stable, slight degradation drop
-        solar_rev = base_solar * retention
-        # Arbitrage: scales with retention and extreme shock
-        arb_rev = base_arb * retention * (m_ext if m_ext > 1.0 else 0.8)
+        # Energy value: the year's own valuation in a positive extreme year, a
+        # flat factor in a negative one, the base year otherwise. An earlier
+        # version multiplied every normal year by 0.8 here by mistake.
+        if kind == "positive":
+            solar_rev, arb_rev = extreme_solar * retention, extreme_arb * retention
+        elif kind == "negative":
+            solar_rev, arb_rev = base_solar * retention * NEGATIVE_FACTOR, base_arb * retention * NEGATIVE_FACTOR
+        else:
+            solar_rev, arb_rev = base_solar * retention, base_arb * retention
 
         # Ancillary services: subject to battery capacity fade (SoH) and market saturation/cannibalization
         if scenario == "cannibalization":
@@ -114,7 +128,7 @@ def compute_lifecycle(
             fcr_decay = max(0.40, (0.95) ** (y - 1))
         else:
             fcr_decay = 1.0
-        fcr_rev = base_fcr * retention * fcr_decay * (m_ext if m_ext > 1.0 else 0.8)
+        fcr_rev = base_fcr * retention * fcr_decay * (1.2 if kind == "positive" else (0.8 if kind == "negative" else 1.0))
 
         tot_rev = solar_rev + arb_rev + fcr_rev
         net_cf = tot_rev

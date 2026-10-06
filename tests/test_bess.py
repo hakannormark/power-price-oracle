@@ -86,6 +86,58 @@ class BessLifecycleTests(unittest.TestCase):
         self.assertGreater(lc.npv_15y, 0.0)
 
 
+class BessSolarTests(unittest.TestCase):
+    """The sun is the zone's own, measured hour by hour."""
+
+    def _year(self, year=2025):
+        start = datetime(year, 1, 1, 0, tzinfo=TZ)
+        return [start + timedelta(hours=i) for i in range(8760)]
+
+    def test_yield_rises_southwards_and_is_plausible(self):
+        from src.bess import solar
+
+        ts = self._year()
+        yields = {z: float(solar.production_per_kwp(z, ts).sum()) for z in ("SE1", "SE2", "SE3", "SE4")}
+        self.assertLess(yields["SE1"], yields["SE2"])
+        self.assertLess(yields["SE2"], yields["SE3"])
+        self.assertLess(yields["SE3"], yields["SE4"])
+        # What installers and Energimyndigheten report for Sweden, north to south.
+        self.assertGreater(yields["SE1"], 650)
+        self.assertLess(yields["SE4"], 1150)
+
+    def test_profile_uses_the_zone(self):
+        ts = self._year()
+        north = generate_household_profiles(ts, zone="SE1")
+        south = generate_household_profiles(ts, zone="SE4")
+        self.assertLess(north["pv_kwh"].sum(), south["pv_kwh"].sum())
+        # The same house either way.
+        self.assertAlmostEqual(north["load_kwh"].sum(), south["load_kwh"].sum(), delta=1.0)
+        self.assertGreaterEqual(north["pv_kwh"].min(), 0.0)
+        # Measured weather has overcast days; a clear-sky curve does not.
+        june = south[south["month"] == 6] if "month" in south else south.iloc[151 * 24:181 * 24]
+        daily = june["pv_kwh"].to_numpy()[: 30 * 24].reshape(30, 24).sum(axis=1)
+        self.assertLess(daily.min(), 0.5 * daily.max())
+
+    def test_extreme_years_use_the_valuation_they_are_given(self):
+        ts = self._year(2026)
+        profile_df = generate_household_profiles(ts)
+        offer = get_offer("solis_dyness_15")
+        disp = simulate_battery_dispatch(profile_df, np.array([0.85] * 8760), offer, strategy="mixed")
+        plain = compute_lifecycle(offer, disp, scenario="nordic_frequency")
+        given = compute_lifecycle(offer, disp, scenario="nordic_frequency", extreme=(5000.0, 9000.0))
+        by_year = {c.year: c for c in given.annual_cash_flows}
+        base = {c.year: c for c in plain.annual_cash_flows}
+        for year in (3, 11):
+            c = by_year[year]
+            self.assertAlmostEqual(c.solar_savings, 5000.0 * c.capacity_retention, delta=1.0)
+            self.assertAlmostEqual(c.arbitrage_profit, 9000.0 * c.capacity_retention, delta=1.0)
+        # Normal years are untouched, and the weak year is weaker than a normal one.
+        self.assertEqual(by_year[1].total_revenue, base[1].total_revenue)
+        self.assertEqual(by_year[2].arbitrage_profit, base[2].arbitrage_profit)
+        self.assertLess(by_year[7].arbitrage_profit / by_year[7].capacity_retention,
+                        by_year[6].arbitrage_profit / by_year[6].capacity_retention)
+
+
 class BessPublishTests(unittest.TestCase):
     def test_build_bess_payload(self):
         now = datetime(2026, 10, 4, 10, tzinfo=TZ)

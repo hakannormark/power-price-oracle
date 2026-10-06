@@ -144,6 +144,32 @@ Sidan angav tidigare 1,65–1,80 kr per lagrad kWh.
 
 Påståendet att torkåret 2018 var ett positivt extremår är kvar, trots att det inte uppfyller definitionen i mina data.
 
+**Sol per elområde och verkligt extremår – 2026-10-07**
+
+1. **Solen är elområdets egen.** Tidigare användes en beräknad klar-himmel-kurva för Malmö i alla fyra elområden, skalad till samma årsproduktion. Nu hämtas uppmätt solinstrålning (ERA5 via Open-Meteo) timme för timme för varje elområdes ort, sedan 2015, till `data/bess/solar/`. Produktionen är instrålning × installerad effekt × 0,88 (systemverkningsgrad). Mulna dagar finns med.
+
+   | Elområde | Produktion per kWp, senaste året |
+   |---|---|
+   | SE1 | 783 kWh |
+   | SE2 | 891 kWh |
+   | SE3 | 958 kWh |
+   | SE4 | 1 032 kWh |
+
+2. **Positivt extremår är 2022 som det var.** Faktorn 2,3 × på arbitrage är borta. År 3 och 11 räknas genom att köra samma anläggning mot 2022 års timpriser och sol i elområdet – i både Python och kalkylatorn.
+
+Typfall A (15 kWh), blandad drift:
+
+| Elområde | Energivärde normalår, före → nu | Arbitrage i extremår, före → nu | Återbetalning, före → nu |
+|---|---|---|---|
+| SE1 | 1 940 → 1 590 kr | 1 013 → 761 kr | 6,1 → 7,0 år |
+| SE2 | 1 951 → 1 725 kr | 1 024 → 740 kr | 6,0 → 6,6 år |
+| SE3 | 3 295 → 3 080 kr | 1 778 → 3 613 kr | 4,3 → 4,2 år |
+| SE4 | 4 529 → 4 382 kr | 2 481 → 3 643 kr | 3,4 → 3,4 år |
+
+Det som syns: 2022 var ett extremår i söder men knappt i norr. En fast faktor gav för mycket i SE1–SE2 och för lite i SE3–SE4.
+
+Kvar som antaganden: negativt extremår är 0,6 × normalåret (inget år sedan 2015 har varit så svagt), stödtjänster × 1,2 / × 0,8 i extremår, och förbrukningsprofilen är densamma i alla elområden. Solen räknas på horisontell instrålning; panelens lutning och väderstreck ingår bara i faktorn 0,88, vilket ger något för lite vinterproduktion och något för mycket mitt på sommaren.
+
 ---
 
 ## 6. Inte gjort

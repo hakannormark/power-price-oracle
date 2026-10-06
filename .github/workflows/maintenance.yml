@@ -121,7 +121,8 @@ jobs:
               deep-backfill)           python -m src.backfill --merge "$RUNNER_TEMP/staged.jsonl" ;;
               fetch-neighbours)        python -m src.fetch_neighbours --merge "$RUNNER_TEMP/staged.jsonl" ;;
               fetch-reservoirs)        python -m src.fetch_reservoirs ;;
-              refresh-weather-archive) python -m src.fetch_weather_archive --refresh ;;
+              # The battery pages read measured sun per zone from data/bess/solar/.
+              refresh-weather-archive) python -m src.fetch_weather_archive --refresh && python -m src.bess.solar ;;
               # BESS Studio: re-run the dispatch back-test on the latest spot and
               # Svenska kraftnät capacity-market prices. Needs scipy, nothing else.
               refresh-bess-dispatch)   pip install -q "scipy>=1.11" && python -m src.geo.dispatch_engine ;;

@@ -405,24 +405,31 @@
   // The optimisation takes about a tenth of a second, and one change of a
   // slider asks for the same system several times over.
   const energyCache = new Map();
-  function energyValue(c, usableKwh) {
-    const none = { solarSek: 0, arbitrageSek: 0, storedSolarKwh: 0, gridChargedKwh: 0, throughputKwh: 0 };
-    if (!state.hourly || !state.hourly.spot[state.selectedZone]) return none;
+  const NO_ENERGY = { solarSek: 0, arbitrageSek: 0, storedSolarKwh: 0, gridChargedKwh: 0, throughputKwh: 0 };
+  function energyValue(c, usableKwh, extreme) {
+    if (!state.hourly) return extreme ? null : NO_ENERGY;
     const o = {
       zone: state.selectedZone,
       loadKwh: c.load_kwh,
-      pvKwh: (c.pv_kwp || 0) * 850,
+      pvKwp: c.pv_kwp || 0,
       usableKwh,
       powerKw: c.p_kw,
       roundTripEff: 0.9,
       strategy: state.strategy === "mixed" ? "mixed" : "energy_only",
+      extreme: !!extreme,
     };
     const key = JSON.stringify(o);
     if (!energyCache.has(key)) {
       if (energyCache.size > 200) energyCache.clear();
       energyCache.set(key, window.BessDispatch.valueBattery(state.hourly, o));
     }
-    return energyCache.get(key);
+    return energyCache.get(key) || (extreme ? null : NO_ENERGY);
+  }
+
+  // What a kWp yields in a year in the selected zone, from measured radiation.
+  function zoneYieldPerKwp() {
+    const y = state.hourly ? window.BessDispatch.yieldPerKwp(state.hourly, state.selectedZone) : 0;
+    return y > 0 ? y : 850;
   }
 
   // Calculate dynamic custom battery system
@@ -452,7 +459,9 @@
     // Energy value: the cheapest schedule against the zone's hourly prices, for
     // this household's load and solar. Solar storage and price arbitrage share
     // one battery and one set of cycles; nothing is counted twice.
-    const energy = energyValue(c, usableKwh);
+    const energy = energyValue(c, usableKwh, false);
+    // The same system in 2022, on that year's hourly prices and sun in this zone.
+    const energyExtreme = energyValue(c, usableKwh, true);
     const storedSolarKwh = Math.round(energy.storedSolarKwh);
     const solarSavingsSek = Math.round(energy.solarSek);
     const arbitrageKwh = Math.round(energy.gridChargedKwh);
@@ -504,8 +513,10 @@
         yrAncillary = Math.round(ancillaryRevSek * deg * saturationDecay * (shock > 1 ? 1.2 : (shock < 1 ? 0.8 : 1.0)));
       }
 
-      const yrSolar = Math.round(solarSavingsSek * deg * (shock > 1 ? (1 + (shock - 1) * 0.2) : shock));
-      const yrArb = Math.round(arbitrageProfitSek * deg * shock);
+      // A positive extreme year is 2022 as it was; a negative one is a flat 0,6.
+      const positive = shock > 1;
+      const yrSolar = Math.round((positive && energyExtreme ? energyExtreme.solarSek : solarSavingsSek * (positive ? 1 + (shock - 1) * 0.2 : shock)) * deg);
+      const yrArb = Math.round((positive && energyExtreme ? energyExtreme.arbitrageSek : arbitrageProfitSek * shock) * deg);
       const yrGross = yrSolar + yrArb + yrAncillary;
       const yrTotal = Math.max(0, yrGross - effectiveFuseDeduction);
 
@@ -655,7 +666,7 @@
       ["Extra fast elnatsavgift vid uppsakring", res.effectiveFuseDeduction, "kr/ar"],
       ["Hushallsets arliga forbrukning", c.load_kwh, "kWh/ar"],
       ["Installerad solcellseffekt", c.pv_kwp, "kWp"],
-      ["Arlig solelproduktion (beraknad)", Math.round(c.pv_kwp * 850), "kWh/ar"],
+      ["Arlig solelproduktion (beraknad)", Math.round(c.pv_kwp * zoneYieldPerKwp()), "kWh/ar"],
       ["Lagrad solel i batteri", res.storedSolarKwh, "kWh/ar"],
       ["Bruttoinvestering", c.gross_price, "kr"],
       ["Antal agare (Gron teknik)", state.numOwners, "personer"],
@@ -815,13 +826,13 @@
     // 2. Scenario shocks
     if (scenario === "nordic_frequency") {
       if (year === 3) {
-        badges.push(`<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🔥 Positivt extremår (2,3×)</span>`);
+        badges.push(`<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🔥 Positivt extremår (2022 års priser)</span>`);
         rowStyle = "background: rgba(245, 158, 11, 0.08);";
       } else if (year === 7) {
         badges.push(`<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🌧️ Negativt extremår (0,6×)</span>`);
         rowStyle = "background: rgba(56, 189, 248, 0.08);";
       } else if (year === 11) {
-        badges.push(`<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🔥 Positivt extremår (2,3×)</span>`);
+        badges.push(`<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 0.82em;">🔥 Positivt extremår (2022 års priser)</span>`);
         rowStyle = "background: rgba(245, 158, 11, 0.08);";
       }
     } else if (scenario === "cannibalization") {
@@ -922,7 +933,7 @@
     if (pvLabel) pvLabel.textContent = `${c.pv_kwp} kWp`;
     const pvHint = document.getElementById("bess-pv-hint");
     if (pvHint) {
-      const annualPv = Math.round(c.pv_kwp * 850);
+      const annualPv = Math.round(c.pv_kwp * zoneYieldPerKwp());
       pvHint.textContent = c.pv_kwp > 0
         ? `Årsproduktion: ca ${annualPv.toLocaleString("sv-SE")} kWh · Lagrad solel: ca ${res.storedSolarKwh.toLocaleString("sv-SE")} kWh/år`
         : `Inga solceller: Batteriet kör ren nätarbitrage och stödtjänster`;
@@ -1246,7 +1257,7 @@
       // 2. Solar PV self-consumption scaling:
       let solar = 0;
       if (c.pv_kwp > 0) {
-        const annualPv = c.pv_kwp * 850;
+        const annualPv = c.pv_kwp * zoneYieldPerKwp();
         const daytimeLoadFrac = c.load_kwh >= 25000 ? 0.45 : 0.35;
         const directPv = Math.min(annualPv * 0.40, c.load_kwh * daytimeLoadFrac);
         const surplusPv = Math.max(0, annualPv - directPv);
