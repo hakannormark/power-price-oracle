@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-06T13:32:01+02:00",
- "run_id": "20261006T1132Z",
+ "generated_at": "2026-10-06T14:21:33+02:00",
+ "run_id": "20261006T1221Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
@@ -12,21 +12,21 @@
   "rate": 11.2525,
   "date": "2026-10-05",
   "source": "ECB",
-  "fetched_at": "2026-10-06T13:33:56+02:00",
+  "fetched_at": "2026-10-06T14:22:28+02:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
  "subtitle_sv": "Veckoprognos för Nord Pool SE1–SE4",
- "blurb_sv": "Lugnt läge i elsystemet — priserna följer det vanliga dygns- och veckomönstret.",
+ "blurb_sv": "Tre kärnkraftsblock är ur drift — det stramar åt SE3.",
  "repo_url": "https://github.com/hakannormark/power-price-oracle",
  "zones": [
   {
    "zone": "SE1",
    "name": "Luleå",
    "current": {
-    "ts": "2026-10-06T13:00:00+02:00",
-    "eur_mwh": 1.225,
-    "ore_kwh": 1.378,
+    "ts": "2026-10-06T14:00:00+02:00",
+    "eur_mwh": 1.625,
+    "ore_kwh": 1.829,
     "source": "official"
    },
    "hours": [
@@ -326,13 +326,18 @@
     },
     {
      "ts": "2026-10-08T01:00:00+02:00",
-     "eur_mwh": 18.019,
-     "ore_kwh": 20.276,
+     "eur_mwh": 17.841,
+     "ore_kwh": 20.076,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-10-08T02:00:00+02:00",
+     "eur_mwh": 18.53,
+     "ore_kwh": 20.851,
      "source": "forecast"
     }
    ],
    "spark": [
-    1.625,
     1.758,
     1.202,
     1.415,
@@ -355,7 +360,8 @@
     10.662,
     8.48,
     8.098,
-    8.28
+    8.28,
+    12.768
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -365,9 +371,9 @@
    "zone": "SE2",
    "name": "Sundsvall",
    "current": {
-    "ts": "2026-10-06T13:00:00+02:00",
-    "eur_mwh": 1.272,
-    "ore_kwh": 1.431,
+    "ts": "2026-10-06T14:00:00+02:00",
+    "eur_mwh": 1.868,
+    "ore_kwh": 2.102,
     "source": "official"
    },
    "hours": [
@@ -670,10 +676,15 @@
      "eur_mwh": 16.298,
      "ore_kwh": 18.339,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-10-08T02:00:00+02:00",
+     "eur_mwh": 15.117,
+     "ore_kwh": 17.01,
+     "source": "forecast"
     }
    ],
    "spark": [
-    1.868,
     1.915,
     2.48,
     2.172,
@@ -696,7 +707,8 @@
     21.947,
     21.445,
     10.367,
-    10.655
+    10.655,
+    15.588
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -706,9 +718,9 @@
    "zone": "SE3",
    "name": "Stockholm",
    "current": {
-    "ts": "2026-10-06T13:00:00+02:00",
-    "eur_mwh": 2.665,
-    "ore_kwh": 2.999,
+    "ts": "2026-10-06T14:00:00+02:00",
+    "eur_mwh": 3.42,
+    "ore_kwh": 3.848,
     "source": "official"
    },
    "hours": [
@@ -1011,10 +1023,15 @@
      "eur_mwh": 76.387,
      "ore_kwh": 85.954,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-10-08T02:00:00+02:00",
+     "eur_mwh": 75.924,
+     "ore_kwh": 85.433,
+     "source": "forecast"
     }
    ],
    "spark": [
-    3.42,
     12.088,
     75.635,
     102.355,
@@ -1037,7 +1054,8 @@
     102.705,
     91.567,
     77.225,
-    77.475
+    77.475,
+    80.627
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -1047,9 +1065,9 @@
    "zone": "SE4",
    "name": "Malmö",
    "current": {
-    "ts": "2026-10-06T13:00:00+02:00",
-    "eur_mwh": 3.862,
-    "ore_kwh": 4.346,
+    "ts": "2026-10-06T14:00:00+02:00",
+    "eur_mwh": 4.567,
+    "ore_kwh": 5.139,
     "source": "official"
    },
    "hours": [
@@ -1352,10 +1370,15 @@
      "eur_mwh": 129.857,
      "ore_kwh": 146.122,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-10-08T02:00:00+02:00",
+     "eur_mwh": 127.268,
+     "ore_kwh": 143.208,
+     "source": "forecast"
     }
    ],
    "spark": [
-    4.567,
     21.387,
     147.845,
     208.84,
@@ -1378,7 +1401,8 @@
     181.743,
     162.14,
     147.66,
-    148.81
+    148.81,
+    148.31
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -1395,9 +1419,10 @@
     "relative_scaled": 24.928,
     "lightgbm_v1": 16.085,
     "lightgbm_v2": 12.74,
+    "lightgbm_v3": null,
     "ensemble": 30.011,
     "market_scaled": 29.325,
-    "horizon_hybrid": 12.74
+    "horizon_hybrid": 4.972
    },
    "24-48h": {
     "seasonal_naive": 34.339,
@@ -1407,9 +1432,10 @@
     "relative_scaled": 29.418,
     "lightgbm_v1": 17.63,
     "lightgbm_v2": 14.54,
+    "lightgbm_v3": null,
     "ensemble": 33.534,
     "market_scaled": 30.763,
-    "horizon_hybrid": 14.667
+    "horizon_hybrid": 8.287
    },
    "48-72h": {
     "seasonal_naive": 34.752,
@@ -1419,9 +1445,10 @@
     "relative_scaled": 29.512,
     "lightgbm_v1": 19.834,
     "lightgbm_v2": 12.54,
+    "lightgbm_v3": null,
     "ensemble": 33.15,
     "market_scaled": 29.929,
-    "horizon_hybrid": 16.362
+    "horizon_hybrid": 11.397
    },
    "72-96h": {
     "seasonal_naive": 35.587,
@@ -1431,9 +1458,10 @@
     "relative_scaled": 30.562,
     "lightgbm_v1": 21.167,
     "lightgbm_v2": 12.564,
+    "lightgbm_v3": null,
     "ensemble": 33.911,
     "market_scaled": 30.505,
-    "horizon_hybrid": 16.593
+    "horizon_hybrid": 18.567
    },
    "96-120h": {
     "seasonal_naive": 34.626,
@@ -1443,9 +1471,10 @@
     "relative_scaled": 29.147,
     "lightgbm_v1": 23.774,
     "lightgbm_v2": 11.671,
+    "lightgbm_v3": null,
     "ensemble": 33.123,
     "market_scaled": 30.043,
-    "horizon_hybrid": 14.655
+    "horizon_hybrid": 26.771
    },
    "120-144h": {
     "seasonal_naive": 34.449,
@@ -1455,9 +1484,10 @@
     "relative_scaled": 26.878,
     "lightgbm_v1": 23.519,
     "lightgbm_v2": 16.881,
+    "lightgbm_v3": null,
     "ensemble": 32.454,
     "market_scaled": 30.903,
-    "horizon_hybrid": 21.552
+    "horizon_hybrid": 11.719
    },
    "144-168h": {
     "seasonal_naive": 34.399,
@@ -1467,9 +1497,10 @@
     "relative_scaled": 25.276,
     "lightgbm_v1": 22.745,
     "lightgbm_v2": 17.58,
+    "lightgbm_v3": null,
     "ensemble": 32.462,
     "market_scaled": 30.559,
-    "horizon_hybrid": 28.59
+    "horizon_hybrid": null
    }
   },
   "SE2": {
@@ -1481,9 +1512,10 @@
     "relative_scaled": 32.706,
     "lightgbm_v1": 21.161,
     "lightgbm_v2": 13.07,
+    "lightgbm_v3": null,
     "ensemble": 37.119,
     "market_scaled": 35.754,
-    "horizon_hybrid": 13.07
+    "horizon_hybrid": 4.648
    },
    "24-48h": {
     "seasonal_naive": 40.243,
@@ -1493,9 +1525,10 @@
     "relative_scaled": 37.658,
     "lightgbm_v1": 22.566,
     "lightgbm_v2": 15.42,
+    "lightgbm_v3": null,
     "ensemble": 39.984,
     "market_scaled": 37.63,
-    "horizon_hybrid": 15.736
+    "horizon_hybrid": 8.167
    },
    "48-72h": {
     "seasonal_naive": 40.701,
@@ -1505,9 +1538,10 @@
     "relative_scaled": 37.829,
     "lightgbm_v1": 24.897,
     "lightgbm_v2": 14.52,
+    "lightgbm_v3": null,
     "ensemble": 39.308,
     "market_scaled": 35.671,
-    "horizon_hybrid": 18.742
+    "horizon_hybrid": 12.303
    },
    "72-96h": {
     "seasonal_naive": 41.522,
@@ -1517,9 +1551,10 @@
     "relative_scaled": 39.778,
     "lightgbm_v1": 26.992,
     "lightgbm_v2": 15.263,
+    "lightgbm_v3": null,
     "ensemble": 40.11,
     "market_scaled": 36.297,
-    "horizon_hybrid": 21.391
+    "horizon_hybrid": 20.905
    },
    "96-120h": {
     "seasonal_naive": 40.826,
@@ -1529,9 +1564,10 @@
     "relative_scaled": 39.605,
     "lightgbm_v1": 29.5,
     "lightgbm_v2": 14.093,
+    "lightgbm_v3": null,
     "ensemble": 39.715,
     "market_scaled": 35.06,
-    "horizon_hybrid": 18.318
+    "horizon_hybrid": 32.04
    },
    "120-144h": {
     "seasonal_naive": 40.816,
@@ -1541,9 +1577,10 @@
     "relative_scaled": 36.903,
     "lightgbm_v1": 27.301,
     "lightgbm_v2": 21.324,
+    "lightgbm_v3": null,
     "ensemble": 40.325,
     "market_scaled": 36.292,
-    "horizon_hybrid": 27.881
+    "horizon_hybrid": 19.875
    },
    "144-168h": {
     "seasonal_naive": 41.16,
@@ -1553,9 +1590,10 @@
     "relative_scaled": 32.503,
     "lightgbm_v1": 23.567,
     "lightgbm_v2": 19.873,
+    "lightgbm_v3": null,
     "ensemble": 39.922,
     "market_scaled": 37.312,
-    "horizon_hybrid": 34.13
+    "horizon_hybrid": null
    }
   },
   "SE3": {
@@ -1567,9 +1605,10 @@
     "relative_scaled": 44.377,
     "lightgbm_v1": 28.4,
     "lightgbm_v2": 24.644,
+    "lightgbm_v3": null,
     "ensemble": 51.203,
     "market_scaled": 50.055,
-    "horizon_hybrid": 24.644
+    "horizon_hybrid": 28.653
    },
    "24-48h": {
     "seasonal_naive": 53.442,
@@ -1579,9 +1618,10 @@
     "relative_scaled": 45.099,
     "lightgbm_v1": 27.997,
     "lightgbm_v2": 23.622,
+    "lightgbm_v3": null,
     "ensemble": 52.047,
     "market_scaled": 48.092,
-    "horizon_hybrid": 23.842
+    "horizon_hybrid": 26.811
    },
    "48-72h": {
     "seasonal_naive": 55.516,
@@ -1591,9 +1631,10 @@
     "relative_scaled": 48.337,
     "lightgbm_v1": 33.648,
     "lightgbm_v2": 22.713,
+    "lightgbm_v3": null,
     "ensemble": 53.782,
     "market_scaled": 48.361,
-    "horizon_hybrid": 29.006
+    "horizon_hybrid": 27.51
    },
    "72-96h": {
     "seasonal_naive": 56.374,
@@ -1603,9 +1644,10 @@
     "relative_scaled": 49.065,
     "lightgbm_v1": 37.149,
     "lightgbm_v2": 24.197,
+    "lightgbm_v3": null,
     "ensemble": 55.004,
     "market_scaled": 47.429,
-    "horizon_hybrid": 33.106
+    "horizon_hybrid": 33.343
    },
    "96-120h": {
     "seasonal_naive": 55.54,
@@ -1615,9 +1657,10 @@
     "relative_scaled": 48.337,
     "lightgbm_v1": 38.601,
     "lightgbm_v2": 24.704,
+    "lightgbm_v3": null,
     "ensemble": 54.882,
     "market_scaled": 45.827,
-    "horizon_hybrid": 34.515
+    "horizon_hybrid": 21.265
    },
    "120-144h": {
     "seasonal_naive": 55.992,
@@ -1627,9 +1670,10 @@
     "relative_scaled": 47.681,
     "lightgbm_v1": 40.612,
     "lightgbm_v2": 35.747,
+    "lightgbm_v3": null,
     "ensemble": 55.503,
     "market_scaled": 47.583,
-    "horizon_hybrid": 41.595
+    "horizon_hybrid": 21.028
    },
    "144-168h": {
     "seasonal_naive": 56.642,
@@ -1639,9 +1683,10 @@
     "relative_scaled": 43.874,
     "lightgbm_v1": 39.539,
     "lightgbm_v2": 44.41,
+    "lightgbm_v3": null,
     "ensemble": 55.025,
     "market_scaled": 48.182,
-    "horizon_hybrid": 43.757
+    "horizon_hybrid": null
    }
   },
   "SE4": {
@@ -1653,9 +1698,10 @@
     "relative_scaled": 58.206,
     "lightgbm_v1": 47.581,
     "lightgbm_v2": 52.082,
+    "lightgbm_v3": null,
     "ensemble": 66.997,
     "market_scaled": 65.054,
-    "horizon_hybrid": 52.082
+    "horizon_hybrid": 54.666
    },
    "24-48h": {
     "seasonal_naive": 69.476,
@@ -1665,9 +1711,10 @@
     "relative_scaled": 54.212,
     "lightgbm_v1": 43.577,
     "lightgbm_v2": 43.45,
+    "lightgbm_v3": null,
     "ensemble": 65.239,
     "market_scaled": 60.026,
-    "horizon_hybrid": 42.64
+    "horizon_hybrid": 49.389
    },
    "48-72h": {
     "seasonal_naive": 72.414,
@@ -1677,9 +1724,10 @@
     "relative_scaled": 55.771,
     "lightgbm_v1": 55.768,
     "lightgbm_v2": 47.809,
+    "lightgbm_v3": null,
     "ensemble": 66.584,
     "market_scaled": 58.861,
-    "horizon_hybrid": 42.515
+    "horizon_hybrid": 50.775
    },
    "72-96h": {
     "seasonal_naive": 72.739,
@@ -1689,9 +1737,10 @@
     "relative_scaled": 56.618,
     "lightgbm_v1": 63.481,
     "lightgbm_v2": 54.328,
+    "lightgbm_v3": null,
     "ensemble": 67.253,
     "market_scaled": 59.634,
-    "horizon_hybrid": 47.46
+    "horizon_hybrid": 62.015
    },
    "96-120h": {
     "seasonal_naive": 71.574,
@@ -1701,9 +1750,10 @@
     "relative_scaled": 57.822,
     "lightgbm_v1": 65.322,
     "lightgbm_v2": 51.378,
+    "lightgbm_v3": null,
     "ensemble": 66.022,
     "market_scaled": 57.094,
-    "horizon_hybrid": 44.523
+    "horizon_hybrid": 63.537
    },
    "120-144h": {
     "seasonal_naive": 72.196,
@@ -1713,9 +1763,10 @@
     "relative_scaled": 60.256,
     "lightgbm_v1": 65.452,
     "lightgbm_v2": 57.202,
+    "lightgbm_v3": null,
     "ensemble": 67.939,
     "market_scaled": 60.687,
-    "horizon_hybrid": 59.776
+    "horizon_hybrid": 33.984
    },
    "144-168h": {
     "seasonal_naive": 73.042,
@@ -1725,9 +1776,10 @@
     "relative_scaled": 59.786,
     "lightgbm_v1": 69.561,
     "lightgbm_v2": 67.692,
+    "lightgbm_v3": null,
     "ensemble": 68.302,
     "market_scaled": 65.525,
-    "horizon_hybrid": 68.433
+    "horizon_hybrid": null
    }
   }
  },
@@ -1761,7 +1813,7 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1120
+   "messages": 1123
   },
   "fuels": {
    "ok": true,
@@ -1782,8 +1834,11 @@
    "logged": 0
   },
   "bess": {
-   "ok": false,
-   "error": "unsupported operand type(s) for *: 'float' and 'dict'"
+   "ok": true,
+   "offers": 6
+  },
+  "bess_map_market": {
+   "ok": true
   }
  },
  "next_expected_update_utc": "2026-10-06T16:00:00Z",
@@ -1809,7 +1864,7 @@
   {
    "id": "shrunk_scaled",
    "name_sv": "Väderskalad, dämpad nivå",
-   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 437 224 timmar ut ur urvalet över sexton kvartal: medelfel 25,94 EUR/MWh mot 29,87 för den säsongsnaiva referensen och 28,34 för den väderskalade. Men backtestet matar modellerna perfekt väder — på riktiga utfärdade prognoser blir medelfelet 41,9 mot referensens 45,2, alltså 7 procent bättre och inte 13. Tidigare standardmodell på sajten (ersatt av horisonthybriden i oktober 2026). Den färska nivån såg bättre ut i backtestet men är sämre på skarpa prognoser.",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 437 224 timmar ut ur urvalet över sexton kvartal: medelfel 25,94 EUR/MWh mot 29,87 för den säsongsnaiva referensen och 28,34 för den väderskalade. Men backtestet matar modellerna perfekt väder — på riktiga utfärdade prognoser blir medelfelet 41,9 mot referensens 45,2, alltså 7 procent bättre och inte 13. Tidigare standardmodell på sajten (ersatt av horisonthybriden i oktober 2026). Aktuella skarpa tal finns på träffsäkerhetssidan.",
    "quantiles": true,
    "derived": false,
    "is_default": false,
@@ -1818,7 +1873,7 @@
   {
    "id": "recency_scaled",
    "name_sv": "Väderskalad, färsk nivå",
-   "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet. I backtestet såg den bäst ut, men testet räknade med timmar vars pris redan var publicerat. Mätt skarpt är den sämre än standardmodellen, mest det första dygnet: när priset svänger från dag till dag missar en modell som säger ”som i dag” åt samma håll som svängen.",
+   "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet. I backtestet såg den bäst ut, men testet räknade med timmar vars pris redan var publicerat. De första veckorna skarpt var den sämst det första dygnet: när priset svänger från dag till dag missar en modell som säger ”som i dag” åt samma håll som svängen. Över en längre period har den i stället varit bättre än den dämpade nivån dygn 1–2.",
    "quantiles": true,
    "derived": false,
    "is_default": false,
@@ -1845,7 +1900,16 @@
   {
    "id": "lightgbm_v2",
    "name_sv": "Residual-LightGBM",
-   "description_sv": "Kvantilregression tränad på prisavvikelsen från dämpad basnivå med explicit horisontfaktor. Förenar LightGBM:s dygnsform och väderprecision med stabil prisnivå på längre sikt, vilket eliminerar nivåbiasen på dag 4–7.",
+   "description_sv": "Kvantilregression tränad på prisavvikelsen från den dämpade basnivån. Halverar ungefär felet dygn 1–2 mot de väderskalade modellerna. Tränad en gång, den 27 september 2026, på väderarkiv – alltså på vädret som det blev, inte på väderprognoser – och horisonten finns bara som två lägen i träningen. På dygn 4–7 ligger den därför ofta fel i nivå och bandet är för smalt.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "lightgbm_v3",
+   "name_sv": "LightGBM v3 (kandidat)",
+   "description_sv": "Efterföljare till Residual-LightGBM, som kandidat. Tränad på arkiverade väderprognoser med rätt framförhållning i stället för på vädret som det blev, med framförhållningen som egen variabel (1–7 dygn), tyskt och danskt väder, gaspris och utsläppsrätter. Tränas om varje vecka. Senast tränad 2026-10-06. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 28,11 EUR/MWh mot 36,44 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
    "quantiles": true,
    "derived": false,
    "is_default": false,
@@ -1872,7 +1936,7 @@
   {
    "id": "horizon_hybrid",
    "name_sv": "Horisonthybrid",
-   "description_sv": "Kombinerar LightGBM:s överlägsna precision på kort sikt (0–36 h) med en balanserad blandning (60/40) av LightGBM och marknadsjusterad basnivå på längre horisonter (48–168 h). Sajtens standardmodell sedan oktober 2026.",
+   "description_sv": "LightGBM ensam de första 36 timmarna, därefter en gradvis övergång till en blandning av 60 % LightGBM och 40 % marknadsjusterad basnivå från 72 timmar. Sajtens standardmodell sedan 2 oktober 2026. Dygn 1–2 är väl belagda; för dygn 3–7 är underlaget ännu tunt och blandningens vikter är satta för hand.",
    "quantiles": true,
    "derived": true,
    "is_default": true,

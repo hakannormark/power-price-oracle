@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-06T13:34:35+02:00",
+ "generated_at": "2026-10-06T14:24:09+02:00",
  "default_model": "horizon_hybrid",
  "models": [
   {
@@ -23,7 +23,7 @@
   {
    "id": "shrunk_scaled",
    "name_sv": "Väderskalad, dämpad nivå",
-   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 437 224 timmar ut ur urvalet över sexton kvartal: medelfel 25,94 EUR/MWh mot 29,87 för den säsongsnaiva referensen och 28,34 för den väderskalade. Men backtestet matar modellerna perfekt väder — på riktiga utfärdade prognoser blir medelfelet 41,9 mot referensens 45,2, alltså 7 procent bättre och inte 13. Tidigare standardmodell på sajten (ersatt av horisonthybriden i oktober 2026). Den färska nivån såg bättre ut i backtestet men är sämre på skarpa prognoser.",
+   "description_sv": "Samma väderskalning som den väderskalade modellen, men grundnivån är inte bara priset för en vecka sedan. Den vägs 70/30 mot medianen för samma timme de senaste fyra veckorna, så att ett enskilt avvikande dygn inte kopieras rakt in i prognosen. Mätt på 437 224 timmar ut ur urvalet över sexton kvartal: medelfel 25,94 EUR/MWh mot 29,87 för den säsongsnaiva referensen och 28,34 för den väderskalade. Men backtestet matar modellerna perfekt väder — på riktiga utfärdade prognoser blir medelfelet 41,9 mot referensens 45,2, alltså 7 procent bättre och inte 13. Tidigare standardmodell på sajten (ersatt av horisonthybriden i oktober 2026). Aktuella skarpa tal finns på träffsäkerhetssidan.",
    "quantiles": true,
    "derived": false,
    "is_default": false,
@@ -32,7 +32,7 @@
   {
    "id": "recency_scaled",
    "name_sv": "Väderskalad, färsk nivå",
-   "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet. I backtestet såg den bäst ut, men testet räknade med timmar vars pris redan var publicerat. Mätt skarpt är den sämre än standardmodellen, mest det första dygnet: när priset svänger från dag till dag missar en modell som säger ”som i dag” åt samma håll som svängen.",
+   "description_sv": "Som den dämpade väderskalade modellen, men där gårdagens pris för samma timme redan är publicerat vägs det in med 70 procent. Det gäller ungefär det första dygnet. I backtestet såg den bäst ut, men testet räknade med timmar vars pris redan var publicerat. De första veckorna skarpt var den sämst det första dygnet: när priset svänger från dag till dag missar en modell som säger ”som i dag” åt samma håll som svängen. Över en längre period har den i stället varit bättre än den dämpade nivån dygn 1–2.",
    "quantiles": true,
    "derived": false,
    "is_default": false,
@@ -59,7 +59,16 @@
   {
    "id": "lightgbm_v2",
    "name_sv": "Residual-LightGBM",
-   "description_sv": "Kvantilregression tränad på prisavvikelsen från dämpad basnivå med explicit horisontfaktor. Förenar LightGBM:s dygnsform och väderprecision med stabil prisnivå på längre sikt, vilket eliminerar nivåbiasen på dag 4–7.",
+   "description_sv": "Kvantilregression tränad på prisavvikelsen från den dämpade basnivån. Halverar ungefär felet dygn 1–2 mot de väderskalade modellerna. Tränad en gång, den 27 september 2026, på väderarkiv – alltså på vädret som det blev, inte på väderprognoser – och horisonten finns bara som två lägen i träningen. På dygn 4–7 ligger den därför ofta fel i nivå och bandet är för smalt.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
+   "id": "lightgbm_v3",
+   "name_sv": "LightGBM v3 (kandidat)",
+   "description_sv": "Efterföljare till Residual-LightGBM, som kandidat. Tränad på arkiverade väderprognoser med rätt framförhållning i stället för på vädret som det blev, med framförhållningen som egen variabel (1–7 dygn), tyskt och danskt väder, gaspris och utsläppsrätter. Tränas om varje vecka. Senast tränad 2026-10-06. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 28,11 EUR/MWh mot 36,44 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
    "quantiles": true,
    "derived": false,
    "is_default": false,
@@ -86,7 +95,7 @@
   {
    "id": "horizon_hybrid",
    "name_sv": "Horisonthybrid",
-   "description_sv": "Kombinerar LightGBM:s överlägsna precision på kort sikt (0–36 h) med en balanserad blandning (60/40) av LightGBM och marknadsjusterad basnivå på längre horisonter (48–168 h). Sajtens standardmodell sedan oktober 2026.",
+   "description_sv": "LightGBM ensam de första 36 timmarna, därefter en gradvis övergång till en blandning av 60 % LightGBM och 40 % marknadsjusterad basnivå från 72 timmar. Sajtens standardmodell sedan 2 oktober 2026. Dygn 1–2 är väl belagda; för dygn 3–7 är underlaget ännu tunt och blandningens vikter är satta för hand.",
    "quantiles": true,
    "derived": true,
    "is_default": true,
