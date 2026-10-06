@@ -114,55 +114,77 @@ def simulate_hourly_utility_dispatch(
         is_charging_hour = (p_spot <= trough) and (soc < soc_max)
         is_discharging_hour = (p_spot >= peak) and (soc > soc_min)
 
-        if strategy == "arbitrage_focus":
-            ancillary_threshold = spread_opp * 1.5
-        elif strategy == "ancillary_focus":
-            ancillary_threshold = 5.0
-        else:  # co_optimized
-            ancillary_threshold = max(8.0, spread_opp * 0.45)
+        # True co-optimization decision:
+        # Check if the economic value of cycling spot this hour exceeds ancillary reserve value
+        spot_arb_value = 0.0
+        if is_charging_hour:
+            # Opportunity value: buy cheap now, sell at peak later
+            spot_arb_value = max(0.0, (peak * eff_discharge) - (p_spot / eff_charge))
+        elif is_discharging_hour:
+            # Opportunity value: sell high now vs previously charged at trough
+            spot_arb_value = max(0.0, (p_spot * eff_discharge) - (trough / eff_charge))
 
-        ancillary_value = p_mfrr_up + (p_mfrr_down * 0.6) + (p_afrr_down * 0.5)
+        # Decision: execute spot arbitrage if spread opportunity dominates ancillary capacity price
+        do_spot = (is_charging_hour or is_discharging_hour) and (spot_arb_value > (p_mfrr_up * 0.45) or strategy == "arbitrage_focus")
 
-        if ancillary_value > ancillary_threshold and not (is_discharging_hour and p_spot > 150.0):
-            # Prioritize Ancillary Service Bidding
-            # Check SoC headroom for up-regulation (requires energy in battery to discharge if activated)
-            headroom_discharge = (soc - soc_min) * eff_discharge
-            headroom_charge = (soc_max - soc) / eff_charge
-
-            # mFRR up requires at least 1h sustained power
-            if headroom_discharge >= 0.8 * mw_cap:
-                alloc_mfrr_up = min(mw_cap, headroom_discharge)
-
-            # Down-regulation fills battery
-            remaining_mw = mw_cap - alloc_mfrr_up
-            if remaining_mw > 0.1 and headroom_charge >= 0.8 * remaining_mw:
-                if p_afrr_down > p_mfrr_down:
-                    alloc_afrr = remaining_mw
-                else:
-                    alloc_mfrr_down = remaining_mw
-
-            # FCR baseline participation with residual capacity
-            if (alloc_mfrr_up + alloc_mfrr_down + alloc_afrr) < 0.5:
-                alloc_fcr = 0.5 * mw_cap
-        else:
-            # Prioritize Spot Arbitrage
+        if do_spot:
             if is_charging_hour:
                 charge_p = min(mw_cap, (soc_max - soc) / eff_charge)
                 spot_charge = charge_p
                 soc += charge_p * eff_charge
                 total_spot_rev -= charge_p * p_spot
                 total_throughput_mwh += charge_p
+
+                # With remaining capacity, battery can offer down-regulation or FCR-D down
+                rem_mw = mw_cap - spot_charge
+                if rem_mw > 0.1 and (soc_max - soc) >= (0.8 * rem_mw):
+                    alloc_mfrr_down = min(rem_mw, (soc_max - soc) / eff_charge)
             elif is_discharging_hour:
                 dis_p = min(mw_cap, (soc - soc_min) * eff_discharge)
                 spot_discharge = dis_p
                 soc -= dis_p / eff_discharge
                 total_spot_rev += dis_p * p_spot
                 total_throughput_mwh += dis_p
-            else:
-                # Idle hour on spot: sell FCR or mFRR standby
-                alloc_fcr = 0.4 * mw_cap
 
-        # Ancillary capacity revenues
+                # With remaining capacity, battery can offer up-regulation
+                rem_mw = mw_cap - spot_discharge
+                if rem_mw > 0.1 and (soc - soc_min) >= (0.8 * rem_mw):
+                    alloc_mfrr_up = min(rem_mw, (soc - soc_min) * eff_discharge)
+        else:
+            # Battery dedicates capacity to ancillary reserves
+            # Calculate physical headroom for up-regulation vs down-regulation
+            headroom_discharge = (soc - soc_min) * eff_discharge
+            headroom_charge = (soc_max - soc) / eff_charge
+
+            # Choose highest yielding reserve product matching battery state
+            if p_mfrr_up >= p_mfrr_down and headroom_discharge >= 0.5 * mw_cap:
+                alloc_mfrr_up = min(mw_cap, headroom_discharge)
+                # Remainder can provide down if headroom allows
+                rem_mw = mw_cap - alloc_mfrr_up
+                if rem_mw > 0.1 and headroom_charge >= 0.5 * rem_mw:
+                    alloc_mfrr_down = min(rem_mw, headroom_charge)
+            elif headroom_charge >= 0.5 * mw_cap:
+                alloc_mfrr_down = min(mw_cap, headroom_charge)
+                rem_mw = mw_cap - alloc_mfrr_down
+                if rem_mw > 0.1 and headroom_discharge >= 0.5 * rem_mw:
+                    alloc_mfrr_up = min(rem_mw, headroom_discharge)
+            else:
+                alloc_fcr = 0.5 * mw_cap
+
+            # Physical energy activations during reserve provision:
+            # SVK activates ~8-12% of contracted mFRR/aFRR energy when called
+            # Up activations discharge battery; Down activations charge battery
+            act_up = alloc_mfrr_up * 0.08
+            act_down = (alloc_mfrr_down + alloc_afrr) * 0.08
+            if act_up > 0 and (soc - soc_min) >= act_up:
+                soc -= act_up / eff_discharge
+                total_throughput_mwh += act_up
+                total_mfrr_rev += act_up * max(p_spot, p_mfrr_up * 1.5)  # Activation premium
+            if act_down > 0 and (soc_max - soc) >= act_down:
+                soc += act_down * eff_charge
+                total_throughput_mwh += act_down
+
+        # Ancillary capacity reservation payment
         total_mfrr_rev += (alloc_mfrr_up * p_mfrr_up * 0.40) + (alloc_mfrr_down * p_mfrr_down * 0.40)
         total_afrr_rev += alloc_afrr * p_afrr_down * 0.35
         total_fcr_rev += alloc_fcr * p_fcr * 0.42
