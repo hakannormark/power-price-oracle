@@ -346,3 +346,26 @@ Extremår mot normalår, 2 timmars lager, 5 % marknadsandel:
 **Förbehåll.** Sambandet är uppmätt mellan dagar och tillämpas på ett helt år. 2022 som det faktiskt var gav omkring 3,3 × för 50 MW, men mest på grund av FCR-priser från en marknad som batterierna inte hade fyllt.
 
 **Hembatteriet** är oförändrat: där är stödtjänstersättningen ett belopp per kW som användaren anger, och energidelen räknas redan mot 2022 års verkliga priser.
+
+
+---
+
+## Tillägg 2026-10-07: negativt extremår räknas mot 2020
+
+Det finns ingen officiell definition av extremår för batteriintäkter. Gränserna 2,0 × och 0,6 × var en tumregel. Kalkylen använder nu ingen gräns eller faktor, utan två verkliga år: 2022 och 2020.
+
+**Förut:** negativt extremår = stödtjänster oförändrade + spotdelen × 0,6.
+
+**Nu:** batteriet optimeras om mot 2020 års spotpriser (`coopt_weak` i dispatch_backtest.json), på samma sätt som det positiva året mot 2022. Stödtjänstpriserna följer samma uppmätta samband med spotpriset, nedåt; med "Oförändrade priser" hålls de kvar.
+
+Negativt extremår mot normalår, 2 timmars lager, 5 % marknadsandel:
+
+| Anläggning | SE1 | SE3 | SE4 |
+|---|---|---|---|
+| 10 MW, förut → nu | 1,00 → 0,89 × | 0,98 → 0,73 × | 0,96 → 0,65 × |
+| 50 MW, förut → nu | 0,97 → 0,86 × | 0,93 → 0,66 × | 0,87 → 0,62 × |
+| 200 MW, förut → nu | 0,86 → 0,65 × | 0,79 → 0,51 × | 0,72 → 0,44 × |
+
+Spotarbitraget 2020 var 0,2–0,3 gånger de senaste tolv månadernas, inte 0,6. Resten av skillnaden kommer av att uppreserverna blir billigare när spotpriset är lågt (mFRR upp × 0,5 i SE4 enligt sambandet).
+
+Förbehåll: 2020 var också ett pandemiår. Och sambandet för reservpriserna är uppmätt mellan dagar men tillämpas på ett helt år.

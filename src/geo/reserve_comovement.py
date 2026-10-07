@@ -39,6 +39,7 @@ from ..config import SITE_DATA_DIR
 OUT_PATH = SITE_DATA_DIR / "bess-map" / "dispatch_backtest.json"
 SINCE = date(2024, 1, 1)
 EXTREME_YEAR = 2022
+WEAK_YEAR = 2020
 ZONES = ("SE1", "SE2", "SE3", "SE4")
 FCR_SPOT_ZONE = "SE3"      # the FCR price is one for the country
 FACTOR_RANGE = (0.5, 3.0)
@@ -88,7 +89,7 @@ def measure(actuals: list[dict], periods: dict[str, dict], until: date | None = 
     until = until or datetime.now(timezone.utc).date()
     spot: dict[str, dict[datetime, float]] = {z: {} for z in ZONES}
     for r in actuals:
-        if r["zone"] in spot and (r["ts"][:4] == str(EXTREME_YEAR) or r["ts"][:4] >= str(SINCE.year)):
+        if r["zone"] in spot and (r["ts"][:4] in (str(EXTREME_YEAR), str(WEAK_YEAR)) or r["ts"][:4] >= str(SINCE.year)):
             spot[r["zone"]][datetime.fromisoformat(r["ts"]).astimezone(timezone.utc)] = r["price_eur_mwh"]
     rel_spot = {z: _relative(_daily({t: v for t, v in s.items() if t.date() >= SINCE})) for z, s in spot.items()}
 
@@ -110,23 +111,32 @@ def measure(actuals: list[dict], periods: dict[str, dict], until: date | None = 
             products[product] = {"elasticity": round(found[0], 3), "days": len(rows),
                                  "spot_top_tenth": round(found[1], 2), "price_top_tenth": round(found[2], 2)}
 
-    mean_2022 = {z: sum(v for t, v in s.items() if t.year == EXTREME_YEAR) / max(1, sum(1 for t in s if t.year == EXTREME_YEAR))
-                 for z, s in spot.items()}
-    factors: dict[str, dict[str, dict[str, float]]] = {}
-    spot_ratio: dict[str, dict[str, float]] = {}
-    for name, span in periods.items():
-        start, end = datetime.fromisoformat(span["from"]), datetime.fromisoformat(span["to"])
-        factors[name], spot_ratio[name] = {}, {}
-        for zone in ZONES:
-            values = [v for t, v in spot[zone].items() if start <= t < end]
-            if not values or mean_2022[zone] <= 0:
-                continue
-            ratio = max(0.2, mean_2022[zone] / (sum(values) / len(values)))
-            spot_ratio[name][zone] = round(ratio, 3)
-            factors[name][zone] = {
-                p: round(max(FACTOR_RANGE[0], min(FACTOR_RANGE[1], ratio ** info["elasticity"])), 3)
-                for p, info in products.items()
-            }
+    def year_mean(zone: str, year: int) -> float:
+        values = [v for t, v in spot[zone].items() if t.year == year]
+        return sum(values) / len(values) if values else 0.0
+
+    def scaled(year: int) -> tuple[dict, dict]:
+        """Per base period and zone: that year's spot against the period's, and each product's factor."""
+        factors: dict[str, dict[str, dict[str, float]]] = {}
+        ratios: dict[str, dict[str, float]] = {}
+        for name, span in periods.items():
+            start, end = datetime.fromisoformat(span["from"]), datetime.fromisoformat(span["to"])
+            factors[name], ratios[name] = {}, {}
+            for zone in ZONES:
+                values = [v for t, v in spot[zone].items() if start <= t < end]
+                mean = year_mean(zone, year)
+                if not values or mean <= 0:
+                    continue
+                ratio = max(0.2, mean / (sum(values) / len(values)))
+                ratios[name][zone] = round(ratio, 3)
+                factors[name][zone] = {
+                    p: round(max(FACTOR_RANGE[0], min(FACTOR_RANGE[1], ratio ** info["elasticity"])), 3)
+                    for p, info in products.items()
+                }
+        return ratios, factors
+
+    spot_ratio, factors = scaled(EXTREME_YEAR)
+    spot_ratio_weak, factors_weak = scaled(WEAK_YEAR)
     return {
         "method": "Dagsmedel per produkt mot elområdets dagsmedel för spot, båda delade med kalendermånadens median, "
                   f"sedan {SINCE.isoformat()}. Elasticitet = ln(produkt, dyraste tiondelen dagar / övriga) / ln(spot, samma dagar). "
@@ -135,6 +145,8 @@ def measure(actuals: list[dict], periods: dict[str, dict], until: date | None = 
         "products": products,
         "spot_ratio_2022": spot_ratio,
         "factors": factors,
+        "spot_ratio_2020": spot_ratio_weak,
+        "factors_weak": factors_weak,
     }
 
 

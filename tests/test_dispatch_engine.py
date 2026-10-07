@@ -168,3 +168,22 @@ def test_published_reserve_factors_are_measured_and_bounded(published):
             for product, factor in factors.items():
                 assert 0.5 <= factor <= 3.0
                 assert factor == pytest.approx(co["spot_ratio_2022"][period][zone] ** co["products"][product]["elasticity"], abs=0.002) or factor in (0.5, 3.0)
+
+
+def test_weak_year_is_its_own_optimisation_and_weaker_for_arbitrage(published):
+    assert published["weak_year"] == 2020
+    spot_i = published["products"].index("spot")
+    for zone, by_dur in published["coopt_weak"]["last12m"].items():
+        for dur, weak in by_dur.items():
+            normal = published["coopt"]["last12m"][zone][dur]
+            # With no reserves to sell, the run is 2020's arbitrage and nothing else,
+            # and that was a fraction of the last twelve months'.
+            assert sum(weak["rev"][0]) == weak["rev"][0][spot_i]
+            assert weak["rev"][0][spot_i] < 0.5 * normal["rev"][0][spot_i], (zone, dur)
+            # A looser market cap never lowers the optimum here either.
+            totals = [sum(level) for level in weak["rev"]]
+            assert all(b >= a - 1.0 for a, b in zip(totals, totals[1:])), (zone, dur)
+    co = published["reserve_comovement"]
+    for zone, ratio in co["spot_ratio_2020"]["last12m"].items():
+        assert ratio < 0.6, f"{zone}: 2020 was far cheaper than the last twelve months"
+        assert co["factors_weak"]["last12m"][zone]["mfrr_up"] < 1.0

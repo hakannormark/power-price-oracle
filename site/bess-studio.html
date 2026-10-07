@@ -964,8 +964,8 @@
             <label for="sel-negative-years">Negativa extremår under tio år</label>
             <select id="sel-negative-years">
               <option value="0" selected>0 – inga</option>
-              <option value="1">1 år med 0,6 × normal spotintäkt</option>
-              <option value="2">2 år med 0,6 × normal spotintäkt</option>
+              <option value="1">1 negativt år med 2020 års spotpriser</option>
+              <option value="2">2 negativa år med 2020 års spotpriser</option>
             </select>
             <div class="bs-note" id="lbl-negative-desc"></div>
           </div>
@@ -1183,14 +1183,14 @@
     </ul>
 
     <h3>3. Extremår</h3>
-    <p>Kalkylen använder samma konvention som hembatterikalkylen: ett <strong>positivt extremår</strong> är ett år där spotvärdet är minst 2,0 gånger det normala, ett <strong>negativt extremår</strong> ett år där det är 0,6 gånger det normala. Bara spotdelen ändras. Stödtjänstintäkten hålls oförändrad, eftersom kapacitetsmarknaderna inte fanns i dagens form under tidigare extremår.</p>
+    <p>Det finns ingen officiell definition av ett extremår för batteriintäkter. Kalkylen använder därför ingen gräns eller faktor, utan två verkliga år: <strong>2022</strong> som positivt extremår och <strong>2020</strong> som negativt. Batteriet optimeras om mot det årets spotpriser i elområdet, timme för timme. Hur många sådana år som ska ingå väljer du själv; förvalet är inga.</p>
     <ul>
       <li><strong>Positivt extremår</strong> räknas inte med en fast faktor. Batteriet optimeras om mot 2022 års faktiska spotpriser i elområdet. Arbitraget växer då kraftigt – två till åtta gånger beroende på elområde och anläggning – och batteriet flyttar en del kapacitet från reserverna till arbitrage. 2022 är det år med störst prisskillnader inom dygnet i alla fyra elområden sedan 2015.</li>
       <li><strong>Stödtjänster i extremår</strong> följer som förval det uppmätta sambandet med spotpriset. Sedan 2024 har uppreserverna varit dyrare de dagar spotpriset varit högt (mFRR upp mest, FCR-D upp och FCR-N mindre), medan nedreserverna blivit något billigare. Varje produkts pris räknas upp eller ned efter hur mycket högre spotpriset var 2022 än i basperioden. Det är ett samband mellan dagar som tillämpas på ett helt år, alltså ett antagande; välj "Oförändrade priser" för att räkna utan det. 2022 som det faktiskt var gav omkring tre och en halv gånger dagens normalår, men nästan allt kom från FCR-priser på en marknad som batterierna ännu inte hade fyllt. Det är en historisk uppgift, inte en prognos.</li>
-      <li><strong>Negativt extremår</strong>: <code>stödtjänster + spotdel × 0,6</code>.</li>
+      <li><strong>Negativt extremår</strong> är 2020: mycket vatten i magasinen och de lägsta priserna sedan 2015. Batteriet optimeras om mot 2020 års spotpriser. Arbitraget faller då till mellan en femtedel och en tredjedel av dagens, och batteriet flyttar kapacitet till reserverna. Med det uppmätta sambandet blir också uppreserverna billigare. 2020 var även ett pandemiår med låg efterfrågan, så året är snarare ett lågt än ett typiskt våtår.</li>
     </ul>
     <p>Ett positivt extremår kan aldrig ge lägre intäkt än ett normalår, och ett negativt aldrig högre. Väljer du prisunderlaget "Spotpriser som 2022" är alla år redan positiva extremår. I den förenklade kalkylen byts år ut bland de tio; i investeringskalkylen anger du vilka år.</p>
-    <p><strong>Hur väl stöds definitionen av data?</strong> Den positiva gränsen stöds: 2021 och 2022 låg över 2,0 gånger snittet av de tre föregående åren i alla elområden, 2020 i SE3 och SE4. Men det var en sammanhängande period, inte tre oberoende händelser, och nivån har inte gått tillbaka: spotarbitraget 2023–2025 är tre till sju gånger högre än 2015–2019. Den negativa gränsen 0,6 har inget tydligt stöd för <em>arbitrage</em>: det lägsta helåret sedan krisen (SE3 2024) låg på 0,76 gånger snittet 2023–2025, och våtåret 2020 sänkte prisnivån men inte prisskillnaderna. Se därför det negativa extremåret som ett stressantagande. Hur ofta extremår inträffar går inte att skatta ur elva års data.</p>
+    <p><strong>Vad säger åren sedan 2015?</strong> Rent spotarbitrage 2022 var 1,3–2,4 gånger de senaste tolv månadernas, mest i SE3 och SE4. 2020 var 0,2–0,3 gånger. Åren 2015–2019 låg ännu lägre än 2020, men det var en lugnare marknad under flera år, inte enstaka extremår; se fliken Spotarbitrage under Underlag. Hur ofta extremår inträffar går inte att skatta ur elva års data, och därför är förvalet inga.</p>
 
     <h3>4. Investering</h3>
     <p><code>Investering = MWh × kr/kWh + MW × kr/kW + stationsfack + kabelavstånd × 1,3 × MSEK/km</code></p>
@@ -1288,7 +1288,7 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="assets/bess-studio-model.js?v=20261008h"></script>
-<script src="assets/bess-studio.js?v=20261008h"></script>
+<script src="assets/bess-studio-model.js?v=20261009a"></script>
+<script src="assets/bess-studio.js?v=20261009a"></script>
 </body>
 </html>

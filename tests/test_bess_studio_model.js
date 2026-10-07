@@ -45,6 +45,7 @@ ZONES.forEach((z) => {
 
 // ------------------------- extreme year never below a normal year, in any combination
 let floorHits = 0;
+let ceilingHits = 0;
 ZONES.forEach((zone) => DURS.forEach((durationH) => MWS.forEach((mw) => SHARES.forEach((marketSharePct) => {
   dsets.forEach((dataset) => {
     const rev = M.siteRevenue(data, { zone, mw, durationH, dataset, marketSharePct, realizationPct: 75, fx: FX });
@@ -68,9 +69,10 @@ ZONES.forEach((zone) => DURS.forEach((durationH) => MWS.forEach((mw) => SHARES.f
       }
     }
     if (rev.extremeFloorApplied) floorHits++;
-    // Negative extreme year: ancillary untouched, spot at 0.6 x the normal year.
-    near(rev.spotNegative, M.NEGATIVE_FACTOR * rev.spot, `${tag}: negative year spot is 0.6 x normal`);
-    near(rev.grossNegative, rev.anc + M.NEGATIVE_FACTOR * rev.spot, `${tag}: negative year keeps the ancillary part`);
+    // Negative extreme year: its own optimisation against 2020's spot prices.
+    ok(rev.weakReoptimised, `${tag}: the negative year comes from its own optimisation`);
+    near(rev.grossNegative, rev.spotNegative + rev.ancNegative, `${tag}: negative year is its own spot and ancillary parts`);
+    if (rev.negativeCeilingApplied) ceilingHits++;
     ok(rev.grossNegative <= rev.gross + EPS && rev.gross <= rev.grossExtreme + EPS, `${tag}: negative <= normal <= extreme`);
     ok(rev.extremeRatio > 0 && isFinite(rev.extremeRatio), `${tag}: extreme ratio is a number`);
     ok(rev.extremeMeetsThreshold === (rev.extremeRatio >= M.POSITIVE_THRESHOLD), `${tag}: threshold flag`);
@@ -78,7 +80,7 @@ ZONES.forEach((zone) => DURS.forEach((durationH) => MWS.forEach((mw) => SHARES.f
       const f0 = M.simpleFinancials(baseInputs({ mw, durationH, extremeYears: 1, negativeYears: 0, marketSharePct }), rev);
       const f1 = M.simpleFinancials(baseInputs({ mw, durationH, extremeYears: 1, negativeYears: 1, marketSharePct }), rev);
       near(f1.tenYear, f0.tenYear + (f1.netNegative - f1.netNormal), `${tag}: a negative year replaces one normal year`);
-      near(f1.netNegative - f1.netNormal, -(1 - M.NEGATIVE_FACTOR) * rev.spot * (1 - M.DEFAULTS.feePct / 100), `${tag}: and costs 40 % of the spot part less the fee`);
+      ok(f1.netNegative <= f1.netNormal + EPS, `${tag}: and it is never better than a normal year`);
       ok(f1.tenYear <= f0.tenYear + EPS, `${tag}: a negative year never raises the ten-year cash flow`);
       if (f1.payback !== null && f0.payback !== null) ok(f1.payback >= f0.payback - EPS, `${tag}: nor shortens the payback`);
       ok(f1.negativeYearsUsed === 1 && f0.negativeYearsUsed === 0, `${tag}: negative years used`);
@@ -116,6 +118,12 @@ ZONES.forEach((zone) => DURS.forEach((durationH) => MWS.forEach((mw) => SHARES.f
     }
     near(fins[0].payback === null ? 0 : fins[0].payback, fins[0].paybackNormal === null ? 0 : fins[0].paybackNormal, `${tag}: no extreme years = normal-year payback`);
   });
+}))));
+// Against the last twelve months 2020 is weaker for every plant; the ceiling is for other base periods.
+dsets.filter((x) => x.id === 'last12m').forEach((dataset) => ZONES.forEach((zone) => [1, 2, 4].forEach((durationH) => [10, 50, 200].forEach((mw) => {
+  const r = M.siteRevenue(data, { zone, mw, durationH, dataset, marketSharePct: 5, realizationPct: 75, fx: FX });
+  ok(!r.negativeCeilingApplied && r.grossNegative < r.gross, `${zone} ${durationH}h ${mw}MW: 2020 is below the last twelve months`);
+  ok(r.spotNegative < 0.6 * r.spot, `${zone} ${durationH}h ${mw}MW: and its arbitrage is well under the old 0.6 rule`);
 }))));
 ok(floorHits === 0, `the extreme-year floor never had to act (${floorHits} hits): 2022 is above every scenario`);
 
@@ -233,6 +241,8 @@ const inv = (over = {}) => M.investmentModel(Object.assign({
   near(n1.rows[6].revenue - m.rows[6].revenue, -40, 'negative year lowers the spot part only');
   ok(n1.rows[6].negative && !n1.rows[6].extreme && !n1.rows[5].negative, 'negative flag on the right year');
   near(n1.npv - m.npv, -40 / Math.pow(1.08, 7), 'negative year removes its discounted spot shortfall');
+  const n2 = inv({ spotNegative: 60, ancNegative: 80, negativeYearList: [7] });
+  near(n2.rows[6].anc - n1.rows[6].anc, 80 - m.rows[6].anc, 'the negative year takes its own ancillary level');
   const both = inv({ spotNegative: 60, negativeYearList: [5], extremeYearList: [5] });
   ok(both.rows[4].extreme && !both.rows[4].negative, 'a year in both lists counts as a positive extreme year');
   near(both.npv, e1.npv, 'and is valued as one');

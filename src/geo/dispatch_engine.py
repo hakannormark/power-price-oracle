@@ -91,6 +91,8 @@ RESERVES: tuple[tuple[str, int, int, float, float], ...] = (
 PRODUCTS = ("spot",) + tuple(r[0] for r in RESERVES)
 FIRST_FULL_YEAR = 2015
 EXTREME_YEAR = 2022
+# The wet year with the lowest prices since 2015: the negative extreme year.
+WEAK_YEAR = 2020
 
 
 # ------------------------------------------------------------------ the LP
@@ -291,14 +293,14 @@ def _reserve_arrays(hours, zone, mfrr, afrr, fcr) -> tuple[np.ndarray, np.ndarra
     return prices, vols
 
 
-def _aligned_extreme_spot(hours: list[datetime], lookup: dict[datetime, float]) -> np.ndarray:
-    """2022's spot price at the same month, day and hour (UTC) as each hour given."""
+def _aligned_extreme_spot(hours: list[datetime], lookup: dict[datetime, float], year: int = EXTREME_YEAR) -> np.ndarray:
+    """That year's spot price at the same month, day and hour (UTC) as each hour given."""
     values = []
     for h in hours:
         try:
-            key = h.replace(year=EXTREME_YEAR)
+            key = h.replace(year=year)
         except ValueError:  # 29 February
-            key = h.replace(year=EXTREME_YEAR, day=28)
+            key = h.replace(year=year, day=28)
         values.append(lookup.get(key, np.nan))
     arr = np.array(values, dtype=float)
     arr[np.isnan(arr)] = np.nanmean(arr)
@@ -380,9 +382,11 @@ def build(workers: int | None = None, now: datetime | None = None) -> dict[str, 
                     tasks.append((("coopt", pname, z, dur, rho), arr, dur, prices, vols, rho, trace))
             # The extreme year for this period: 2022's spot, this period's reserves.
             extreme = _aligned_extreme_spot(hours, spot[z])
+            weak = _aligned_extreme_spot(hours, spot[z], WEAK_YEAR)
             for dur in DURATIONS:
                 for rho in RHO_GRID:
                     tasks.append((("extreme", pname, z, dur, rho), extreme, dur, prices, vols, rho, None))
+                    tasks.append((("weak", pname, z, dur, rho), weak, dur, prices, vols, rho, None))
 
     # 2022 as it was, for reference: its own FCR prices, aFRR from May, no mFRR market.
     hours_2022 = _year_hours(EXTREME_YEAR)
@@ -445,6 +449,10 @@ def build(workers: int | None = None, now: datetime | None = None) -> dict[str, 
         pname: {z: {dkey(d): levels("extreme", pname, z, d) for d in DURATIONS} for z in ZONES}
         for pname in coopt_periods
     }
+    coopt_weak = {
+        pname: {z: {dkey(d): levels("weak", pname, z, d) for d in DURATIONS} for z in ZONES}
+        for pname in coopt_periods
+    }
     actual_2022 = {z: {dkey(d): levels("actual2022", str(EXTREME_YEAR), z, d) for d in DURATIONS} for z in ZONES}
 
     def span(hours: list[datetime]) -> dict[str, Any]:
@@ -492,6 +500,8 @@ def build(workers: int | None = None, now: datetime | None = None) -> dict[str, 
         "coopt": coopt,
         "extreme_year": EXTREME_YEAR,
         "coopt_extreme": coopt_extreme,
+        "weak_year": WEAK_YEAR,
+        "coopt_weak": coopt_weak,
         "actual_2022": actual_2022,
         "sample_week": sample,
     }

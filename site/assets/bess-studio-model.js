@@ -162,7 +162,9 @@
    *             normalårets spotdel underskattade effekten. Stödtjänstdelen kan dessutom
    *             multipliceras (ancillaryExtremeMult) för att pröva ett år där även
    *             reservpriserna stiger. Aldrig lägre än normalåret (extremeFloorApplied).
-   * Negativt extremår = samma stödtjänster, spotdelen × 0,6 (NEGATIVE_FACTOR).
+   * Negativt extremår = en egen samoptimering med 2020 års spotpriser (våtåret), med
+   *             stödtjänstpriser enligt samma uppmätta samband. Aldrig högre än normalåret.
+   *             Saknas körningen i filen: spotdelen × 0,6 (NEGATIVE_FACTOR).
    * Prisunderlaget "som 2022" använder extremårskörningen som normalår.
    */
   function siteRevenue(data, o) {
@@ -227,7 +229,28 @@
       spotExtreme = spot;
       ancExtreme = anc;
     }
-    const spotNegative = spot * NEGATIVE_FACTOR;
+    // Negative extreme year: the battery re-optimised against 2020's spot prices,
+    // the wet year, with reserve prices following the same measured relation
+    // downwards. Never above the normal year. Without that run in the file, the
+    // old rule: the spot part times 0.6.
+    const weakStack = stackAt(data, basePeriod, o.zone, o.durationH, rho, 'coopt_weak');
+    const comoveWeak = measured && data.reserve_comovement && data.reserve_comovement.factors_weak
+      && data.reserve_comovement.factors_weak[basePeriod] && data.reserve_comovement.factors_weak[basePeriod][o.zone];
+    let spotNegative = spot * NEGATIVE_FACTOR;
+    let ancNegative = anc;
+    let negativeCeilingApplied = false;
+    if (weakStack) {
+      spotNegative = weakStack.rev[0] * k;
+      ancNegative = weakStack.rev.slice(1).reduce((s, v, i) => {
+        const f = comoveWeak && comoveWeak[products[i + 1]];
+        return s + v * (f > 0 ? f : 1);
+      }, 0) * k;
+      if (spotNegative + ancNegative > (spot + anc) * (1 + 1e-9)) {
+        negativeCeilingApplied = true;
+        spotNegative = spot;
+        ancNegative = anc;
+      }
+    }
 
     const market = (data.market[basePeriod] || {})[o.zone] || {};
     const sold = {};
@@ -250,8 +273,9 @@
       basePeriod, rho, perProduct, spot, anc, gross,
       spotExtreme, ancExtreme,
       grossExtreme: spotExtreme + ancExtreme,
-      spotNegative,
-      grossNegative: spotNegative + anc,
+      spotNegative, ancNegative,
+      grossNegative: spotNegative + ancNegative,
+      weakReoptimised: !!weakStack, negativeCeilingApplied,
       spotFactor, extremeFloorApplied, extremeIsBase,
       // What the measured relation did to the reserves of the extreme year (1 = unchanged prices).
       ancExtremeFactor: ancExtremeUnchanged > 0 && !extremeIsBase && !extremeFloorApplied ? ancExtreme / ancExtremeUnchanged : 1,
@@ -417,7 +441,8 @@
       const isExt = extSet.has(t);
       const isNeg = negSet.has(t);
       const spot = (isExt ? p.spotExtreme : isNeg ? spotNeg : p.spot) * Math.pow(1 + gSpot, t - 1) * cap * price;
-      const ancYear = isExt && p.ancExtreme !== undefined ? p.ancExtreme : p.anc;
+      const ancYear = isExt && p.ancExtreme !== undefined ? p.ancExtreme
+        : (isNeg && p.ancNegative !== undefined ? p.ancNegative : p.anc);
       const anc = ancYear * Math.pow(1 + gAnc, t - 1) * (1 - 0.5 * (1 - cap)) * price;
       const revenue = spot + anc;
       const fee = revenue * p.feePct / 100;

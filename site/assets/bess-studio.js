@@ -513,7 +513,7 @@
       extra += `<tr><td class="lbl">Positivt extremår (optimerat mot 2022 års spot)</td><td class="val" style="color:#fbbf24;">${msek(rev.grossExtreme)} · +${pct(up)}</td></tr>`;
     }
     const down = rev.gross > 0 ? (1 - rev.grossNegative / rev.gross) : 0;
-    extra += `<tr><td class="lbl">Negativt extremår (0,6 × spot)</td><td class="val" style="color:#a78bfa;">${msek(rev.grossNegative)} · −${pct(down)}</td></tr>`;
+    extra += `<tr><td class="lbl">Negativt extremår (2020 års spotpriser)</td><td class="val" style="color:#a78bfa;">${msek(rev.grossNegative)} · −${pct(down)}</td></tr>`;
     $('tbl-revenue').innerHTML = rows + extra;
     $('txt-rev-period').textContent = `${num(rev.gross / inp.mw / inp.fx / 1000, 0)} k€/MW`;
     const capped = S.disp.products.slice(1).filter((p) => rev.sold[p].marketShare !== null && rev.sold[p].marketShare >= 0.85 * inp.marketSharePct / 100 && rev.sold[p].mw > 0.05);
@@ -555,7 +555,7 @@
     const actualX = sel0 && sel0.actual2022Gross && sel0.gross > 0 ? sel0.actual2022Gross / sel0.gross : null;
     $('lbl-extreme-desc').textContent = isBase
       ? 'Prisunderlaget är redan 2022 – alla år är positiva extremår och valet har ingen effekt.'
-      : `Batteriet optimeras om mot 2022 års spotpriser, med stödtjänstpriser enligt valet nedan. Det höjer bruttointäkten med ${ZONES.map((z, i) => `${z} +${pct(ratios[i])}`).join(', ')}. 2022 års rena spotarbitrage var ${ZONES.map((z) => `${z} ${num(S.zoneRev[z].extremeRatio, 1)} ×`).join(', ')} normalårets (gräns för extremår: ${thr} ×).`;
+      : `Batteriet optimeras om mot 2022 års spotpriser, med stödtjänstpriser enligt valet nedan. Det höjer bruttointäkten med ${ZONES.map((z, i) => `${z} +${pct(ratios[i])}`).join(', ')}. 2022 års rena spotarbitrage var ${ZONES.map((z) => `${z} ${num(S.zoneRev[z].extremeRatio, 1)} ×`).join(', ')} normalårets.`;
     const co = S.disp.reserve_comovement;
     const mfrr = co && co.products && co.products.mfrr_up;
     $('lbl-anc-ext-desc').textContent = ($('sel-anc-ext').value === 'measured'
@@ -565,7 +565,7 @@
       : 'Stödtjänstintäkten i ett positivt extremår, gånger den optimerade nivån med dagens priser. ')
       + (actualX ? `Som jämförelse: 2022 som det faktiskt var – med den tidens FCR-priser, före batteriernas intåg – gav ${num(actualX, 1)} gånger dagens normalår för den här anläggningen.` : '');
     const drops = ZONES.map((z) => S.zoneRev[z]).map((r) => (r.gross > 0 ? 1 - r.grossNegative / r.gross : 0));
-    $('lbl-negative-desc').textContent = `Spotdelen × ${num(M.NEGATIVE_FACTOR, 1)}, oförändrade stödtjänster. Sänker bruttointäkten med ${ZONES.map((z, i) => `${z} −${pct(drops[i])}`).join(', ')}. Ett stressantagande: lägsta helår sedan 2023 är 0,76 × snittet.`;
+    $('lbl-negative-desc').textContent = `Batteriet optimeras om mot 2020 års spotpriser, våtåret med de lägsta priserna sedan 2015, med stödtjänstpriser enligt valet ovan. Spotdelen faller då till en bråkdel, och batteriet flyttar kapacitet till reserverna. Sänker bruttointäkten med ${ZONES.map((z, i) => `${z} −${pct(drops[i])}`).join(', ')}.`;
   }
 
   // ------------------------------------------------------- investeringskalkyl
@@ -604,7 +604,7 @@
       fixedOpex: r.fin.opexNormal.fixed, feePct: S.inp.feePct,
       extremeYearList: r.rev.extremeIsBase ? [] : list,
       ancExtreme: r.rev.ancExtreme,
-      spotNegative: r.rev.spotNegative, negativeYearList: yearList('inv-negative-years'),
+      spotNegative: r.rev.spotNegative, ancNegative: r.rev.ancNegative, negativeYearList: yearList('inv-negative-years'),
     });
   }
 
@@ -629,7 +629,7 @@
     $('txt-invest-note').textContent = (site.res.rev.extremeIsBase
       ? 'Prisunderlaget är 2022, så extremår läggs inte till. '
       : (ext.length ? `Positiva extremår år ${ext.join(' och ')}: spot ${msek(p.spotExtreme)} och stödtjänster ${msek(p.ancExtreme)}, mot ${msek(p.spot)} och ${msek(p.anc)} ett normalår (i år 1-priser). ` : 'Inga positiva extremår. '))
-      + (neg.length ? `Negativa extremår år ${neg.join(' och ')}: spotdelen ${msek(p.spotNegative)}. ` : '')
+      + (neg.length ? `Negativa extremår år ${neg.join(' och ')}: spot ${msek(p.spotNegative)} och stödtjänster ${msek(p.ancNegative)}. ` : '')
       + 'Degraderingen slår fullt på spotdelen och till hälften på stödtjänsterna. Slitageavsättningen ingår inte här; den ersätts av degradering och cellkomplettering.';
 
     renderInvestChart(m, p);
