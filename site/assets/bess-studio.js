@@ -196,8 +196,13 @@
     if (pa === null && pb === null) return b.res.score - a.res.score;
     if (pa === null) return 1;
     if (pb === null) return -1;
-    if (Math.abs(pa - pb) > 1e-9) return pa - pb;
-    return b.res.score - a.res.score;
+    // The list shows one decimal. Sites that show the same payback are ranked by
+    // site score, so ten metres of cable do not outrank a clearly better plot.
+    const ba = Math.round(pa * 10);
+    const bb = Math.round(pb * 10);
+    if (ba !== bb) return ba - bb;
+    if (b.res.score !== a.res.score) return b.res.score - a.res.score;
+    return pa - pb;
   };
 
   function bestCell(bounds) {
@@ -453,7 +458,17 @@
     $('kpi-payback').textContent = yearsTxt(f.payback);
     $('kpi-payback').style.color = paybackColor(f.payback);
     const anyExt = f.extremeYearsUsed + f.negativeYearsUsed > 0;
-    $('kpi-payback-sub').textContent = anyExt ? `Utan extremår: ${yearsTxt(f.paybackNormal)}` : 'Odiskonterad, tio lika år';
+    // The simple figure assumes ten equal years. Say next to it what the
+    // investment calculation gives, where reserve prices fall and money has a cost.
+    let invNote = '';
+    try {
+      {
+        const ip = readInvest(site);
+        const im = M.investmentModel(ip);
+        invNote = ` Med stödtjänster ${num(ip.ancTrendPct, 0)} %/år och ${num(ip.waccPct, 0)} % ränta: ${im.discountedPayback === null ? `inte inom ${ip.lifeYears} år` : `${num(im.discountedPayback, 1)} år`}.`;
+      }
+    } catch (e) { invNote = ''; }
+    $('kpi-payback-sub').textContent = (anyExt ? `Utan extremår: ${yearsTxt(f.paybackNormal)}.` : 'Odiskonterad, tio lika år.') + invNote;
     $('kpi-capex').textContent = msek(f.capex.total, 0);
     $('kpi-capex-sub').textContent = `Varav anslutning: ${msek(f.capex.cable + f.capex.bay)}`;
     $('kpi-net').textContent = msek(f.netNormal);
