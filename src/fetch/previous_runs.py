@@ -41,6 +41,7 @@ FIRST_DAY = date(2024, 1, 1)   # the API's own start
 MAX_AGE_DAYS = 7
 CHUNK_DAYS = 60
 SERIES = {"temp": "temperature_2m", "wind": "wind_speed_10m", "solar": "shortwave_radiation"}
+PATIENCE_S = (30, 90, 180, 300)  # waits between further attempts at one chunk
 PAUSE_S = 1.0  # stay far inside the free tier's per-minute limit
 # The points lightgbm_v3 reads. The other archive points are not fetched: each
 # costs seventeen requests and nothing uses them.
@@ -97,6 +98,22 @@ def _merge(old: dict[str, np.ndarray] | None, new: dict[str, np.ndarray]) -> dic
     return {k: v[order] for k, v in merged.items()}
 
 
+def _fetch_patiently(lat: float, lon: float, start: date, end: date) -> dict[str, np.ndarray]:
+    """One chunk, waiting out a slow spell at the source.
+
+    A full refresh is about a hundred large requests, and the weekly retraining
+    stopped when one of them timed out three times within six seconds. The
+    service recovers in minutes, so wait minutes.
+    """
+    for attempt, wait_s in enumerate(PATIENCE_S, start=1):
+        try:
+            return _fetch_chunk(lat, lon, start, end)
+        except Exception as exc:  # noqa: BLE001 - the last attempt below lets it through
+            log.warning("previous runs %s..%s: attempt %s failed (%s); waiting %s s", start, end, attempt, str(exc)[:80], wait_s)
+            time.sleep(wait_s)
+    return _fetch_chunk(lat, lon, start, end)
+
+
 def refresh(points: list[str] | None = None, until: date | None = None) -> dict[str, int]:
     """Fill every point from where its file ends (minus a week) to `until`."""
     DIR.mkdir(parents=True, exist_ok=True)
@@ -111,7 +128,7 @@ def refresh(points: list[str] | None = None, until: date | None = None) -> dict[
             start = max(FIRST_DAY, last - timedelta(days=MAX_AGE_DAYS))
         while start <= until:
             end = min(until, start + timedelta(days=CHUNK_DAYS - 1))
-            data = _merge(data, _fetch_chunk(lat, lon, start, end))
+            data = _merge(data, _fetch_patiently(lat, lon, start, end))
             log.info("%s: %s .. %s (%s hours stored)", point, start, end, len(data["hours"]))
             start = end + timedelta(days=1)
             time.sleep(PAUSE_S)

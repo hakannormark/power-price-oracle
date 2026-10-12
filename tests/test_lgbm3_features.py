@@ -120,3 +120,23 @@ class CalendarTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_a_slow_spell_at_the_source_is_waited_out(monkeypatch):
+    from datetime import date
+
+    from src.fetch import previous_runs as pr
+
+    calls = {"n": 0}
+
+    def flaky(lat, lon, start, end):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise TimeoutError("read timed out")
+        return {"hours": "ok"}
+
+    waits = []
+    monkeypatch.setattr(pr, "_fetch_chunk", flaky)
+    monkeypatch.setattr(pr.time, "sleep", waits.append)
+    assert pr._fetch_patiently(0.0, 0.0, date(2024, 1, 1), date(2024, 1, 2)) == {"hours": "ok"}
+    assert waits == [30, 90], "two failures, two waits, then the answer"

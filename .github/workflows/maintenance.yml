@@ -95,6 +95,17 @@ jobs:
       # weather is not in the repository (25 MiB, rebuildable), so it is fetched
       # here, outside the retry loop below: it takes minutes and does not depend
       # on where origin is. The artifacts are staged and copied in after the reset.
+      # The archive of past forecast runs is not tracked (too large) and took a
+      # hundred requests to rebuild every week. Kept between runs, only the
+      # last week is fetched.
+      - name: Restore the forecast-run archive
+        if: env.TASK == 'retrain-lightgbm'
+        uses: actions/cache@v4
+        with:
+          path: data/weather/archive/previous_runs
+          key: previous-runs-${{ github.run_id }}
+          restore-keys: previous-runs-
+
       - name: Retrain lightgbm_v3
         if: env.TASK == 'retrain-lightgbm'
         run: |
