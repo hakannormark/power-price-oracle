@@ -123,20 +123,18 @@ if __name__ == "__main__":
 
 
 def test_a_slow_spell_at_the_source_is_waited_out(monkeypatch):
-    from datetime import date
-
-    from src.fetch import previous_runs as pr
+    from src.fetch import http
 
     calls = {"n": 0}
 
-    def flaky(lat, lon, start, end):
+    def flaky(url, params=None, **kwargs):
         calls["n"] += 1
         if calls["n"] < 3:
             raise TimeoutError("read timed out")
-        return {"hours": "ok"}
+        return "ok"
 
     waits = []
-    monkeypatch.setattr(pr, "_fetch_chunk", flaky)
-    monkeypatch.setattr(pr.time, "sleep", waits.append)
-    assert pr._fetch_patiently(0.0, 0.0, date(2024, 1, 1), date(2024, 1, 2)) == {"hours": "ok"}
+    monkeypatch.setattr(http, "get", flaky)
+    monkeypatch.setattr(http.time, "sleep", waits.append)
+    assert http.get_patiently("https://example.invalid") == "ok"
     assert waits == [30, 90], "two failures, two waits, then the answer"

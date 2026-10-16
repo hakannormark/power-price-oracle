@@ -62,3 +62,20 @@ def post(
 ) -> requests.Response:
     """Form POST with the same backoff as get()."""
     return _request("POST", url, retries, headers, data=data)
+
+
+# Waits between further attempts when a source is slow for minutes rather than
+# seconds. Open-Meteo's archive has had such spells on Monday mornings, when the
+# weekly jobs run.
+PATIENT_WAITS_S = (30, 90, 180, 300)
+
+
+def get_patiently(url: str, params: dict[str, Any] | None = None, waits: tuple[int, ...] = PATIENT_WAITS_S) -> requests.Response:
+    """GET that waits minutes, not seconds, before giving up. For weekly jobs, never for the pipeline."""
+    for wait_s in waits:
+        try:
+            return get(url, params=params)
+        except Exception as exc:  # noqa: BLE001 - the final attempt below lets it through
+            log.warning("%s: still failing (%s); waiting %s s", url, str(exc)[:80], wait_s)
+            time.sleep(wait_s)
+    return get(url, params=params)

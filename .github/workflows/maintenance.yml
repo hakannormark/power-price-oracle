@@ -124,6 +124,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          task_failed=0
           for attempt in 1 2 3 4 5; do
             git fetch origin "${{ github.ref_name }}"
             git reset --hard "origin/${{ github.ref_name }}"
@@ -134,22 +135,30 @@ jobs:
               fetch-reservoirs)        python -m src.fetch_reservoirs ;;
               # The battery pages read measured sun per zone from data/bess/solar/.
               # Also compares the last 45 days of stored prices with an independent source.
-              refresh-weather-archive) python -m src.fetch_weather_archive --refresh && python -m src.bess.solar && (python -m src.verify --prices || true) ;;
+              # Each step runs on its own, so one slow source does not stop the
+              # others; the job still fails at the end, so the failure is seen.
+              # (A failing command inside `a && b` does not stop a `set -e` script:
+              # the sun data went stale for a week without a word.)
+              refresh-weather-archive)
+                python -m src.fetch_weather_archive --refresh || task_failed=1
+                python -m src.bess.solar || task_failed=1
+                python -m src.verify --prices || task_failed=1 ;;
               # BESS Studio: re-run the dispatch back-test on the latest spot and
               # Svenska kraftnät capacity-market prices. Needs scipy, nothing else.
-              refresh-bess-dispatch)   pip install -q "scipy>=1.11" && python -m src.geo.dispatch_engine ;;
+              refresh-bess-dispatch)   { pip install -q "scipy>=1.11" && python -m src.geo.dispatch_engine; } || task_failed=1 ;;
               retrain-lightgbm)        cp "$RUNNER_TEMP"/artifacts/* src/models/artifacts/ ;;
             esac
 
             git add data site/data/bess-map/dispatch_backtest.json src/models/artifacts
             if git diff --cached --quiet; then
               echo "Nothing changed."
-              exit 0
+              exit "$task_failed"
             fi
             git commit -m "chore: $TASK"
             if git push origin "HEAD:${{ github.ref_name }}"; then
               echo "Pushed on attempt $attempt."
-              exit 0
+              if [ "$task_failed" = 1 ]; then echo "::error::A step of $TASK failed; what succeeded is committed."; fi
+              exit "$task_failed"
             fi
             echo "Push rejected, remote moved. Re-merging onto the new head."
             sleep $((attempt * 5))

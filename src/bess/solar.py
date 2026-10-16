@@ -36,7 +36,7 @@ from datetime import date, datetime, timedelta, timezone
 import numpy as np
 
 from ..config import DATA_DIR, WEATHER_ARCHIVE_URL, ZONES
-from ..fetch.http import get
+from ..fetch.http import get_patiently
 
 log = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def _load_year(year: int) -> dict | None:
 
 
 def _fetch(lat: float, lon: float, start: date, end: date, variable: str, azimuth: int = 0) -> tuple[int, list[float | None]]:
-    payload = get(WEATHER_ARCHIVE_URL, params={
+    payload = get_patiently(WEATHER_ARCHIVE_URL, params={
         "latitude": lat, "longitude": lon, "hourly": variable, "tilt": TILT_DEG, "azimuth": azimuth,
         "start_date": start.isoformat(), "end_date": end.isoformat(), "timezone": "UTC",
     }).json()
