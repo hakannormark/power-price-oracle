@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-19T10:19:12+02:00",
+ "generated_at": "2026-10-19T13:35:18+02:00",
  "passed": 9,
  "total": 9,
  "checks": [
@@ -8,21 +8,21 @@
    "title": "Prishistoriken är komplett",
    "method": "Varje timme sedan 2015 finns en gång per elområde.",
    "ok": true,
-   "detail": "413 748 timpriser sedan 2015-01-01; saknade timmar: 0, dubbletter: 0."
+   "detail": "413 844 timpriser sedan 2015-01-01; saknade timmar: 0, dubbletter: 0."
   },
   {
    "id": "price_source",
    "title": "Priserna stämmer med en oberoende källa",
    "method": "Lagrade timpriser jämförs med energy-charts.info (Fraunhofer ISE), som hämtar från ENTSO-E på egen väg.",
    "ok": true,
-   "detail": "Hela historiken jämförd 2026-10-07: 345 328 timmar, 0 avviker (före rättning: 3, alla i ett dygn i SE2 2022). Senaste löpande kontroll 2026-10-16: 4 416 timmar 2026-08-31–2026-10-15, 0 avviker."
+   "detail": "Hela historiken jämförd 2026-10-07: 345 328 timmar, 0 avviker (före rättning: 3, alla i ett dygn i SE2 2022). Senaste löpande kontroll 2026-10-19: 4 416 timmar 2026-09-03–2026-10-18, 0 avviker."
   },
   {
    "id": "site_prices",
    "title": "Sidorna visar de lagrade priserna",
    "method": "Priser på elområdessidorna jämförs med lagret, och öre/kWh med EUR/MWh gånger ECB-kursen.",
    "ok": true,
-   "detail": "248 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
+   "detail": "428 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
   },
   {
    "id": "forecast_bands",
@@ -36,14 +36,14 @@
    "title": "Träffsäkerheten är rätt räknad",
    "method": "Standardmodellens medelfel räknas om direkt ur prognosloggen och utfallen, utan poängsättningskoden.",
    "ok": true,
-   "detail": "Standardmodellens medelfel (horizon_hybrid) omräknat ur prognosloggen och utfallen, per horisont i EUR/MWh: 0-24h: 27.24, 24-48h: 30.16, 48-72h: 34.21, 72-96h: 37.30, 96-120h: 38.03, 120-144h: 39.77, 144-168h: 40.78. Största skillnad mot träffsäkerhetssidan: 0.000."
+   "detail": "Standardmodellens medelfel (horizon_hybrid) omräknat ur prognosloggen och utfallen, per horisont i EUR/MWh: 0-24h: 26.48, 24-48h: 29.62, 48-72h: 33.55, 72-96h: 36.59, 96-120h: 36.94, 120-144h: 38.48, 144-168h: 39.43. Största skillnad mot träffsäkerhetssidan: 0.000."
   },
   {
    "id": "battery_optimiser",
    "title": "Hembatteriets körschema är nära det bästa möjliga",
    "method": "Jämförs med en linjär optimering – en annan metod för samma problem.",
    "ok": true,
-   "detail": "Batteriets körschema (dynamisk programmering, 49 nivåer) mot en linjär optimering av samma fyra veckor, andel av den teoretiskt bästa besparingen: SE1 97.3 %, SE2 97.9 %, SE3 98.5 %, SE4 98.8 %."
+   "detail": "Batteriets körschema (dynamisk programmering, 49 nivåer) mot en linjär optimering av samma fyra veckor, andel av den teoretiskt bästa besparingen: SE1 97.4 %, SE2 97.7 %, SE3 98.5 %, SE4 98.8 %."
   },
   {
    "id": "lifecycle",
