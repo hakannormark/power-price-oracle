@@ -20,7 +20,12 @@
 
   const DEFAULTS = {
     // Marknad
-    marketSharePct: 5,       // högsta andel av varje stödtjänsts upphandlade volym per timme
+    marketSharePct: 5,       // högsta andel av varje stödtjänsts upphandlade volym per timme (används om competingFleetMw saknas)
+    // Batterieffekt i Sverige som konkurrerar om stödtjänsterna. I en mättad marknad
+    // får varje anläggning ungefär sin andel av den: andel = MW / flottan. Clean
+    // Horizons uppskattning för september 2026 är cirka 1 500 MW; 809 MW är
+    // offentligt rapporterat i drift.
+    competingFleetMw: 1500,
     realizationPct: 75,      // andel av den teoretiska (perfekt optimerade) intäkten som realiseras
     // Drift
     feePct: 5,               // optimerare / BSP, andel av bruttointäkt
@@ -167,6 +172,12 @@
    *             Saknas körningen i filen: spotdelen × 0,6 (NEGATIVE_FACTOR).
    * Prisunderlaget "som 2022" använder extremårskörningen som normalår.
    */
+  /** Andel av varje stödtjänstmarknad, i procent, för en anläggning av en viss storlek i en flotta. */
+  function marketShareFromFleet(mw, fleetMw) {
+    if (!(fleetMw > 0)) return 0;
+    return Math.min(100, 100 * Math.max(0, mw) / fleetMw);
+  }
+
   function siteRevenue(data, o) {
     const ds = o.dataset;
     const basePeriod = ds.kind === 'actual' ? ds.period : 'last12m';
@@ -547,7 +558,7 @@
   }
 
   return {
-    DEFAULTS, EXTREME_YEAR, POSITIVE_THRESHOLD, NEGATIVE_FACTOR,
+    DEFAULTS, EXTREME_YEAR, POSITIVE_THRESHOLD, NEGATIVE_FACTOR, marketShareFromFleet,
     bracket, stackAt, spotOnly, spotOnlyMean, datasets, siteRevenue,
     capex, opex, simpleFinancials,
     npv, irr, defaultExtremeYearPositions, defaultNegativeYearPositions, investmentModel,

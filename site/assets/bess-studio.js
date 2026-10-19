@@ -52,7 +52,7 @@
     ['range-capex-kw', 'val-capex-kw', (v) => `${num(v)} kr`],
     ['range-cable-cost', 'val-cable-cost', (v) => `${num(v, 1)} MSEK`],
     ['range-substation-bay', 'val-substation-bay', (v) => `${num(v)} MSEK`],
-    ['range-share', 'val-share', (v) => `${num(v)} %`],
+    ['range-fleet', 'val-fleet', (v) => `${num(v)} MW`],
     ['range-realization', 'val-realization', (v) => `${num(v)} %`],
     ['range-fee', 'val-fee', (v) => `${num(v)} %`],
     ['range-om', 'val-om', (v) => `${num(v)} kr`],
@@ -69,7 +69,7 @@
   // Reglage som sparas i länken.
   const HASH_FIELDS = [
     'num-power-mw', 'num-duration', 'range-capex-kwh', 'range-capex-kw', 'range-cable-cost', 'range-substation-bay',
-    'sel-dataset', 'sel-extreme-years', 'sel-negative-years', 'sel-anc-ext', 'range-share', 'range-realization', 'range-fee', 'range-om', 'range-grid',
+    'sel-dataset', 'sel-extreme-years', 'sel-negative-years', 'sel-anc-ext', 'range-fleet', 'range-realization', 'range-fee', 'range-om', 'range-grid',
     'range-other', 'range-wear', 'inv-extreme-years', 'inv-negative-years',
   ].concat(Object.keys(INVEST_FIELDS));
 
@@ -91,7 +91,7 @@
       dataset: S.datasets.find((d) => d.id === dsId) || S.datasets[0],
       extremeYears: parseInt($('sel-extreme-years').value, 10) || 0,
       negativeYears: parseInt($('sel-negative-years').value, 10) || 0,
-      marketSharePct: fnum('range-share'),
+      competingFleetMw: fnum('range-fleet', M.DEFAULTS.competingFleetMw),
       ancillaryExtremeMult: $('sel-anc-ext').value === 'measured' ? 'measured' : (parseFloat($('sel-anc-ext').value) || 1),
       realizationPct: fnum('range-realization'),
       feePct: fnum('range-fee'),
@@ -112,9 +112,12 @@
   }
 
   // -------------------------------------------------------------- evaluation
+  // The share of each reserve market follows the plant's share of the competing fleet.
+  const shareOf = (inp) => (inp.competingFleetMw > 0 ? M.marketShareFromFleet(inp.mw, inp.competingFleetMw) : inp.marketSharePct);
+
   function zoneRevenue(inp, zone) {
     return M.siteRevenue(S.disp, {
-      zone, mw: inp.mw, durationH: inp.durationH, dataset: inp.dataset, marketSharePct: inp.marketSharePct,
+      zone, mw: inp.mw, durationH: inp.durationH, dataset: inp.dataset, marketSharePct: shareOf(inp),
       realizationPct: inp.realizationPct, fx: inp.fx, revMult: inp.revMult,
       ancillaryExtremeMult: inp.ancillaryExtremeMult,
     });
@@ -516,9 +519,9 @@
     extra += `<tr><td class="lbl">Negativt extremår (2020 års spotpriser)</td><td class="val" style="color:#a78bfa;">${msek(rev.grossNegative)} · −${pct(down)}</td></tr>`;
     $('tbl-revenue').innerHTML = rows + extra;
     $('txt-rev-period').textContent = `${num(rev.gross / inp.mw / inp.fx / 1000, 0)} k€/MW`;
-    const capped = S.disp.products.slice(1).filter((p) => rev.sold[p].marketShare !== null && rev.sold[p].marketShare >= 0.85 * inp.marketSharePct / 100 && rev.sold[p].mw > 0.05);
+    const capped = S.disp.products.slice(1).filter((p) => rev.sold[p].marketShare !== null && rev.sold[p].marketShare >= 0.85 * shareOf(inp) / 100 && rev.sold[p].mw > 0.05);
     $('txt-rev-note').textContent = `Teoretiskt tak ${num(rev.theoreticalPerMwEur / 1000, 0)} k€/MW/år, realiseringsgrad ${num(inp.realizationPct)} %. `
-      + (capped.length ? `Marknadstaket på ${num(inp.marketSharePct)} % begränsar ${capped.map((p) => PRODUCT_LABELS[p]).join(', ')}.` : 'Inget marknadstak begränsar vid den här storleken.');
+      + (capped.length ? `Med ${num(inp.competingFleetMw)} MW konkurrerande batterier får anläggningen ${num(shareOf(inp), 1)} % av varje marknad. Det begränsar ${capped.map((p) => PRODUCT_LABELS[p]).join(', ')}.` : 'Inget marknadstak begränsar vid den här storleken.');
 
     // Driftkostnader
     const ox = f.opexNormal;
@@ -738,14 +741,14 @@
     const drivers = [
       { name: 'Intäkter, alla marknader', a: ['−20 %', { revMult: 0.8 }], b: ['+20 %', { revMult: 1.2 }] },
       { name: 'Realiseringsgrad', a: [`${num(Math.max(40, inp.realizationPct - 15))} %`, { realizationPct: Math.max(40, inp.realizationPct - 15) }], b: [`${num(Math.min(100, inp.realizationPct + 15))} %`, { realizationPct: Math.min(100, inp.realizationPct + 15) }] },
-      { name: 'Andel av stödtjänstmarknaderna', a: [`${num(inp.marketSharePct / 2, 1)} %`, { marketSharePct: inp.marketSharePct / 2 }], b: [`${num(Math.min(30, inp.marketSharePct * 2))} %`, { marketSharePct: Math.min(30, inp.marketSharePct * 2) }] },
+      { name: 'Konkurrerande batterieffekt i Sverige', note: 'avgör andelen av varje stödtjänstmarknad', a: ['2 500 MW', { competingFleetMw: 2500 }], b: ['800 MW', { competingFleetMw: 800 }] },
       { name: 'Positiva extremår under tio år', note: isBase22 ? 'ingen effekt: prisunderlaget är redan 2022' : '', a: ['0 år', { extremeYears: 0 }], b: ['2 år', { extremeYears: 2 }] },
       { name: 'Stödtjänster i positivt extremår', note: inp.extremeYears > 0 && !isBase22 ? '' : 'ingen effekt utan positiva extremår', a: ['oförändrade', { ancillaryExtremeMult: 1 }], b: ['× 3', { ancillaryExtremeMult: 3 }] },
       { name: 'Negativa extremår under tio år', a: ['0 år', { negativeYears: 0 }], b: ['2 år', { negativeYears: 2 }] },
       { name: 'Battericeller och kraftelektronik', a: ['+20 %', { capexPerKwh: inp.capexPerKwh * 1.2, capexPerKw: inp.capexPerKw * 1.2 }], b: ['−20 %', { capexPerKwh: inp.capexPerKwh * 0.8, capexPerKw: inp.capexPerKw * 0.8 }] },
       { name: 'Anslutning (kabel och stationsfack)', a: ['+30 %', { cablePerKmMsek: inp.cablePerKmMsek * 1.3, bayMsek: inp.bayMsek * 1.3 }], b: ['−30 %', { cablePerKmMsek: inp.cablePerKmMsek * 0.7, bayMsek: inp.bayMsek * 0.7 }] },
       { name: 'Fasta driftkostnader', a: ['+25 %', { omPerKw: inp.omPerKw * 1.25, gridPerKw: inp.gridPerKw * 1.25, otherPctCapex: inp.otherPctCapex * 1.25 }], b: ['−25 %', { omPerKw: inp.omPerKw * 0.75, gridPerKw: inp.gridPerKw * 0.75, otherPctCapex: inp.otherPctCapex * 0.75 }] },
-      { name: 'Anläggningens storlek', note: 'samma varaktighet; större anläggning möter marknadstaket', a: [`${num(Math.max(5, inp.mw / 2))} MW`, { mw: Math.max(5, inp.mw / 2) }], b: [`${num(Math.min(300, inp.mw * 2))} MW`, { mw: Math.min(300, inp.mw * 2) }] },
+      { name: 'Anläggningens storlek', note: 'samma varaktighet och samma konkurrerande flotta', a: [`${num(Math.max(5, inp.mw / 2))} MW`, { mw: Math.max(5, inp.mw / 2) }], b: [`${num(Math.min(300, inp.mw * 2))} MW`, { mw: Math.min(300, inp.mw * 2) }] },
       { name: 'Varaktighet', a: ['1 h', { durationH: 1 }], b: ['4 h', { durationH: 4 }] },
     ].map((d) => {
       const va = pb(d.a[1]);
@@ -1000,6 +1003,12 @@
     });
     $('range-power-mw').value = $('num-power-mw').value;
     $('range-duration').value = $('num-duration').value;
+    // Links made before the fleet setting carried a market share; keep what they meant.
+    if (q.has('range-share') && !q.has('range-fleet')) {
+      const share = parseFloat(q.get('range-share'));
+      const mw = parseFloat($('num-power-mw').value) || 50;
+      $('range-fleet').value = share > 0 ? String(Math.round(Math.min(6000, Math.max(300, mw * 100 / share)) / 100) * 100) : '6000';
+    }
     if (q.has('inv-extreme-years')) S.extremeDirty = true;
     if (q.has('inv-negative-years')) S.negativeDirty = true;
     return q;

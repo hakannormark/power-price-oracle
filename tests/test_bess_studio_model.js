@@ -300,4 +300,19 @@ const inv = (over = {}) => M.investmentModel(Object.assign({
   ok(M.siteScore({ cableKm: 30, zoneGrossPerMw: 0, bestZoneGrossPerMw: 1, prot: 1, water: 1 }).score === 0, 'and bottoms at 0');
 }
 
+// ------------------------------------------- market share from the competing fleet
+{
+  near(M.marketShareFromFleet(150, 1500), 10, 'a tenth of the fleet is a tenth of each market');
+  ok(M.marketShareFromFleet(10, 0) === 0 && M.marketShareFromFleet(3000, 1500) === 100, 'bounded');
+  // In a saturated market every MW gets the same share, so revenue per MW does not depend on size.
+  const perMw = [10, 50, 150, 300].map((mw) => {
+    const r = M.siteRevenue(data, { zone: 'SE2', mw, durationH: 2, dataset: dsets[0], marketSharePct: M.marketShareFromFleet(mw, M.DEFAULTS.competingFleetMw), realizationPct: 75, fx: FX });
+    return r.gross / mw;
+  });
+  perMw.forEach((v) => near(v, perMw[0], `same revenue per MW whatever the size`, 0.02));
+  // More competing batteries never raise the revenue.
+  const fleets = [800, 1500, 2500, 4000, 6000].map((f) => M.siteRevenue(data, { zone: 'SE3', mw: 50, durationH: 2, dataset: dsets[0], marketSharePct: M.marketShareFromFleet(50, f), realizationPct: 75, fx: FX }).gross);
+  fleets.slice(1).forEach((g, i) => ok(g <= fleets[i] + 1, 'a larger fleet gives no more revenue'));
+}
+
 console.log(`bess-studio-model: ${checks} checks passed`);

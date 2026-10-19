@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<link rel="stylesheet" href="assets/style.css?v=20261006c">
+<link rel="stylesheet" href="assets/style.css?v=20261019a">
 <style>
   .bs-container {
     display: grid;
@@ -970,9 +970,9 @@
             <div class="bs-note" id="lbl-negative-desc"></div>
           </div>
           <div class="bs-ctrl-group">
-            <label>Högsta andel av varje stödtjänstmarknad <span class="bs-val" id="val-share"></span></label>
-            <input type="range" id="range-share" min="0" max="30" step="1" value="5">
-            <div class="bs-note">Anläggningen kan varje timme sälja högst så här stor del av den volym Svenska kraftnät faktiskt upphandlade. 0 % ger ren spotarbitrage.</div>
+            <label>Batterieffekt i Sverige som konkurrerar om stödtjänsterna <span class="bs-val" id="val-fleet"></span></label>
+            <input type="range" id="range-fleet" min="300" max="6000" step="100" value="1500">
+            <div class="bs-note">Stödtjänstmarknaderna är fasta i storlek. När batterierna tillsammans erbjuder mer än som upphandlas får varje anläggning ungefär sin andel av flottan: anläggningens MW delat med detta. Förval 1 500 MW, Clean Horizons uppskattning för september 2026; 809 MW är offentligt rapporterat i drift. Mer batterier ger mindre andel. Vattenkraften konkurrerar också, framför allt om mFRR, så andelen där kan vara något lägre.</div>
           </div>
           <div class="bs-ctrl-group" style="margin-bottom:0;">
             <label>Realiseringsgrad <span class="bs-val" id="val-realization"></span></label>
@@ -1169,10 +1169,10 @@
     <ul>
       <li><strong>Samma megawatt säljs aldrig två gånger.</strong> Summan av urladdning och uppreglerande reserver får inte överstiga effekten, och likadant nedåt.</li>
       <li><strong>Energin måste finnas.</strong> För att sälja 1 MW mFRR, aFRR eller FCR-N i en timme krävs 1 MWh i lagret (eller ledigt utrymme); för FCR-D 20 minuter.</li>
-      <li><strong>Marknadsdjup.</strong> Anläggningen kan varje timme sälja högst en vald andel av den volym Svenska kraftnät upphandlade den timmen. En stor anläggning får därför lägre intäkt per MW.</li>
+      <li><strong>Marknadsdjup.</strong> Anläggningen kan varje timme sälja högst sin andel av den volym Svenska kraftnät upphandlade den timmen. Andelen är anläggningens effekt delad med den konkurrerande batterieffekten i Sverige, som du anger. Det motsvarar en mättad marknad där alla batterier får lika stor del per MW; storleken på den egna anläggningen ändrar då inte intäkten per MW.</li>
       <li><strong>Pristagare.</strong> Accepterade bud får marknadens marginalpris. Egen prispåverkan modelleras inte.</li>
     </ul>
-    <p>Optimeringen känner alla priser i förväg och antar att alla bud går igenom. Det ger ett <em>teoretiskt tak</em>. <strong>Realiseringsgraden</strong> (förvalt 75 %) drar ned taket till vad som antas bli verklighet. Förvalen 5 % marknadsandel och 75 % realiseringsgrad är antaganden, inte mätvärden – ändra dem efter egen bedömning.</p>
+    <p>Optimeringen känner alla priser i förväg och antar att alla bud går igenom. Det ger ett <em>teoretiskt tak</em>. <strong>Realiseringsgraden</strong> (förvalt 75 %) drar ned taket till vad som antas bli verklighet. Förvalen 1 500 MW konkurrerande batterieffekt och 75 % realiseringsgrad är antaganden, inte mätvärden – ändra dem efter egen bedömning.</p>
     <p><strong>Ingår inte:</strong> aktiveringsenergi (antas avräknas till balanspris utan nettoeffekt), intradagshandel, FFR, prognosfel utöver realiseringsgraden och driftstopp.</p>
 
     <h3>2. Prisunderlag</h3>
@@ -1288,7 +1288,7 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="assets/bess-studio-model.js?v=20261009a"></script>
-<script src="assets/bess-studio.js?v=20261009a"></script>
+<script src="assets/bess-studio-model.js?v=20261019a"></script>
+<script src="assets/bess-studio.js?v=20261019a"></script>
 </body>
 </html>

@@ -369,3 +369,16 @@ Negativt extremår mot normalår, 2 timmars lager, 5 % marknadsandel:
 Spotarbitraget 2020 var 0,2–0,3 gånger de senaste tolv månadernas, inte 0,6. Resten av skillnaden kommer av att uppreserverna blir billigare när spotpriset är lågt (mFRR upp × 0,5 i SE4 enligt sambandet).
 
 Förbehåll: 2020 var också ett pandemiår. Och sambandet för reservpriserna är uppmätt mellan dagar men tillämpas på ett helt år.
+
+
+---
+
+## Tillägg 2026-10-19: andelen av stödtjänstmarknaderna följer den konkurrerande flottan
+
+**Problem.** "Högsta andel av varje stödtjänstmarknad" var förvalt 5 % oavsett anläggningens storlek. Det motsvarar olika antaganden om konkurrensen: för 10 MW en flotta på 200 MW, för 50 MW 1 000 MW, för 150 MW 3 000 MW. Små anläggningar räknades som nästan ensamma på marknaden, stora som trängda av fler batterier än som finns. Det var hela skillnaden mot en extern kalkyl för Åre (150 MW, SE2): 16,9 mot 6,0 års återbetalning.
+
+**Ändring.** Reglaget anger i stället den batterieffekt i Sverige som konkurrerar om stödtjänsterna, förvalt 1 500 MW (Clean Horizons uppskattning, september 2026; 809 MW offentligt rapporterat). Andelen blir anläggningens effekt delad med flottan. I en mättad marknad får varje MW samma andel, så intäkten per MW beror inte längre på storleken (inom 2 % mellan 10 och 300 MW i testet).
+
+Gamla länkar räknas om: en sparad andel blir den flotta den motsvarade, så resultatet är detsamma.
+
+**Förbehåll.** Vattenkraften konkurrerar också, främst om mFRR, där batterierna ännu inte fyller marknaden. Den som anger en stor framtida flotta och samtidigt räknar med fallande stödtjänstpriser i investeringskalkylen räknar mättnaden två gånger.
