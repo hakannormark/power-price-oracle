@@ -1,15 +1,15 @@
 {
  "ok": true,
- "generated_at": "2026-10-22T13:32:10+02:00",
- "run_id": "20261022T1132Z",
+ "generated_at": "2026-10-22T18:02:34+02:00",
+ "run_id": "20261022T1602Z",
  "degraded": false,
  "demo": false,
  "fx": {
   "pair": "EUR/SEK",
-  "rate": 11.0975,
-  "date": "2026-10-21",
+  "rate": 11.112,
+  "date": "2026-10-22",
   "source": "ECB",
-  "fetched_at": "2026-10-22T13:34:17+02:00",
+  "fetched_at": "2026-10-22T18:05:02+02:00",
   "stale": false
  },
  "sources": {
@@ -36,17 +36,17 @@
   },
   "ecb_fx": {
    "ok": true,
-   "rate": 11.0975,
-   "date": "2026-10-21"
+   "rate": 11.112,
+   "date": "2026-10-22"
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1128
+   "messages": 1144
   },
   "fuels": {
    "ok": true,
-   "rows": 131,
-   "added": 0
+   "rows": 132,
+   "added": 1
   },
   "euronext_futures": {
    "ok": true,
@@ -69,5 +69,5 @@
    "ok": true
   }
  },
- "next_expected_update_utc": "2026-10-22T16:00:00Z"
+ "next_expected_update_utc": "2026-10-23T04:30:00Z"
 }
