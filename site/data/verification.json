@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-24T13:35:06+02:00",
- "passed": 9,
+ "generated_at": "2026-10-24T18:07:13+02:00",
+ "passed": 8,
  "total": 9,
  "checks": [
   {
@@ -8,7 +8,7 @@
    "title": "Prishistoriken är komplett",
    "method": "Varje timme sedan 2015 finns en gång per elområde.",
    "ok": true,
-   "detail": "414 228 timpriser sedan 2015-01-01; saknade timmar: 0, dubbletter: 0."
+   "detail": "414 328 timpriser sedan 2015-01-01; saknade timmar: 0, dubbletter: 0."
   },
   {
    "id": "price_source",
@@ -21,8 +21,8 @@
    "id": "site_prices",
    "title": "Sidorna visar de lagrade priserna",
    "method": "Priser på elområdessidorna jämförs med lagret, och öre/kWh med EUR/MWh gånger ECB-kursen.",
-   "ok": true,
-   "detail": "236 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
+   "ok": false,
+   "detail": "416 visade timpriser jämförda med lagrade priser och växelkursen; 8 avviker."
   },
   {
    "id": "forecast_bands",
@@ -36,14 +36,14 @@
    "title": "Träffsäkerheten är rätt räknad",
    "method": "Standardmodellens medelfel räknas om direkt ur prognosloggen och utfallen, utan poängsättningskoden.",
    "ok": true,
-   "detail": "Standardmodellens medelfel (horizon_hybrid) omräknat ur prognosloggen och utfallen, per horisont i EUR/MWh: 0-24h: 26.38, 24-48h: 28.34, 48-72h: 31.25, 72-96h: 34.05, 96-120h: 34.05, 120-144h: 34.71, 144-168h: 36.66. Största skillnad mot träffsäkerhetssidan: 0.000."
+   "detail": "Standardmodellens medelfel (horizon_hybrid) omräknat ur prognosloggen och utfallen, per horisont i EUR/MWh: 0-24h: 25.82, 24-48h: 27.73, 48-72h: 30.75, 72-96h: 33.70, 96-120h: 33.70, 120-144h: 35.07, 144-168h: 37.45. Största skillnad mot träffsäkerhetssidan: 0.000."
   },
   {
    "id": "battery_optimiser",
    "title": "Hembatteriets körschema är nära det bästa möjliga",
    "method": "Jämförs med en linjär optimering – en annan metod för samma problem.",
    "ok": true,
-   "detail": "Batteriets körschema (dynamisk programmering, 49 nivåer) mot en linjär optimering av samma fyra veckor, andel av den teoretiskt bästa besparingen: SE1 97.5 %, SE2 97.5 %, SE3 98.4 %, SE4 98.6 %."
+   "detail": "Batteriets körschema (dynamisk programmering, 49 nivåer) mot en linjär optimering av samma fyra veckor, andel av den teoretiskt bästa besparingen: SE1 97.3 %, SE2 97.4 %, SE3 98.4 %, SE4 98.6 %."
   },
   {
    "id": "lifecycle",
