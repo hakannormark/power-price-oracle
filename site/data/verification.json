@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-24T18:07:13+02:00",
+ "generated_at": "2026-10-25T06:34:33+01:00",
  "passed": 8,
  "total": 9,
  "checks": [
@@ -22,14 +22,14 @@
    "title": "Sidorna visar de lagrade priserna",
    "method": "Priser på elområdessidorna jämförs med lagret, och öre/kWh med EUR/MWh gånger ECB-kursen.",
    "ok": false,
-   "detail": "416 visade timpriser jämförda med lagrade priser och växelkursen; 8 avviker."
+   "detail": "268 visade timpriser jämförda med lagrade priser och växelkursen; 4 avviker."
   },
   {
    "id": "forecast_bands",
    "title": "Prognosen är välformad",
    "method": "Obruten tidsaxel och osäkerhetsband som innesluter prognosen.",
    "ok": true,
-   "detail": "676 prognostimmar i fyra elområden: obruten tidsaxel och p10 ≤ prognos ≤ p90 överallt; 0 fel."
+   "detail": "672 prognostimmar i fyra elområden: obruten tidsaxel och p10 ≤ prognos ≤ p90 överallt; 0 fel."
   },
   {
    "id": "accuracy",
