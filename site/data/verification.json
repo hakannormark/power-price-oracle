@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-26T18:08:15+01:00",
- "passed": 8,
+ "generated_at": "2026-10-27T06:34:59+01:00",
+ "passed": 9,
  "total": 9,
  "checks": [
   {
@@ -21,8 +21,8 @@
    "id": "site_prices",
    "title": "Sidorna visar de lagrade priserna",
    "method": "Priser på elområdessidorna jämförs med lagret, och öre/kWh med EUR/MWh gånger ECB-kursen.",
-   "ok": false,
-   "detail": "412 visade timpriser jämförda med lagrade priser och växelkursen; 4 avviker."
+   "ok": true,
+   "detail": "264 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
   },
   {
    "id": "forecast_bands",
