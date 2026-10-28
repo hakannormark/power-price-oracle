@@ -176,3 +176,29 @@ class HorizonHybridModelTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BorrowBandTests(unittest.TestCase):
+    def test_keeps_own_p50_and_takes_donor_width(self):
+        from src.models.base import ForecastPoint
+        from src.models.horizon_hybrid import borrow_band
+
+        now = now_local()
+        ts = now + timedelta(hours=100)
+        own = [ForecastPoint(ts=ts, zone="SE3", p10=45.0, p50=50.0, p90=55.0)]
+        donor = [ForecastPoint(ts=ts, zone="SE3", p10=30.0, p50=60.0, p90=120.0)]
+        (point,) = borrow_band(own, donor)
+        self.assertEqual((point.p10, point.p50, point.p90), (20.0, 50.0, 110.0))
+
+    def test_points_without_a_donor_keep_their_band(self):
+        from src.models.base import ForecastPoint
+        from src.models.horizon_hybrid import borrow_band
+
+        own = [ForecastPoint(ts=now_local(), zone="SE4", p10=45.0, p50=50.0, p90=55.0)]
+        self.assertEqual(borrow_band(own, []), own)
+
+    def test_the_default_borrows_a_registered_band(self):
+        from src.models.registry import BAND_BORROWED_FROM, BAND_DEFINED_SINCE, DEFAULT_MODEL_ID
+
+        self.assertEqual(BAND_BORROWED_FROM.get(DEFAULT_MODEL_ID), "horizon_hybrid")
+        self.assertIn(DEFAULT_MODEL_ID, BAND_DEFINED_SINCE)

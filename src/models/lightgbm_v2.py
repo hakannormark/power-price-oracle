@@ -35,7 +35,9 @@ class LightGbmV2:
         "ungefär felet dygn 1–2 mot de väderskalade modellerna. Tränad en gång, den "
         "27 september 2026, på väderarkiv – alltså på vädret som det blev, inte på "
         "väderprognoser – och horisonten finns bara som två lägen i träningen. På dygn "
-        "4–7 ligger den därför ofta fel i nivå och bandet är för smalt."
+        "4–7 ligger den därför ofta fel i nivå och det egna bandet är för smalt. "
+        "Sajtens standardmodell sedan 28 oktober 2026, då med horisonthybridens "
+        "bandbredd kring sin prognos."
     )
     quantiles = True
     derived = False

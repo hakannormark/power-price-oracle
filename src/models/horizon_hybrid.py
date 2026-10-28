@@ -6,9 +6,10 @@
 
 Until 2026-10-02 the long end was 100 % market level. The weight was then set
 to 60/40 by hand. On the hours every horizon forecast, the blend has so far
-been worse than lightgbm_v2 alone beyond day 2; see registry.py for why it is
-still the default and what would change that. registry.MODEL_DEFINED_SINCE
-keeps the two definitions from being scored as one.
+been worse than lightgbm_v2 alone beyond day 2, and on 2026-10-28 v2 replaced
+it as the default (registry.py). It is still logged as a candidate, and its band
+is what the default publishes around v2's p50 (borrow_band below).
+registry.MODEL_DEFINED_SINCE keeps the two definitions from being scored as one.
 """
 
 from __future__ import annotations
@@ -34,8 +35,8 @@ class HorizonHybrid:
     description_sv = (
         "LightGBM ensam de första 36 timmarna, därefter en gradvis övergång till en "
         "blandning av 60 % LightGBM och 40 % marknadsjusterad basnivå från 72 timmar. "
-        "Sajtens standardmodell sedan 2 oktober 2026. Dygn 1–2 är väl belagda; för dygn "
-        "3–7 är underlaget ännu tunt och blandningens vikter är satta för hand."
+        "Sajtens standardmodell 2–28 oktober 2026; ersatt av LightGBM ensam, som var "
+        "bättre bortom dygn 2. Blandningens vikter är satta för hand."
     )
     quantiles = True
     derived = True
@@ -94,3 +95,25 @@ class HorizonHybrid:
 
     def predict(self, features, issued_at: datetime) -> list[ForecastPoint]:  # pragma: no cover
         raise NotImplementedError("horizon_hybrid is derived: call combine().")
+
+
+def borrow_band(points: list[ForecastPoint], donor: list[ForecastPoint]) -> list[ForecastPoint]:
+    """Keep each point's p50 and give it the donor's band width around it.
+
+    lightgbm_v2's own quantiles cover 68 % live against a target of 80, and 59 %
+    on days 6-7. This blend's band, laid around v2's p50, covered 82 % on the
+    same 54 864 hours (2026-10-02 to 10-29). Up to 36 h the two are identical.
+    Points with no donor keep their own band.
+    """
+    donor_map = {(p.zone, p.ts): p for p in donor}
+    out: list[ForecastPoint] = []
+    for point in points:
+        other = donor_map.get((point.zone, point.ts))
+        if other is None:
+            out.append(point)
+            continue
+        p10, p50, p90 = order_quantiles(
+            point.p50 + (other.p10 - other.p50), point.p50, point.p50 + (other.p90 - other.p50)
+        )
+        out.append(ForecastPoint(ts=point.ts, zone=point.zone, p10=p10, p50=p50, p90=p90))
+    return out

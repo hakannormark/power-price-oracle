@@ -106,11 +106,28 @@ def _drop_earlier_definitions(frame: pd.DataFrame, defined_since: dict[str, str]
     return frame[keep]
 
 
+def _drop_earlier_bands(frame: pd.DataFrame, band_since: dict[str, str] | None) -> pd.DataFrame:
+    """Blank the band on forecasts issued before a model's current band.
+
+    lightgbm_v2 kept its p50 and took a wider band on 2026-10-28. Its MAE record
+    still describes the model; its old coverage does not.
+    """
+    if not band_since or frame.empty:
+        return frame
+    frame = frame.copy()
+    for model_id, since in band_since.items():
+        cutoff = pd.Timestamp(since).tz_convert("UTC")
+        old = (frame["model_id"] == model_id) & (frame["issued_at"] < cutoff)
+        frame.loc[old, ["p10", "p90"]] = float("nan")
+    return frame
+
+
 def scored_rows(
     forecasts: list[dict],
     actuals: list[dict],
     now: datetime | None = None,
     defined_since: dict[str, str] | None = None,
+    band_since: dict[str, str] | None = None,
 ) -> pd.DataFrame:
     """Forecast rows joined to outcomes, filtered to genuine predictions."""
     now = now or now_local()
@@ -120,6 +137,7 @@ def scored_rows(
     frame = _drop_earlier_definitions(frame, defined_since)
     if frame.empty:
         return frame.assign(actual=[], bucket=[])
+    frame = _drop_earlier_bands(frame, band_since)
 
     cutoff = pd.Timestamp(to_utc(now - timedelta(days=EVAL_WINDOW_DAYS)))
     frame = frame[frame["ts"] >= cutoff]
@@ -159,14 +177,19 @@ def _metrics(group: pd.DataFrame) -> dict:
         value = float(group["p50"].corr(group["actual"]))
         corr = None if math.isnan(value) else value
 
-    inside = ((group["p10"] <= group["actual"]) & (group["actual"] <= group["p90"])).mean()
+    banded = group.dropna(subset=["p10", "p90"])
+    inside = (
+        ((banded["p10"] <= banded["actual"]) & (banded["actual"] <= banded["p90"])).mean()
+        if not banded.empty
+        else None
+    )
 
     return {
         "n": n,
         "mae": r3(error.abs().mean()),
         "rmse": r3(math.sqrt(float((error**2).mean()))),
         "bias": r3(error.mean()),
-        "coverage80": r3(float(inside)),
+        "coverage80": r3(float(inside)) if inside is not None else None,
         "mape": r3(mape) if mape is not None else None,
         "p50_corr": r3(corr) if corr is not None else None,
         "enough_data": n >= MIN_SAMPLES_FOR_STATS,
@@ -325,10 +348,11 @@ def evaluate(
     now: datetime | None = None,
     default_id: str = "ensemble",
     defined_since: dict[str, str] | None = None,
+    band_since: dict[str, str] | None = None,
 ) -> dict:
     """Full accuracy payload: per zone, overall, plus the compact MAE table."""
     now = now or now_local()
-    frame = scored_rows(forecasts, actuals, now, defined_since)
+    frame = scored_rows(forecasts, actuals, now, defined_since, band_since)
 
     zones: dict[str, dict] = {}
     for zone in ZONES:
@@ -373,6 +397,7 @@ def evaluate(
     }
     payload["table"] = table
     payload["defined_since"] = dict(defined_since or {})
+    payload["band_defined_since"] = dict(band_since or {})
     payload["promotion"] = promotion_table(frame, model_ids, default_id)
     payload["comparable"] = {
         "hours": 0 if fair.empty else int(fair.groupby(["zone", "ts"]).ngroups),

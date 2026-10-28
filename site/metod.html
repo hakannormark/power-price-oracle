@@ -120,8 +120,8 @@
         <li>Kör dessutom två trädmodeller (LightGBM) som lär sig avvikelsen från den
           nivån ur fyra års priser och väder, och en <i>horisonthybrid</i> som använder
           trädmodellen ensam de första 36 timmarna och sedan blandar den med en
-          marknadsjusterad nivå. Hybriden är standardmodell sedan 2 oktober 2026 — se
-          <i>Standardmodellen sedan oktober 2026</i> nedan.</li>
+          marknadsjusterad nivå. Trädmodellen <code>lightgbm_v2</code> är standardmodell
+          sedan 28 oktober 2026 — se <i>Standardmodellen sedan oktober 2026</i> nedan.</li>
         <li>Sparar varje modells prognos med tidsstämpel.</li>
         <li>Jämför senare mot utfallet, sorterat efter hur långt i förväg prognosen gjordes.</li>
         <li>Hämtar terminsmarknadens priser från Euronext Nord Pool. De används av
@@ -139,17 +139,23 @@
       <h2>Standardmodellen sedan oktober 2026</h2>
       <p>Trädmodellen <code>lightgbm_v2</code> är det största enskilda lyftet hittills: på
         riktiga utfärdade prognoser är felet dygn 1–2 ungefär hälften av de väderskalade
-        modellernas. Den blev därför grund för standardmodellen, <code>horizon_hybrid</code>.</p>
-      <p>Tre saker ska du veta om den:</p>
+        modellernas. Från 2 oktober var den grund för standardmodellen <code>horizon_hybrid</code>,
+        som efter 72 timmar blandade in 40 % marknadsjusterad nivå. Den 28 oktober 2026 blev
+        trädmodellen ensam standard.</p>
+      <p>Fyra saker ska du veta om den:</p>
       <ul>
-        <li><b>Den är väl belagd på kort sikt, inte på lång.</b> Den gjordes till standard
-          fem dagar efter att trädmodellen började loggas. För dygn 3–7 fanns då nästan inget
-          underlag, och blandningens vikter (60 % trädmodell, 40 % marknadsnivå) är satta för
-          hand. Hittills har blandningen varit sämre än trädmodellen ensam bortom dygn 2.</li>
+        <li><b>Bytet följer regeln nedan.</b> Över 27 gemensamma leveransdygn var trädmodellens
+          medelfel 0,89 EUR/MWh lägre än hybridens (90-procentsintervall −1,71 till −0,19), och den
+          var inte sämre på någon horisont. Inblandningen av marknadsnivån kostade alltså
+          träffsäkerhet. Hybriden loggas vidare som kandidat.</li>
+        <li><b>Osäkerhetsbandet är lånat.</b> Trädmodellens eget band var för smalt: det
+          rymde 68 % av utfallen i stället för 80 %, och bara 59 % dygn 6–7. Sajten visar därför
+          hybridens bandbredd kring trädmodellens prognos, vilket på samma timmar rymde 82 %.
+          Bandets träffsäkerhet räknas från 28 oktober.</li>
         <li><b>Trädmodellen är tränad på vädret som det blev</b>, inte på väderprognoser, och
           den har inte tränats om sedan 27 september 2026. Skarpt får den en prognos som
-          blir sämre för varje dygn, vilket den aldrig har sett. Det syns i att bandet är för
-          smalt och nivån ofta fel dygn 4–7.</li>
+          blir sämre för varje dygn, vilket den aldrig har sett. Det syns i att det egna
+          bandet är för smalt och nivån ofta fel dygn 4–7.</li>
         <li><b>Den byts bara mot något bättre enligt en fast regel:</b> minst 21 gemensamma
           leveransdygn, säkert bättre totalt och inte säkert sämre på någon horisont.
           Jämförelsen finns på <a href="traffsakerhet.html">träffsäkerhetssidan</a>, där

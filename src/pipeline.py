@@ -40,8 +40,11 @@ from .fetch import (
 )
 from .fetch.entsoe_supply import latest_reservoir_state
 from .longterm import publish as longterm_publish
+from .models.horizon_hybrid import borrow_band
 from .models.official import actuals_index
 from .models.registry import (
+    BAND_BORROWED_FROM,
+    BAND_DEFINED_SINCE,
     BASE_MODELS,
     DEFAULT_MODEL_ID,
     DERIVED_MODELS,
@@ -235,6 +238,12 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
             sources[f"model:{model.id}"] = {"ok": False, "error": str(exc)[:200]}
             degraded = True
 
+    # The default keeps its own p50 but publishes a borrowed band, applied only
+    # after the derived pass so every derived model still sees the raw quantiles.
+    for model_id, donor_id in BAND_BORROWED_FROM.items():
+        if predictions.get(model_id) and predictions.get(donor_id):
+            predictions[model_id] = borrow_band(predictions[model_id], predictions[donor_id])
+
     # data/forecasts/ is the record the accuracy page scores. A developer
     # run must not enter it: local runs happen at odd times, on half-finished
     # code, and sometimes on demo prices, and every one of those rows is scored
@@ -263,7 +272,8 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
     # ---- 9. evaluation --------------------------------------------------
     forecasts = load_forecasts(since=now - timedelta(days=EVAL_WINDOW_DAYS + 1))
     accuracy = evaluate(
-        forecasts, actuals, model_ids(), REFERENCE_MODEL_ID, now, DEFAULT_MODEL_ID, MODEL_DEFINED_SINCE
+        forecasts, actuals, model_ids(), REFERENCE_MODEL_ID, now, DEFAULT_MODEL_ID, MODEL_DEFINED_SINCE,
+        BAND_DEFINED_SINCE,
     )
 
     # ---- 10. drivers ----------------------------------------------------

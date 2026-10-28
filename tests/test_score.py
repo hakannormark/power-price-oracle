@@ -183,3 +183,19 @@ class MetricsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BandDefinedSinceTests(unittest.TestCase):
+    def test_coverage_counts_only_forecasts_issued_under_the_current_band(self):
+        now = local(2026, 9, 10, 9)
+        target = local(2026, 9, 5, 18)
+        old = forecast_row(local(2026, 9, 3, 11), target, spread=1.0)   # misses 55
+        new = forecast_row(local(2026, 9, 4, 11), target, spread=10.0)  # covers 55
+        since = {"weather_scaled": iso(local(2026, 9, 4, 0))}
+        payload = evaluate([old, new], [actual_row(target)], ["weather_scaled"], "weather_scaled", now,
+                           "weather_scaled", None, since)
+        stats = [s for s in payload["overall"]["weather_scaled"].values()]
+        self.assertEqual(sum(s["n"] for s in stats), 2)  # both still count for MAE
+        covered = [s["coverage80"] for s in stats if s["coverage80"] is not None]
+        self.assertEqual(covered, [1.0])
+        self.assertEqual(payload["band_defined_since"], since)

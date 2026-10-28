@@ -70,7 +70,17 @@ MODELS = [*BASE_MODELS, *DERIVED_MODELS]
 # only after 21 shared delivery days, with the 90 % interval on the difference in
 # MAE wholly below zero overall and not wholly above zero at any horizon. The
 # interval resamples whole delivery days. accuracy.json carries the verdict.
-DEFAULT_MODEL_ID = "horizon_hybrid"
+#
+# lightgbm_v2 met the rule on 2026-10-28, the first model to do so: over 27
+# shared delivery days its MAE was 0.89 EUR/MWh below horizon_hybrid's, 90 %
+# interval -1.71 to -0.19, and not worse at any horizon. The blend's 40 %
+# market level beyond 72 h was costing accuracy. horizon_hybrid stays logged as
+# a candidate under its unchanged definition.
+#
+# v2's own band was too narrow to publish (68 % coverage, 59 % on days 6-7), so
+# the default lends it horizon_hybrid's band width around v2's p50; see
+# horizon_hybrid.borrow_band. On the same hours that covered 82 %.
+DEFAULT_MODEL_ID = "lightgbm_v2"
 REFERENCE_MODEL_ID = "seasonal_naive"  # skill is measured against this one
 
 # When the model behind an id last changed. Forecasts issued before this are a
@@ -78,6 +88,19 @@ REFERENCE_MODEL_ID = "seasonal_naive"  # skill is measured against this one
 # market level beyond 72 h until commit 192840f made it 60 % LightGBM.
 MODEL_DEFINED_SINCE = {
     "horizon_hybrid": "2026-10-02T10:01:36+02:00",
+}
+
+# Models that publish another model's band width around their own p50, and the
+# donor. Applied after the derived pass, so the donor itself is built from the
+# raw quantiles.
+BAND_BORROWED_FROM = {
+    "lightgbm_v2": "horizon_hybrid",
+}
+
+# When a model's band last changed while its p50 did not. Its MAE record stands;
+# coverage is scored only on forecasts issued since.
+BAND_DEFINED_SINCE = {
+    "lightgbm_v2": "2026-10-28T14:30:00+01:00",
 }
 
 OFFICIAL = Official()

@@ -562,6 +562,14 @@ function definedSinceText(accuracy) {
   return ` Standardmodellens nuvarande definition gäller sedan <b>${fmtDay(since)}</b>; prognoser den ställde ut dessförinnan var en annan modell och räknas inte.`;
 }
 
+// A model can keep its p50 and change its band. Its error record stands, but
+// band coverage is only counted from that day.
+function bandSinceText(accuracy) {
+  const since = (accuracy.band_defined_since || {})[accuracy.default_model];
+  if (!since) return "";
+  return ` Standardmodellens osäkerhetsband byttes <b>${fmtDay(since)}</b>; täckningen räknas bara på prognoser från och med den dagen.`;
+}
+
 const PROMOTION_VERDICTS = {
   too_early: ["För tidigt", "var(--muted)"],
   eligible: ["Uppfyller regeln", "#34d399"],
@@ -709,7 +717,7 @@ async function initAccuracy() {
   renderFooterMeta(overview);
 
   const windowNote = el("accuracy-window");
-  if (windowNote) windowNote.innerHTML = scoredRangeText(accuracy) + definedSinceText(accuracy);
+  if (windowNote) windowNote.innerHTML = scoredRangeText(accuracy) + definedSinceText(accuracy) + bandSinceText(accuracy);
   renderPromotion(accuracy);
 
   const zoneSelect = el("acc-zone");
