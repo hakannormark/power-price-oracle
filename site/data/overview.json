@@ -1,18 +1,18 @@
 {
- "generated_at": "2026-10-28T13:32:19+01:00",
- "run_id": "20261028T1232Z",
+ "generated_at": "2026-10-28T13:54:30+01:00",
+ "run_id": "20261028T1254Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
  "resolution": "PT60M",
- "default_model": "horizon_hybrid",
+ "default_model": "lightgbm_v2",
  "reference_model": "seasonal_naive",
  "fx": {
   "pair": "EUR/SEK",
   "rate": 11.0795,
   "date": "2026-10-27",
   "source": "ECB",
-  "fetched_at": "2026-10-28T13:34:05+01:00",
+  "fetched_at": "2026-10-28T13:55:57+01:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
@@ -320,14 +320,14 @@
     },
     {
      "ts": "2026-10-30T00:00:00+01:00",
-     "eur_mwh": 4.966,
-     "ore_kwh": 5.502,
+     "eur_mwh": 4.979,
+     "ore_kwh": 5.516,
      "source": "forecast"
     },
     {
      "ts": "2026-10-30T01:00:00+01:00",
-     "eur_mwh": 4.562,
-     "ore_kwh": 5.054,
+     "eur_mwh": 4.777,
+     "ore_kwh": 5.293,
      "source": "forecast"
     }
    ],
@@ -661,14 +661,14 @@
     },
     {
      "ts": "2026-10-30T00:00:00+01:00",
-     "eur_mwh": 12.002,
-     "ore_kwh": 13.298,
+     "eur_mwh": 11.793,
+     "ore_kwh": 13.066,
      "source": "forecast"
     },
     {
      "ts": "2026-10-30T01:00:00+01:00",
-     "eur_mwh": 11.74,
-     "ore_kwh": 13.007,
+     "eur_mwh": 11.764,
+     "ore_kwh": 13.034,
      "source": "forecast"
     }
    ],
@@ -1002,14 +1002,14 @@
     },
     {
      "ts": "2026-10-30T00:00:00+01:00",
-     "eur_mwh": 83.502,
-     "ore_kwh": 92.516,
+     "eur_mwh": 82.641,
+     "ore_kwh": 91.562,
      "source": "forecast"
     },
     {
      "ts": "2026-10-30T01:00:00+01:00",
-     "eur_mwh": 81.791,
-     "ore_kwh": 90.62,
+     "eur_mwh": 80.065,
+     "ore_kwh": 88.708,
      "source": "forecast"
     }
    ],
@@ -1343,14 +1343,14 @@
     },
     {
      "ts": "2026-10-30T00:00:00+01:00",
-     "eur_mwh": 205.066,
-     "ore_kwh": 227.203,
+     "eur_mwh": 206.452,
+     "ore_kwh": 228.738,
      "source": "forecast"
     },
     {
      "ts": "2026-10-30T01:00:00+01:00",
-     "eur_mwh": 190.809,
-     "ore_kwh": 211.407,
+     "eur_mwh": 188.733,
+     "ore_kwh": 209.107,
      "source": "forecast"
     }
    ],
@@ -1794,7 +1794,7 @@
   "fuels": {
    "ok": true,
    "rows": 132,
-   "added": 1
+   "added": 0
   },
   "euronext_futures": {
    "ok": true,
@@ -1876,10 +1876,10 @@
   {
    "id": "lightgbm_v2",
    "name_sv": "Residual-LightGBM",
-   "description_sv": "Kvantilregression tränad på prisavvikelsen från den dämpade basnivån. Halverar ungefär felet dygn 1–2 mot de väderskalade modellerna. Tränad en gång, den 27 september 2026, på väderarkiv – alltså på vädret som det blev, inte på väderprognoser – och horisonten finns bara som två lägen i träningen. På dygn 4–7 ligger den därför ofta fel i nivå och bandet är för smalt.",
+   "description_sv": "Kvantilregression tränad på prisavvikelsen från den dämpade basnivån. Halverar ungefär felet dygn 1–2 mot de väderskalade modellerna. Tränad en gång, den 27 september 2026, på väderarkiv – alltså på vädret som det blev, inte på väderprognoser – och horisonten finns bara som två lägen i träningen. På dygn 4–7 ligger den därför ofta fel i nivå och det egna bandet är för smalt. Sajtens standardmodell sedan 28 oktober 2026, då med horisonthybridens bandbredd kring sin prognos.",
    "quantiles": true,
    "derived": false,
-   "is_default": false,
+   "is_default": true,
    "is_reference": false
   },
   {
@@ -1912,10 +1912,10 @@
   {
    "id": "horizon_hybrid",
    "name_sv": "Horisonthybrid",
-   "description_sv": "LightGBM ensam de första 36 timmarna, därefter en gradvis övergång till en blandning av 60 % LightGBM och 40 % marknadsjusterad basnivå från 72 timmar. Sajtens standardmodell sedan 2 oktober 2026. Dygn 1–2 är väl belagda; för dygn 3–7 är underlaget ännu tunt och blandningens vikter är satta för hand.",
+   "description_sv": "LightGBM ensam de första 36 timmarna, därefter en gradvis övergång till en blandning av 60 % LightGBM och 40 % marknadsjusterad basnivå från 72 timmar. Sajtens standardmodell 2–28 oktober 2026; ersatt av LightGBM ensam, som var bättre bortom dygn 2. Blandningens vikter är satta för hand.",
    "quantiles": true,
    "derived": true,
-   "is_default": true,
+   "is_default": false,
    "is_reference": false
   }
  ]

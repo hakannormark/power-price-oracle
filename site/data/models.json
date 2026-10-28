@@ -1,5 +1,5 @@
 {
- "default_model": "horizon_hybrid",
+ "default_model": "lightgbm_v2",
  "reference_model": "seasonal_naive",
  "models": [
   {
@@ -59,10 +59,10 @@
   {
    "id": "lightgbm_v2",
    "name_sv": "Residual-LightGBM",
-   "description_sv": "Kvantilregression tränad på prisavvikelsen från den dämpade basnivån. Halverar ungefär felet dygn 1–2 mot de väderskalade modellerna. Tränad en gång, den 27 september 2026, på väderarkiv – alltså på vädret som det blev, inte på väderprognoser – och horisonten finns bara som två lägen i träningen. På dygn 4–7 ligger den därför ofta fel i nivå och bandet är för smalt.",
+   "description_sv": "Kvantilregression tränad på prisavvikelsen från den dämpade basnivån. Halverar ungefär felet dygn 1–2 mot de väderskalade modellerna. Tränad en gång, den 27 september 2026, på väderarkiv – alltså på vädret som det blev, inte på väderprognoser – och horisonten finns bara som två lägen i träningen. På dygn 4–7 ligger den därför ofta fel i nivå och det egna bandet är för smalt. Sajtens standardmodell sedan 28 oktober 2026, då med horisonthybridens bandbredd kring sin prognos.",
    "quantiles": true,
    "derived": false,
-   "is_default": false,
+   "is_default": true,
    "is_reference": false
   },
   {
@@ -95,10 +95,10 @@
   {
    "id": "horizon_hybrid",
    "name_sv": "Horisonthybrid",
-   "description_sv": "LightGBM ensam de första 36 timmarna, därefter en gradvis övergång till en blandning av 60 % LightGBM och 40 % marknadsjusterad basnivå från 72 timmar. Sajtens standardmodell sedan 2 oktober 2026. Dygn 1–2 är väl belagda; för dygn 3–7 är underlaget ännu tunt och blandningens vikter är satta för hand.",
+   "description_sv": "LightGBM ensam de första 36 timmarna, därefter en gradvis övergång till en blandning av 60 % LightGBM och 40 % marknadsjusterad basnivå från 72 timmar. Sajtens standardmodell 2–28 oktober 2026; ersatt av LightGBM ensam, som var bättre bortom dygn 2. Blandningens vikter är satta för hand.",
    "quantiles": true,
    "derived": true,
-   "is_default": true,
+   "is_default": false,
    "is_reference": false
   }
  ]

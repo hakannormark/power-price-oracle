@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-28T13:36:13+01:00",
+ "generated_at": "2026-10-28T13:57:38+01:00",
  "passed": 9,
  "total": 9,
  "checks": [
@@ -36,7 +36,7 @@
    "title": "Träffsäkerheten är rätt räknad",
    "method": "Standardmodellens medelfel räknas om direkt ur prognosloggen och utfallen, utan poängsättningskoden.",
    "ok": true,
-   "detail": "Standardmodellens medelfel (horizon_hybrid) omräknat ur prognosloggen och utfallen, per horisont i EUR/MWh: 0-24h: 25.54, 24-48h: 27.79, 48-72h: 31.17, 72-96h: 34.43, 96-120h: 35.31, 120-144h: 37.93, 144-168h: 40.47. Största skillnad mot träffsäkerhetssidan: 0.000."
+   "detail": "Standardmodellens medelfel (lightgbm_v2) omräknat ur prognosloggen och utfallen, per horisont i EUR/MWh: 0-24h: 25.90, 24-48h: 27.31, 48-72h: 29.37, 72-96h: 31.76, 96-120h: 32.32, 120-144h: 35.95, 144-168h: 39.87. Största skillnad mot träffsäkerhetssidan: 0.000."
   },
   {
    "id": "battery_optimiser",
