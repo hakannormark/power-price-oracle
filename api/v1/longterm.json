@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-30T06:32:24+01:00",
+ "generated_at": "2026-10-30T10:17:08+01:00",
  "unit": "EUR/MWh",
  "horizon_months": 3,
  "default_model": "lt_damped",
@@ -59,7 +59,7 @@
        "p90": 65.473
       },
       "lt_fundamental": {
-       "p50": 99.861
+       "p50": 98.461
       },
       "lt_market": {
        "p50": 58.26,
@@ -75,7 +75,7 @@
       }
      },
      "last_year": 33.632,
-     "nuclear_out_mw": 2259.933,
+     "nuclear_out_mw": 2696.333,
      "outlook": {
       "month": "2026-11",
       "temp_anomaly_c": 1.2,
@@ -96,11 +96,11 @@
        "p90": 63.015
       },
       "lt_fundamental": {
-       "p50": 103.265
+       "p50": 103.128
       }
      },
      "last_year": 28.976,
-     "nuclear_out_mw": 223.742,
+     "nuclear_out_mw": 259.903,
      "outlook": {
       "month": "2026-12",
       "temp_anomaly_c": 2.0,
@@ -121,7 +121,7 @@
        "p90": 60.522
       },
       "lt_fundamental": {
-       "p50": 103.569
+       "p50": 103.548
       },
       "lt_market": {
        "p50": 66.14,
@@ -149,15 +149,15 @@
     "De senaste 30 dagarna kostade elen i SE1 i snitt 27,5 EUR/MWh, mot 40,7 det senaste året.",
     "Terminsmarknaden prissätter november 2026 till 58,3 EUR/MWh, 15,3 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 10 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
-    "Planerade kärnkraftsstopp tar i snitt bort 2 260 MW i november, 224 MW i december och 0 MW i januari, mot 3 325 MW de senaste 30 dagarna.",
+    "Planerade kärnkraftsstopp tar i snitt bort 2 696 MW i november, 260 MW i december och 0 MW i januari, mot 3 313 MW de senaste 30 dagarna.",
     "Gas (TTF) kostar 98,6 EUR/MWh och en utsläppsrätt 85,0 EUR/ton. Ett gaskraftverk behöver då ungefär 229 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
     "Säsongsprognosen för vädret i SE1, jämfört med det normala: november +1,2 °C och -2 mm nederbörd; december +2,0 °C och +6 mm nederbörd; januari +0,6 °C och -5 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
    ],
    "fundamental_coefficients": {
-    "seasonal_diff": 2.021,
-    "hydro_anomaly": -2.151,
-    "nuclear_delta_gw": -1.931,
-    "gas_gap": 14.522
+    "seasonal_diff": 2.013,
+    "hydro_anomaly": -2.102,
+    "nuclear_delta_gw": -1.942,
+    "gas_gap": 14.51
    }
   },
   "SE2": {
@@ -180,7 +180,7 @@
        "p90": 72.891
       },
       "lt_fundamental": {
-       "p50": 102.693
+       "p50": 101.436
       },
       "lt_market": {
        "p50": 56.67,
@@ -196,7 +196,7 @@
       }
      },
      "last_year": 31.234,
-     "nuclear_out_mw": 2259.933,
+     "nuclear_out_mw": 2696.333,
      "outlook": {
       "month": "2026-11",
       "temp_anomaly_c": 0.7,
@@ -217,11 +217,11 @@
        "p90": 70.853
       },
       "lt_fundamental": {
-       "p50": 106.011
+       "p50": 105.869
       }
      },
      "last_year": 29.389,
-     "nuclear_out_mw": 223.742,
+     "nuclear_out_mw": 259.903,
      "outlook": {
       "month": "2026-12",
       "temp_anomaly_c": 1.7,
@@ -242,7 +242,7 @@
        "p90": 66.25
       },
       "lt_fundamental": {
-       "p50": 106.322
+       "p50": 106.281
       },
       "lt_market": {
        "p50": 64.67,
@@ -270,15 +270,15 @@
     "De senaste 30 dagarna kostade elen i SE2 i snitt 33,3 EUR/MWh, mot 42,0 det senaste året.",
     "Terminsmarknaden prissätter november 2026 till 56,7 EUR/MWh, 9,2 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 10 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
-    "Planerade kärnkraftsstopp tar i snitt bort 2 260 MW i november, 224 MW i december och 0 MW i januari, mot 3 325 MW de senaste 30 dagarna.",
+    "Planerade kärnkraftsstopp tar i snitt bort 2 696 MW i november, 260 MW i december och 0 MW i januari, mot 3 313 MW de senaste 30 dagarna.",
     "Gas (TTF) kostar 98,6 EUR/MWh och en utsläppsrätt 85,0 EUR/ton. Ett gaskraftverk behöver då ungefär 229 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
     "Säsongsprognosen för vädret i SE2, jämfört med det normala: november +0,7 °C och +1 mm nederbörd; december +1,7 °C och +3 mm nederbörd; januari +0,5 °C och -1 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
    ],
    "fundamental_coefficients": {
-    "seasonal_diff": 1.439,
-    "hydro_anomaly": -2.122,
-    "nuclear_delta_gw": -1.708,
-    "gas_gap": 14.851
+    "seasonal_diff": 1.441,
+    "hydro_anomaly": -2.059,
+    "nuclear_delta_gw": -1.72,
+    "gas_gap": 14.832
    }
   },
   "SE3": {
@@ -301,7 +301,7 @@
        "p90": 111.446
       },
       "lt_fundamental": {
-       "p50": 150.152
+       "p50": 150.497
       },
       "lt_market": {
        "p50": 120.29,
@@ -317,7 +317,7 @@
       }
      },
      "last_year": 63.353,
-     "nuclear_out_mw": 2259.933,
+     "nuclear_out_mw": 2696.333,
      "outlook": {
       "month": "2026-11",
       "temp_anomaly_c": 0.6,
@@ -338,11 +338,11 @@
        "p90": 115.732
       },
       "lt_fundamental": {
-       "p50": 144.953
+       "p50": 144.982
       }
      },
      "last_year": 47.393,
-     "nuclear_out_mw": 223.742,
+     "nuclear_out_mw": 259.903,
      "outlook": {
       "month": "2026-12",
       "temp_anomaly_c": 1.7,
@@ -363,7 +363,7 @@
        "p90": 121.528
       },
       "lt_fundamental": {
-       "p50": 149.579
+       "p50": 149.596
       },
       "lt_market": {
        "p50": 120.4,
@@ -391,15 +391,15 @@
     "De senaste 30 dagarna kostade elen i SE3 i snitt 69,5 EUR/MWh, mot 67,9 det senaste året.",
     "Terminsmarknaden prissätter november 2026 till 120,3 EUR/MWh, 41,0 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 10 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
-    "Planerade kärnkraftsstopp tar i snitt bort 2 260 MW i november, 224 MW i december och 0 MW i januari, mot 3 325 MW de senaste 30 dagarna.",
+    "Planerade kärnkraftsstopp tar i snitt bort 2 696 MW i november, 260 MW i december och 0 MW i januari, mot 3 313 MW de senaste 30 dagarna.",
     "Gas (TTF) kostar 98,6 EUR/MWh och en utsläppsrätt 85,0 EUR/ton. Ett gaskraftverk behöver då ungefär 229 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
     "Säsongsprognosen för vädret i SE3, jämfört med det normala: november +0,6 °C och +2 mm nederbörd; december +1,7 °C och +12 mm nederbörd; januari +0,4 °C och +2 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
    ],
    "fundamental_coefficients": {
-    "seasonal_diff": 7.362,
-    "hydro_anomaly": -1.974,
-    "nuclear_delta_gw": 0.711,
-    "gas_gap": 16.628
+    "seasonal_diff": 7.383,
+    "hydro_anomaly": -1.773,
+    "nuclear_delta_gw": 0.675,
+    "gas_gap": 16.589
    }
   },
   "SE4": {
@@ -422,7 +422,7 @@
        "p90": 173.2
       },
       "lt_fundamental": {
-       "p50": 181.484
+       "p50": 183.14
       },
       "lt_market": {
        "p50": 184.42,
@@ -438,7 +438,7 @@
       }
      },
      "last_year": 73.398,
-     "nuclear_out_mw": 2259.933,
+     "nuclear_out_mw": 2696.333,
      "outlook": {
       "month": "2026-11",
       "temp_anomaly_c": 0.5,
@@ -459,11 +459,11 @@
        "p90": 168.588
       },
       "lt_fundamental": {
-       "p50": 171.905
+       "p50": 172.162
       }
      },
      "last_year": 59.513,
-     "nuclear_out_mw": 223.742,
+     "nuclear_out_mw": 259.903,
      "outlook": {
       "month": "2026-12",
       "temp_anomaly_c": 1.6,
@@ -484,7 +484,7 @@
        "p90": 172.743
       },
       "lt_fundamental": {
-       "p50": 171.587
+       "p50": 171.721
       },
       "lt_market": {
        "p50": 148.25,
@@ -512,20 +512,20 @@
     "De senaste 30 dagarna kostade elen i SE4 i snitt 133,2 EUR/MWh, mot 87,7 det senaste året.",
     "Terminsmarknaden prissätter november 2026 till 184,4 EUR/MWh, 51,9 över vår prognos. Terminspriset väger in allt marknaden känner till, också de planerade kärnkraftsstoppen nedan; vår modell utgår i huvudsak från prisnivån hittills.",
     "Vattenmagasinen i hela Sverige ligger 10 % under det normala för årstiden. Mindre vatten brukar betyda högre pris framåt, eftersom vattenkraften då sparas.",
-    "Planerade kärnkraftsstopp tar i snitt bort 2 260 MW i november, 224 MW i december och 0 MW i januari, mot 3 325 MW de senaste 30 dagarna.",
+    "Planerade kärnkraftsstopp tar i snitt bort 2 696 MW i november, 260 MW i december och 0 MW i januari, mot 3 313 MW de senaste 30 dagarna.",
     "Gas (TTF) kostar 98,6 EUR/MWh och en utsläppsrätt 85,0 EUR/ton. Ett gaskraftverk behöver då ungefär 229 EUR/MWh för att gå runt — den nivå SE3 och SE4 dras mot när ledningarna söderut är öppna.",
     "Säsongsprognosen för vädret i SE4, jämfört med det normala: november +0,5 °C och -1 mm nederbörd; december +1,6 °C och +13 mm nederbörd; januari +0,7 °C och +8 mm nederbörd. Den visas som bakgrund och ingår inte i modellen."
    ],
    "fundamental_coefficients": {
-    "seasonal_diff": 3.368,
-    "hydro_anomaly": -3.826,
-    "nuclear_delta_gw": 2.507,
-    "gas_gap": 17.204
+    "seasonal_diff": 3.366,
+    "hydro_anomaly": -3.6,
+    "nuclear_delta_gw": 2.462,
+    "gas_gap": 17.165
    }
   }
  },
  "inputs": {
-  "hydro_anomaly": -0.096,
+  "hydro_anomaly": -0.097,
   "ttf_eur_mwh": 98.588,
   "eua_eur_t": 84.97,
   "gas_plant_cost_eur_mwh": 228.615,
@@ -586,18 +586,18 @@
     },
     "lt_fundamental": {
      "1": {
-      "mae": 23.7,
-      "bias": -10.17,
+      "mae": 23.59,
+      "bias": -10.11,
       "n": 170
      },
      "2": {
-      "mae": 22.63,
-      "bias": -12.3,
+      "mae": 22.56,
+      "bias": -12.24,
       "n": 166
      },
      "3": {
-      "mae": 21.07,
-      "bias": -13.23,
+      "mae": 20.93,
+      "bias": -13.16,
       "n": 161
      }
     }
@@ -639,18 +639,18 @@
     },
     "lt_fundamental": {
      "1": {
-      "mae": 23.38,
-      "bias": -10.41,
+      "mae": 23.32,
+      "bias": -10.34,
       "n": 170
      },
      "2": {
-      "mae": 22.41,
-      "bias": -12.74,
+      "mae": 22.35,
+      "bias": -12.66,
       "n": 166
      },
      "3": {
-      "mae": 20.93,
-      "bias": -13.59,
+      "mae": 20.78,
+      "bias": -13.51,
       "n": 161
      }
     }
@@ -692,18 +692,18 @@
     },
     "lt_fundamental": {
      "1": {
-      "mae": 24.82,
-      "bias": -15.79,
+      "mae": 24.79,
+      "bias": -15.84,
       "n": 170
      },
      "2": {
-      "mae": 24.08,
-      "bias": -18.73,
+      "mae": 24.07,
+      "bias": -18.77,
       "n": 166
      },
      "3": {
-      "mae": 24.21,
-      "bias": -20.98,
+      "mae": 24.2,
+      "bias": -21.02,
       "n": 161
      }
     }
@@ -745,18 +745,18 @@
     },
     "lt_fundamental": {
      "1": {
-      "mae": 21.5,
-      "bias": -15.21,
+      "mae": 21.51,
+      "bias": -15.32,
       "n": 170
      },
      "2": {
       "mae": 22.68,
-      "bias": -18.8,
+      "bias": -18.92,
       "n": 166
      },
      "3": {
       "mae": 24.46,
-      "bias": -20.35,
+      "bias": -20.46,
       "n": 161
      }
     }
@@ -798,17 +798,17 @@
     },
     "lt_fundamental": {
      "1": {
-      "mae": 23.35,
-      "bias": -12.89,
+      "mae": 23.3,
+      "bias": -12.9,
       "n": 680
      },
      "2": {
-      "mae": 22.95,
-      "bias": -15.64,
+      "mae": 22.92,
+      "bias": -15.65,
       "n": 664
      },
      "3": {
-      "mae": 22.67,
+      "mae": 22.59,
       "bias": -17.04,
       "n": 644
      }
@@ -845,7 +845,7 @@
    }
   },
   "first_issue": "2026-09-10",
-  "logged_issues": 50,
+  "logged_issues": 51,
   "first_scoreable_month": "2026-10",
   "first_scoreable_month_label": "oktober 2026"
  }
