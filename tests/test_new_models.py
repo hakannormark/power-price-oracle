@@ -174,9 +174,6 @@ class HorizonHybridModelTests(unittest.TestCase):
         self.assertAlmostEqual(combined[79].p50, 42.0, places=1)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class BorrowBandTests(unittest.TestCase):
     def test_keeps_own_p50_and_takes_donor_width(self):
@@ -202,3 +199,37 @@ class BorrowBandTests(unittest.TestCase):
 
         self.assertEqual(BAND_BORROWED_FROM.get(DEFAULT_MODEL_ID), "horizon_hybrid")
         self.assertIn(DEFAULT_MODEL_ID, BAND_DEFINED_SINCE)
+
+
+class V2V3BlendTests(unittest.TestCase):
+    def test_registered_as_derived_candidate(self):
+        from src.models.registry import DEFAULT_MODEL_ID
+
+        model = get_model("v2_v3_blend")
+        self.assertTrue(model.derived)
+        self.assertNotEqual(DEFAULT_MODEL_ID, "v2_v3_blend")
+
+    def test_ramps_from_v2_to_v3(self):
+        from src.models.base import ForecastPoint
+        from src.models.v2_v3_blend import V2V3Blend
+
+        now = now_local()
+        v2 = [ForecastPoint(ts=now + timedelta(hours=h), zone="SE3", p10=20.0, p50=30.0, p90=40.0) for h in range(1, 100)]
+        v3 = [ForecastPoint(ts=now + timedelta(hours=h), zone="SE3", p10=50.0, p50=60.0, p90=70.0) for h in range(1, 100)]
+        out = V2V3Blend().combine({"lightgbm_v2": v2, "lightgbm_v3": v3}, now)
+        self.assertEqual(len(out), 99)
+        self.assertAlmostEqual(out[11].p50, 30.0)   # 12 h: v2
+        self.assertAlmostEqual(out[53].p50, 45.0)   # 54 h: halfway
+        self.assertAlmostEqual(out[79].p50, 60.0)   # 80 h: v3
+        self.assertLessEqual(out[53].p10, out[53].p50)
+
+    def test_publishes_nothing_without_both_models(self):
+        from src.models.base import ForecastPoint
+        from src.models.v2_v3_blend import V2V3Blend
+
+        v2 = [ForecastPoint(ts=now_local(), zone="SE3", p10=1.0, p50=2.0, p90=3.0)]
+        self.assertEqual(V2V3Blend().combine({"lightgbm_v2": v2}, now_local()), [])
+
+
+if __name__ == "__main__":
+    unittest.main()

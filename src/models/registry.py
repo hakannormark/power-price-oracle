@@ -13,6 +13,7 @@ from .recency_scaled import RecencyScaled
 from .relative_scaled import RelativeScaled
 from .seasonal_naive import SeasonalNaive
 from .shrunk_scaled import ShrunkScaled
+from .v2_v3_blend import V2V3Blend
 from .weather_scaled import WeatherScaled
 
 # Models the pipeline runs directly, in order.
@@ -32,6 +33,7 @@ DERIVED_MODELS = [
     Ensemble(),
     MarketScaled(),  # measured live from 2026-09; no futures history to back-test
     HorizonHybrid(),
+    V2V3Blend(),  # candidate from 2026-11-05; ramp chosen in hindsight, measured forward
 ]
 
 MODELS = [*BASE_MODELS, *DERIVED_MODELS]
