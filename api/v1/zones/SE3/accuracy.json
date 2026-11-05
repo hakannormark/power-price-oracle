@@ -1,7 +1,7 @@
 {
  "zone": "SE3",
  "zone_name": "Stockholm",
- "generated_at": "2026-11-05T10:17:17+01:00",
+ "generated_at": "2026-11-05T12:51:33+01:00",
  "window_days": 90,
  "scored_from": "2026-09-05T00:00:00+02:00",
  "scored_to": "2026-11-05T23:00:00+01:00",
@@ -27,7 +27,8 @@
   "lightgbm_v3",
   "ensemble",
   "market_scaled",
-  "horizon_hybrid"
+  "horizon_hybrid",
+  "v2_v3_blend"
  ],
  "reference_model": "seasonal_naive",
  "default_model": "lightgbm_v2",
@@ -914,7 +915,8 @@
    "lightgbm_v3": 35.789,
    "ensemble": 56.709,
    "market_scaled": 52.026,
-   "horizon_hybrid": 31.558
+   "horizon_hybrid": 31.558,
+   "v2_v3_blend": null
   },
   "24-48h": {
    "seasonal_naive": 59.391,
@@ -927,7 +929,8 @@
    "lightgbm_v3": 39.623,
    "ensemble": 57.514,
    "market_scaled": 50.343,
-   "horizon_hybrid": 34.38
+   "horizon_hybrid": 34.38,
+   "v2_v3_blend": null
   },
   "48-72h": {
    "seasonal_naive": 60.612,
@@ -940,7 +943,8 @@
    "lightgbm_v3": 41.315,
    "ensemble": 58.655,
    "market_scaled": 49.661,
-   "horizon_hybrid": 41.999
+   "horizon_hybrid": 41.999,
+   "v2_v3_blend": null
   },
   "72-96h": {
    "seasonal_naive": 61.192,
@@ -953,7 +957,8 @@
    "lightgbm_v3": 44.166,
    "ensemble": 59.409,
    "market_scaled": 49.623,
-   "horizon_hybrid": 45.523
+   "horizon_hybrid": 45.523,
+   "v2_v3_blend": null
   },
   "96-120h": {
    "seasonal_naive": 60.843,
@@ -966,7 +971,8 @@
    "lightgbm_v3": 45.986,
    "ensemble": 59.407,
    "market_scaled": 50.488,
-   "horizon_hybrid": 46.869
+   "horizon_hybrid": 46.869,
+   "v2_v3_blend": null
   },
   "120-144h": {
    "seasonal_naive": 61.15,
@@ -979,7 +985,8 @@
    "lightgbm_v3": 47.702,
    "ensemble": 60.352,
    "market_scaled": 54.921,
-   "horizon_hybrid": 52.097
+   "horizon_hybrid": 52.097,
+   "v2_v3_blend": null
   },
   "144-168h": {
    "seasonal_naive": 61.51,
@@ -992,7 +999,8 @@
    "lightgbm_v3": 49.273,
    "ensemble": 60.459,
    "market_scaled": 57.725,
-   "horizon_hybrid": 55.772
+   "horizon_hybrid": 55.772,
+   "v2_v3_blend": null
   }
  },
  "comparable": {
@@ -1009,7 +1017,8 @@
     "lightgbm_v3": 37.487,
     "ensemble": 58.216,
     "market_scaled": 52.799,
-    "horizon_hybrid": 32.622
+    "horizon_hybrid": 32.622,
+    "v2_v3_blend": null
    },
    "24-48h": {
     "seasonal_naive": 60.323,
@@ -1022,7 +1031,8 @@
     "lightgbm_v3": 40.305,
     "ensemble": 58.796,
     "market_scaled": 50.507,
-    "horizon_hybrid": 37.528
+    "horizon_hybrid": 37.528,
+    "v2_v3_blend": null
    },
    "48-72h": {
     "seasonal_naive": 60.387,
@@ -1035,7 +1045,8 @@
     "lightgbm_v3": 41.489,
     "ensemble": 59.418,
     "market_scaled": 48.898,
-    "horizon_hybrid": 45.073
+    "horizon_hybrid": 45.073,
+    "v2_v3_blend": null
    },
    "72-96h": {
     "seasonal_naive": 60.629,
@@ -1048,7 +1059,8 @@
     "lightgbm_v3": 44.543,
     "ensemble": 59.636,
     "market_scaled": 48.046,
-    "horizon_hybrid": 47.267
+    "horizon_hybrid": 47.267,
+    "v2_v3_blend": null
    },
    "96-120h": {
     "seasonal_naive": 60.478,
@@ -1061,7 +1073,8 @@
     "lightgbm_v3": 43.491,
     "ensemble": 59.746,
     "market_scaled": 49.62,
-    "horizon_hybrid": 49.165
+    "horizon_hybrid": 49.165,
+    "v2_v3_blend": null
    },
    "120-144h": {
     "seasonal_naive": 60.418,
@@ -1074,7 +1087,8 @@
     "lightgbm_v3": 43.925,
     "ensemble": 59.851,
     "market_scaled": 53.871,
-    "horizon_hybrid": 52.685
+    "horizon_hybrid": 52.685,
+    "v2_v3_blend": null
    },
    "144-168h": {
     "seasonal_naive": 60.343,
@@ -1087,7 +1101,8 @@
     "lightgbm_v3": 49.17,
     "ensemble": 59.589,
     "market_scaled": 56.788,
-    "horizon_hybrid": 56.403
+    "horizon_hybrid": 56.403,
+    "v2_v3_blend": null
    }
   }
  }
