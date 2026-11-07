@@ -1,7 +1,7 @@
 {
  "ok": true,
- "generated_at": "2026-11-07T06:32:18+01:00",
- "run_id": "20261107T0532Z",
+ "generated_at": "2026-11-07T10:19:06+01:00",
+ "run_id": "20261107T0919Z",
  "degraded": false,
  "demo": false,
  "fx": {
@@ -9,7 +9,7 @@
   "rate": 11.026,
   "date": "2026-11-06",
   "source": "ECB",
-  "fetched_at": "2026-11-07T06:33:55+01:00",
+  "fetched_at": "2026-11-07T10:20:48+01:00",
   "stale": false
  },
  "sources": {
@@ -28,7 +28,7 @@
   },
   "entsoe_fundamentals": {
    "ok": true,
-   "rows": 288
+   "rows": 384
   },
   "svk_text": {
    "ok": true,
@@ -41,7 +41,7 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1263
+   "messages": 1266
   },
   "fuels": {
    "ok": true,
@@ -59,7 +59,7 @@
   "longterm": {
    "ok": true,
    "default": "lt_damped",
-   "logged": 48
+   "logged": 0
   },
   "bess": {
    "ok": true,
@@ -69,5 +69,5 @@
    "ok": true
   }
  },
- "next_expected_update_utc": "2026-11-07T09:15:00Z"
+ "next_expected_update_utc": "2026-11-07T12:30:00Z"
 }
