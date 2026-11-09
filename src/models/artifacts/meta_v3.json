@@ -1,8 +1,8 @@
 {
-  "trained_at": "2026-10-26T12:49:37+01:00",
+  "trained_at": "2026-11-09T14:35:05+01:00",
   "targets_from": "2024-01-19T15:00:00+01:00",
-  "targets_to": "2026-10-26T00:00:00+01:00",
-  "samples": 668104,
+  "targets_to": "2026-11-09T00:00:00+01:00",
+  "samples": 677512,
   "features": [
     "zone",
     "hour",
@@ -65,149 +65,149 @@
   "walk_forward": {
     "conformal_offsets": {
       "1": [
-        -0.4,
-        14.14
+        1.17,
+        19.64
       ],
       "2": [
-        -0.16,
-        15.33
-      ],
-      "3": [
-        -0.07,
-        18.32
-      ],
-      "4": [
-        0.09,
-        18.23
-      ],
-      "5": [
-        0.03,
-        19.22
-      ],
-      "6": [
-        0.33,
+        1.04,
         21.26
       ],
+      "3": [
+        1.23,
+        23.32
+      ],
+      "4": [
+        1.82,
+        22.72
+      ],
+      "5": [
+        1.36,
+        22.57
+      ],
+      "6": [
+        1.49,
+        24.81
+      ],
       "7": [
-        0.48,
-        23.03
+        1.73,
+        26.18
       ]
     },
     "coverage80_after_offsets_in_sample": 0.8,
     "folds": 6,
     "fold_days": 30,
-    "rounds": 80,
+    "rounds": 117,
     "by_lead": {
       "1": {
         "n": 17280,
-        "mae_v3": 25.58,
-        "mae_trained_on_newest_weather": 25.02,
-        "mae_shrunk_level": 34.75,
-        "mae_seasonal_naive": 37.89,
-        "bias_v3": -9.63,
-        "coverage80": 0.732
+        "mae_v3": 27.29,
+        "mae_trained_on_newest_weather": 26.33,
+        "mae_shrunk_level": 36.26,
+        "mae_seasonal_naive": 39.43,
+        "bias_v3": -10.06,
+        "coverage80": 0.687
       },
       "2": {
         "n": 17280,
-        "mae_v3": 26.41,
-        "mae_trained_on_newest_weather": 25.78,
-        "mae_shrunk_level": 34.75,
-        "mae_seasonal_naive": 37.89,
-        "bias_v3": -9.91,
-        "coverage80": 0.728
+        "mae_v3": 28.2,
+        "mae_trained_on_newest_weather": 27.1,
+        "mae_shrunk_level": 36.26,
+        "mae_seasonal_naive": 39.43,
+        "bias_v3": -10.92,
+        "coverage80": 0.684
       },
       "3": {
         "n": 17280,
-        "mae_v3": 27.24,
-        "mae_trained_on_newest_weather": 26.61,
-        "mae_shrunk_level": 34.75,
-        "mae_seasonal_naive": 37.89,
-        "bias_v3": -10.3,
-        "coverage80": 0.722
+        "mae_v3": 29.0,
+        "mae_trained_on_newest_weather": 27.91,
+        "mae_shrunk_level": 36.26,
+        "mae_seasonal_naive": 39.43,
+        "bias_v3": -11.0,
+        "coverage80": 0.681
       },
       "4": {
         "n": 17280,
-        "mae_v3": 28.68,
-        "mae_trained_on_newest_weather": 28.04,
-        "mae_shrunk_level": 34.75,
-        "mae_seasonal_naive": 37.89,
-        "bias_v3": -10.7,
-        "coverage80": 0.704
+        "mae_v3": 29.94,
+        "mae_trained_on_newest_weather": 28.7,
+        "mae_shrunk_level": 36.26,
+        "mae_seasonal_naive": 39.43,
+        "bias_v3": -11.2,
+        "coverage80": 0.671
       },
       "5": {
         "n": 17280,
-        "mae_v3": 29.39,
-        "mae_trained_on_newest_weather": 28.97,
-        "mae_shrunk_level": 34.75,
-        "mae_seasonal_naive": 37.89,
-        "bias_v3": -10.97,
-        "coverage80": 0.704
+        "mae_v3": 30.74,
+        "mae_trained_on_newest_weather": 29.79,
+        "mae_shrunk_level": 36.26,
+        "mae_seasonal_naive": 39.43,
+        "bias_v3": -11.56,
+        "coverage80": 0.674
       },
       "6": {
         "n": 17280,
-        "mae_v3": 30.32,
-        "mae_trained_on_newest_weather": 30.01,
-        "mae_shrunk_level": 34.75,
-        "mae_seasonal_naive": 37.89,
-        "bias_v3": -10.93,
-        "coverage80": 0.702
+        "mae_v3": 31.63,
+        "mae_trained_on_newest_weather": 30.73,
+        "mae_shrunk_level": 36.26,
+        "mae_seasonal_naive": 39.43,
+        "bias_v3": -11.27,
+        "coverage80": 0.675
       },
       "7": {
         "n": 17280,
-        "mae_v3": 31.23,
-        "mae_trained_on_newest_weather": 31.22,
-        "mae_shrunk_level": 34.75,
-        "mae_seasonal_naive": 37.89,
-        "bias_v3": -11.14,
-        "coverage80": 0.688
+        "mae_v3": 32.54,
+        "mae_trained_on_newest_weather": 32.19,
+        "mae_shrunk_level": 36.26,
+        "mae_seasonal_naive": 39.43,
+        "bias_v3": -11.56,
+        "coverage80": 0.659
       }
     },
     "by_zone": {
       "SE1": {
         "n": 30240,
-        "mae_v3": 20.78,
-        "mae_trained_on_newest_weather": 20.71,
-        "mae_shrunk_level": 27.58,
-        "mae_seasonal_naive": 30.36,
-        "bias_v3": -7.61,
-        "coverage80": 0.737
+        "mae_v3": 20.64,
+        "mae_trained_on_newest_weather": 20.08,
+        "mae_shrunk_level": 25.82,
+        "mae_seasonal_naive": 28.69,
+        "bias_v3": -4.4,
+        "coverage80": 0.711
       },
       "SE2": {
         "n": 30240,
-        "mae_v3": 22.83,
-        "mae_trained_on_newest_weather": 22.6,
-        "mae_shrunk_level": 29.76,
-        "mae_seasonal_naive": 32.71,
-        "bias_v3": -8.87,
-        "coverage80": 0.724
+        "mae_v3": 22.58,
+        "mae_trained_on_newest_weather": 21.94,
+        "mae_shrunk_level": 28.22,
+        "mae_seasonal_naive": 31.25,
+        "bias_v3": -5.3,
+        "coverage80": 0.694
       },
       "SE3": {
         "n": 30240,
-        "mae_v3": 28.64,
-        "mae_trained_on_newest_weather": 27.89,
-        "mae_shrunk_level": 35.13,
-        "mae_seasonal_naive": 38.16,
-        "bias_v3": -9.51,
-        "coverage80": 0.722
+        "mae_v3": 30.74,
+        "mae_trained_on_newest_weather": 29.19,
+        "mae_shrunk_level": 38.33,
+        "mae_seasonal_naive": 41.39,
+        "bias_v3": -12.2,
+        "coverage80": 0.681
       },
       "SE4": {
         "n": 30240,
-        "mae_v3": 41.38,
-        "mae_trained_on_newest_weather": 40.6,
-        "mae_shrunk_level": 46.54,
-        "mae_seasonal_naive": 50.33,
-        "bias_v3": -16.05,
-        "coverage80": 0.662
+        "mae_v3": 45.67,
+        "mae_trained_on_newest_weather": 44.66,
+        "mae_shrunk_level": 52.66,
+        "mae_seasonal_naive": 56.37,
+        "bias_v3": -22.41,
+        "coverage80": 0.618
       }
     },
     "overall": {
       "n": 120960,
-      "mae_v3": 28.41,
-      "mae_trained_on_newest_weather": 27.95,
-      "mae_shrunk_level": 34.75,
-      "mae_seasonal_naive": 37.89,
-      "bias_v3": -10.51,
-      "coverage80": 0.711
+      "mae_v3": 29.91,
+      "mae_trained_on_newest_weather": 28.96,
+      "mae_shrunk_level": 36.26,
+      "mae_seasonal_naive": 39.43,
+      "bias_v3": -11.08,
+      "coverage80": 0.676
     },
     "note": "Hindcast on archived forecasts, issued once a day before the auction. Live scoring decides; this only says the model is worth logging. mae_trained_on_newest_weather is the same model fitted on the newest forecast instead of the one of the right age: if it is not worse, training on honest weather has bought nothing in this test."
   }
