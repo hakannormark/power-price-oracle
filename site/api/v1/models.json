@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-09T13:37:06+01:00",
+ "generated_at": "2026-11-09T18:09:41+01:00",
  "default_model": "lightgbm_v2",
  "models": [
   {
@@ -68,7 +68,7 @@
   {
    "id": "lightgbm_v3",
    "name_sv": "LightGBM v3 (kandidat)",
-   "description_sv": "Efterföljare till Residual-LightGBM, som kandidat. Tränad på arkiverade väderprognoser med rätt framförhållning i stället för på vädret som det blev, med framförhållningen som egen variabel (1–7 dygn), tyskt och danskt väder, gaspris och utsläppsrätter. Tränas om varje vecka. Senast tränad 2026-10-26. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 28,41 EUR/MWh mot 37,89 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
+   "description_sv": "Efterföljare till Residual-LightGBM, som kandidat. Tränad på arkiverade väderprognoser med rätt framförhållning i stället för på vädret som det blev, med framförhållningen som egen variabel (1–7 dygn), tyskt och danskt väder, gaspris och utsläppsrätter. Tränas om varje vecka. Senast tränad 2026-11-09. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 29,91 EUR/MWh mot 39,43 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
    "quantiles": true,
    "derived": false,
    "is_default": false,

@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-09T13:32:32+01:00",
- "run_id": "20261109T1232Z",
+ "generated_at": "2026-11-09T18:03:12+01:00",
+ "run_id": "20261109T1703Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
@@ -9,10 +9,10 @@
  "reference_model": "seasonal_naive",
  "fx": {
   "pair": "EUR/SEK",
-  "rate": 11.026,
-  "date": "2026-11-06",
+  "rate": 10.996,
+  "date": "2026-11-09",
   "source": "ECB",
-  "fetched_at": "2026-11-09T13:35:02+01:00",
+  "fetched_at": "2026-11-09T18:08:01+01:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
@@ -24,319 +24,344 @@
    "zone": "SE1",
    "name": "Luleå",
    "current": {
-    "ts": "2026-11-09T13:00:00+01:00",
-    "eur_mwh": 15.598,
-    "ore_kwh": 17.198,
+    "ts": "2026-11-09T18:00:00+01:00",
+    "eur_mwh": 17.812,
+    "ore_kwh": 19.586,
     "source": "official"
    },
    "hours": [
     {
      "ts": "2026-11-09T00:00:00+01:00",
      "eur_mwh": 9.012,
-     "ore_kwh": 9.937,
+     "ore_kwh": 9.91,
      "source": "official"
     },
     {
      "ts": "2026-11-09T01:00:00+01:00",
      "eur_mwh": 8.325,
-     "ore_kwh": 9.179,
+     "ore_kwh": 9.154,
      "source": "official"
     },
     {
      "ts": "2026-11-09T02:00:00+01:00",
      "eur_mwh": 8.072,
-     "ore_kwh": 8.9,
+     "ore_kwh": 8.876,
      "source": "official"
     },
     {
      "ts": "2026-11-09T03:00:00+01:00",
      "eur_mwh": 7.973,
-     "ore_kwh": 8.791,
+     "ore_kwh": 8.767,
      "source": "official"
     },
     {
      "ts": "2026-11-09T04:00:00+01:00",
      "eur_mwh": 8.065,
-     "ore_kwh": 8.892,
+     "ore_kwh": 8.868,
      "source": "official"
     },
     {
      "ts": "2026-11-09T05:00:00+01:00",
      "eur_mwh": 9.178,
-     "ore_kwh": 10.12,
+     "ore_kwh": 10.092,
      "source": "official"
     },
     {
      "ts": "2026-11-09T06:00:00+01:00",
      "eur_mwh": 12.46,
-     "ore_kwh": 13.738,
+     "ore_kwh": 13.701,
      "source": "official"
     },
     {
      "ts": "2026-11-09T07:00:00+01:00",
      "eur_mwh": 16.61,
-     "ore_kwh": 18.314,
+     "ore_kwh": 18.264,
      "source": "official"
     },
     {
      "ts": "2026-11-09T08:00:00+01:00",
      "eur_mwh": 16.567,
-     "ore_kwh": 18.267,
+     "ore_kwh": 18.217,
      "source": "official"
     },
     {
      "ts": "2026-11-09T09:00:00+01:00",
      "eur_mwh": 16.42,
-     "ore_kwh": 18.105,
+     "ore_kwh": 18.055,
      "source": "official"
     },
     {
      "ts": "2026-11-09T10:00:00+01:00",
      "eur_mwh": 17.668,
-     "ore_kwh": 19.481,
+     "ore_kwh": 19.428,
      "source": "official"
     },
     {
      "ts": "2026-11-09T11:00:00+01:00",
      "eur_mwh": 16.492,
-     "ore_kwh": 18.184,
+     "ore_kwh": 18.135,
      "source": "official"
     },
     {
      "ts": "2026-11-09T12:00:00+01:00",
      "eur_mwh": 15.232,
-     "ore_kwh": 16.795,
+     "ore_kwh": 16.749,
      "source": "official"
     },
     {
      "ts": "2026-11-09T13:00:00+01:00",
      "eur_mwh": 15.598,
-     "ore_kwh": 17.198,
+     "ore_kwh": 17.152,
      "source": "official"
     },
     {
      "ts": "2026-11-09T14:00:00+01:00",
      "eur_mwh": 16.938,
-     "ore_kwh": 18.676,
+     "ore_kwh": 18.625,
      "source": "official"
     },
     {
      "ts": "2026-11-09T15:00:00+01:00",
      "eur_mwh": 17.275,
-     "ore_kwh": 19.047,
+     "ore_kwh": 18.996,
      "source": "official"
     },
     {
      "ts": "2026-11-09T16:00:00+01:00",
      "eur_mwh": 17.64,
-     "ore_kwh": 19.45,
+     "ore_kwh": 19.397,
      "source": "official"
     },
     {
      "ts": "2026-11-09T17:00:00+01:00",
      "eur_mwh": 20.0,
-     "ore_kwh": 22.052,
+     "ore_kwh": 21.992,
      "source": "official"
     },
     {
      "ts": "2026-11-09T18:00:00+01:00",
      "eur_mwh": 17.812,
-     "ore_kwh": 19.64,
+     "ore_kwh": 19.586,
      "source": "official"
     },
     {
      "ts": "2026-11-09T19:00:00+01:00",
      "eur_mwh": 17.227,
-     "ore_kwh": 18.994,
+     "ore_kwh": 18.943,
      "source": "official"
     },
     {
      "ts": "2026-11-09T20:00:00+01:00",
      "eur_mwh": 16.935,
-     "ore_kwh": 18.673,
+     "ore_kwh": 18.622,
      "source": "official"
     },
     {
      "ts": "2026-11-09T21:00:00+01:00",
      "eur_mwh": 17.438,
-     "ore_kwh": 19.227,
+     "ore_kwh": 19.175,
      "source": "official"
     },
     {
      "ts": "2026-11-09T22:00:00+01:00",
      "eur_mwh": 17.742,
-     "ore_kwh": 19.562,
+     "ore_kwh": 19.509,
      "source": "official"
     },
     {
      "ts": "2026-11-09T23:00:00+01:00",
      "eur_mwh": 17.723,
-     "ore_kwh": 19.541,
+     "ore_kwh": 19.488,
      "source": "official"
     },
     {
      "ts": "2026-11-10T00:00:00+01:00",
      "eur_mwh": 7.935,
-     "ore_kwh": 8.749,
+     "ore_kwh": 8.725,
      "source": "official"
     },
     {
      "ts": "2026-11-10T01:00:00+01:00",
      "eur_mwh": 8.23,
-     "ore_kwh": 9.074,
+     "ore_kwh": 9.05,
      "source": "official"
     },
     {
      "ts": "2026-11-10T02:00:00+01:00",
      "eur_mwh": 8.668,
-     "ore_kwh": 9.557,
+     "ore_kwh": 9.531,
      "source": "official"
     },
     {
      "ts": "2026-11-10T03:00:00+01:00",
      "eur_mwh": 7.912,
-     "ore_kwh": 8.724,
+     "ore_kwh": 8.7,
      "source": "official"
     },
     {
      "ts": "2026-11-10T04:00:00+01:00",
      "eur_mwh": 7.942,
-     "ore_kwh": 8.757,
+     "ore_kwh": 8.733,
      "source": "official"
     },
     {
      "ts": "2026-11-10T05:00:00+01:00",
      "eur_mwh": 12.18,
-     "ore_kwh": 13.43,
+     "ore_kwh": 13.393,
      "source": "official"
     },
     {
      "ts": "2026-11-10T06:00:00+01:00",
      "eur_mwh": 15.627,
-     "ore_kwh": 17.23,
+     "ore_kwh": 17.183,
      "source": "official"
     },
     {
      "ts": "2026-11-10T07:00:00+01:00",
      "eur_mwh": 19.012,
-     "ore_kwh": 20.963,
+     "ore_kwh": 20.906,
      "source": "official"
     },
     {
      "ts": "2026-11-10T08:00:00+01:00",
      "eur_mwh": 23.418,
-     "ore_kwh": 25.821,
+     "ore_kwh": 25.75,
      "source": "official"
     },
     {
      "ts": "2026-11-10T09:00:00+01:00",
      "eur_mwh": 27.08,
-     "ore_kwh": 29.858,
+     "ore_kwh": 29.777,
      "source": "official"
     },
     {
      "ts": "2026-11-10T10:00:00+01:00",
      "eur_mwh": 31.85,
-     "ore_kwh": 35.118,
+     "ore_kwh": 35.022,
      "source": "official"
     },
     {
      "ts": "2026-11-10T11:00:00+01:00",
      "eur_mwh": 43.135,
-     "ore_kwh": 47.561,
+     "ore_kwh": 47.431,
      "source": "official"
     },
     {
      "ts": "2026-11-10T12:00:00+01:00",
      "eur_mwh": 60.457,
-     "ore_kwh": 66.66,
+     "ore_kwh": 66.479,
      "source": "official"
     },
     {
      "ts": "2026-11-10T13:00:00+01:00",
      "eur_mwh": 75.185,
-     "ore_kwh": 82.899,
+     "ore_kwh": 82.673,
      "source": "official"
     },
     {
      "ts": "2026-11-10T14:00:00+01:00",
      "eur_mwh": 76.71,
-     "ore_kwh": 84.58,
+     "ore_kwh": 84.35,
      "source": "official"
     },
     {
      "ts": "2026-11-10T15:00:00+01:00",
      "eur_mwh": 85.3,
-     "ore_kwh": 94.052,
+     "ore_kwh": 93.796,
      "source": "official"
     },
     {
      "ts": "2026-11-10T16:00:00+01:00",
      "eur_mwh": 98.882,
-     "ore_kwh": 109.027,
+     "ore_kwh": 108.731,
      "source": "official"
     },
     {
      "ts": "2026-11-10T17:00:00+01:00",
      "eur_mwh": 112.317,
-     "ore_kwh": 123.841,
+     "ore_kwh": 123.504,
      "source": "official"
     },
     {
      "ts": "2026-11-10T18:00:00+01:00",
      "eur_mwh": 89.75,
-     "ore_kwh": 98.958,
+     "ore_kwh": 98.689,
      "source": "official"
     },
     {
      "ts": "2026-11-10T19:00:00+01:00",
      "eur_mwh": 92.922,
-     "ore_kwh": 102.456,
+     "ore_kwh": 102.177,
      "source": "official"
     },
     {
      "ts": "2026-11-10T20:00:00+01:00",
      "eur_mwh": 79.733,
-     "ore_kwh": 87.914,
+     "ore_kwh": 87.674,
      "source": "official"
     },
     {
      "ts": "2026-11-10T21:00:00+01:00",
      "eur_mwh": 98.888,
-     "ore_kwh": 109.034,
+     "ore_kwh": 108.737,
      "source": "official"
     },
     {
      "ts": "2026-11-10T22:00:00+01:00",
      "eur_mwh": 102.562,
-     "ore_kwh": 113.085,
+     "ore_kwh": 112.777,
      "source": "official"
     },
     {
      "ts": "2026-11-10T23:00:00+01:00",
      "eur_mwh": 113.565,
-     "ore_kwh": 125.217,
+     "ore_kwh": 124.876,
      "source": "official"
     },
     {
      "ts": "2026-11-11T00:00:00+01:00",
-     "eur_mwh": 25.553,
-     "ore_kwh": 28.175,
+     "eur_mwh": 26.009,
+     "ore_kwh": 28.599,
      "source": "forecast"
     },
     {
      "ts": "2026-11-11T01:00:00+01:00",
-     "eur_mwh": 27.986,
-     "ore_kwh": 30.857,
+     "eur_mwh": 31.352,
+     "ore_kwh": 34.475,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T02:00:00+01:00",
+     "eur_mwh": 31.036,
+     "ore_kwh": 34.127,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T03:00:00+01:00",
+     "eur_mwh": 27.049,
+     "ore_kwh": 29.743,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T04:00:00+01:00",
+     "eur_mwh": 25.765,
+     "ore_kwh": 28.331,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T05:00:00+01:00",
+     "eur_mwh": 24.487,
+     "ore_kwh": 26.926,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T06:00:00+01:00",
+     "eur_mwh": 27.643,
+     "ore_kwh": 30.396,
      "source": "forecast"
     }
    ],
    "spark": [
-    16.938,
-    17.275,
-    17.64,
-    20.0,
-    17.812,
     17.227,
     16.935,
     17.438,
@@ -355,7 +380,12 @@
     31.85,
     43.135,
     60.457,
-    75.185
+    75.185,
+    76.71,
+    85.3,
+    98.882,
+    112.317,
+    89.75
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -365,319 +395,344 @@
    "zone": "SE2",
    "name": "Sundsvall",
    "current": {
-    "ts": "2026-11-09T13:00:00+01:00",
-    "eur_mwh": 6.777,
-    "ore_kwh": 7.472,
+    "ts": "2026-11-09T18:00:00+01:00",
+    "eur_mwh": 4.197,
+    "ore_kwh": 4.615,
     "source": "official"
    },
    "hours": [
     {
      "ts": "2026-11-09T00:00:00+01:00",
      "eur_mwh": 4.902,
-     "ore_kwh": 5.405,
+     "ore_kwh": 5.39,
      "source": "official"
     },
     {
      "ts": "2026-11-09T01:00:00+01:00",
      "eur_mwh": 4.998,
-     "ore_kwh": 5.511,
+     "ore_kwh": 5.496,
      "source": "official"
     },
     {
      "ts": "2026-11-09T02:00:00+01:00",
      "eur_mwh": 4.88,
-     "ore_kwh": 5.381,
+     "ore_kwh": 5.366,
      "source": "official"
     },
     {
      "ts": "2026-11-09T03:00:00+01:00",
      "eur_mwh": 4.44,
-     "ore_kwh": 4.896,
+     "ore_kwh": 4.882,
      "source": "official"
     },
     {
      "ts": "2026-11-09T04:00:00+01:00",
      "eur_mwh": 4.662,
-     "ore_kwh": 5.14,
+     "ore_kwh": 5.126,
      "source": "official"
     },
     {
      "ts": "2026-11-09T05:00:00+01:00",
      "eur_mwh": 5.213,
-     "ore_kwh": 5.748,
+     "ore_kwh": 5.732,
      "source": "official"
     },
     {
      "ts": "2026-11-09T06:00:00+01:00",
      "eur_mwh": 3.867,
-     "ore_kwh": 4.264,
+     "ore_kwh": 4.252,
      "source": "official"
     },
     {
      "ts": "2026-11-09T07:00:00+01:00",
      "eur_mwh": 4.595,
-     "ore_kwh": 5.066,
+     "ore_kwh": 5.053,
      "source": "official"
     },
     {
      "ts": "2026-11-09T08:00:00+01:00",
      "eur_mwh": 5.867,
-     "ore_kwh": 6.469,
+     "ore_kwh": 6.451,
      "source": "official"
     },
     {
      "ts": "2026-11-09T09:00:00+01:00",
      "eur_mwh": 6.263,
-     "ore_kwh": 6.906,
+     "ore_kwh": 6.887,
      "source": "official"
     },
     {
      "ts": "2026-11-09T10:00:00+01:00",
      "eur_mwh": 4.668,
-     "ore_kwh": 5.147,
+     "ore_kwh": 5.133,
      "source": "official"
     },
     {
      "ts": "2026-11-09T11:00:00+01:00",
      "eur_mwh": 5.84,
-     "ore_kwh": 6.439,
+     "ore_kwh": 6.422,
      "source": "official"
     },
     {
      "ts": "2026-11-09T12:00:00+01:00",
      "eur_mwh": 7.157,
-     "ore_kwh": 7.891,
+     "ore_kwh": 7.87,
      "source": "official"
     },
     {
      "ts": "2026-11-09T13:00:00+01:00",
      "eur_mwh": 6.777,
-     "ore_kwh": 7.472,
+     "ore_kwh": 7.452,
      "source": "official"
     },
     {
      "ts": "2026-11-09T14:00:00+01:00",
      "eur_mwh": 3.71,
-     "ore_kwh": 4.091,
+     "ore_kwh": 4.08,
      "source": "official"
     },
     {
      "ts": "2026-11-09T15:00:00+01:00",
      "eur_mwh": 3.93,
-     "ore_kwh": 4.333,
+     "ore_kwh": 4.321,
      "source": "official"
     },
     {
      "ts": "2026-11-09T16:00:00+01:00",
      "eur_mwh": 4.168,
-     "ore_kwh": 4.596,
+     "ore_kwh": 4.583,
      "source": "official"
     },
     {
      "ts": "2026-11-09T17:00:00+01:00",
      "eur_mwh": 2.655,
-     "ore_kwh": 2.927,
+     "ore_kwh": 2.919,
      "source": "official"
     },
     {
      "ts": "2026-11-09T18:00:00+01:00",
      "eur_mwh": 4.197,
-     "ore_kwh": 4.628,
+     "ore_kwh": 4.615,
      "source": "official"
     },
     {
      "ts": "2026-11-09T19:00:00+01:00",
      "eur_mwh": 6.075,
-     "ore_kwh": 6.698,
+     "ore_kwh": 6.68,
      "source": "official"
     },
     {
      "ts": "2026-11-09T20:00:00+01:00",
      "eur_mwh": 8.812,
-     "ore_kwh": 9.716,
+     "ore_kwh": 9.69,
      "source": "official"
     },
     {
      "ts": "2026-11-09T21:00:00+01:00",
      "eur_mwh": 10.627,
-     "ore_kwh": 11.717,
+     "ore_kwh": 11.685,
      "source": "official"
     },
     {
      "ts": "2026-11-09T22:00:00+01:00",
      "eur_mwh": 12.203,
-     "ore_kwh": 13.455,
+     "ore_kwh": 13.418,
      "source": "official"
     },
     {
      "ts": "2026-11-09T23:00:00+01:00",
      "eur_mwh": 16.245,
-     "ore_kwh": 17.912,
+     "ore_kwh": 17.863,
      "source": "official"
     },
     {
      "ts": "2026-11-10T00:00:00+01:00",
      "eur_mwh": 5.135,
-     "ore_kwh": 5.662,
+     "ore_kwh": 5.646,
      "source": "official"
     },
     {
      "ts": "2026-11-10T01:00:00+01:00",
      "eur_mwh": 5.98,
-     "ore_kwh": 6.594,
+     "ore_kwh": 6.576,
      "source": "official"
     },
     {
      "ts": "2026-11-10T02:00:00+01:00",
      "eur_mwh": 5.875,
-     "ore_kwh": 6.478,
+     "ore_kwh": 6.46,
      "source": "official"
     },
     {
      "ts": "2026-11-10T03:00:00+01:00",
      "eur_mwh": 6.08,
-     "ore_kwh": 6.704,
+     "ore_kwh": 6.686,
      "source": "official"
     },
     {
      "ts": "2026-11-10T04:00:00+01:00",
      "eur_mwh": 5.322,
-     "ore_kwh": 5.868,
+     "ore_kwh": 5.852,
      "source": "official"
     },
     {
      "ts": "2026-11-10T05:00:00+01:00",
      "eur_mwh": 12.102,
-     "ore_kwh": 13.344,
+     "ore_kwh": 13.307,
      "source": "official"
     },
     {
      "ts": "2026-11-10T06:00:00+01:00",
      "eur_mwh": 15.752,
-     "ore_kwh": 17.368,
+     "ore_kwh": 17.321,
      "source": "official"
     },
     {
      "ts": "2026-11-10T07:00:00+01:00",
      "eur_mwh": 20.602,
-     "ore_kwh": 22.716,
+     "ore_kwh": 22.654,
      "source": "official"
     },
     {
      "ts": "2026-11-10T08:00:00+01:00",
      "eur_mwh": 26.035,
-     "ore_kwh": 28.706,
+     "ore_kwh": 28.628,
      "source": "official"
     },
     {
      "ts": "2026-11-10T09:00:00+01:00",
      "eur_mwh": 31.435,
-     "ore_kwh": 34.66,
+     "ore_kwh": 34.566,
      "source": "official"
     },
     {
      "ts": "2026-11-10T10:00:00+01:00",
      "eur_mwh": 36.112,
-     "ore_kwh": 39.817,
+     "ore_kwh": 39.709,
      "source": "official"
     },
     {
      "ts": "2026-11-10T11:00:00+01:00",
      "eur_mwh": 50.352,
-     "ore_kwh": 55.518,
+     "ore_kwh": 55.367,
      "source": "official"
     },
     {
      "ts": "2026-11-10T12:00:00+01:00",
      "eur_mwh": 67.08,
-     "ore_kwh": 73.962,
+     "ore_kwh": 73.761,
      "source": "official"
     },
     {
      "ts": "2026-11-10T13:00:00+01:00",
      "eur_mwh": 85.013,
-     "ore_kwh": 93.735,
+     "ore_kwh": 93.48,
      "source": "official"
     },
     {
      "ts": "2026-11-10T14:00:00+01:00",
      "eur_mwh": 89.888,
-     "ore_kwh": 99.111,
+     "ore_kwh": 98.841,
      "source": "official"
     },
     {
      "ts": "2026-11-10T15:00:00+01:00",
      "eur_mwh": 100.037,
-     "ore_kwh": 110.301,
+     "ore_kwh": 110.001,
      "source": "official"
     },
     {
      "ts": "2026-11-10T16:00:00+01:00",
      "eur_mwh": 108.695,
-     "ore_kwh": 119.847,
+     "ore_kwh": 119.521,
      "source": "official"
     },
     {
      "ts": "2026-11-10T17:00:00+01:00",
      "eur_mwh": 126.815,
-     "ore_kwh": 139.826,
+     "ore_kwh": 139.446,
      "source": "official"
     },
     {
      "ts": "2026-11-10T18:00:00+01:00",
      "eur_mwh": 105.95,
-     "ore_kwh": 116.82,
+     "ore_kwh": 116.503,
      "source": "official"
     },
     {
      "ts": "2026-11-10T19:00:00+01:00",
      "eur_mwh": 110.993,
-     "ore_kwh": 122.381,
+     "ore_kwh": 122.048,
      "source": "official"
     },
     {
      "ts": "2026-11-10T20:00:00+01:00",
      "eur_mwh": 94.465,
-     "ore_kwh": 104.157,
+     "ore_kwh": 103.874,
      "source": "official"
     },
     {
      "ts": "2026-11-10T21:00:00+01:00",
      "eur_mwh": 117.6,
-     "ore_kwh": 129.666,
+     "ore_kwh": 129.313,
      "source": "official"
     },
     {
      "ts": "2026-11-10T22:00:00+01:00",
      "eur_mwh": 121.34,
-     "ore_kwh": 133.789,
+     "ore_kwh": 133.425,
      "source": "official"
     },
     {
      "ts": "2026-11-10T23:00:00+01:00",
      "eur_mwh": 134.202,
-     "ore_kwh": 147.971,
+     "ore_kwh": 147.569,
      "source": "official"
     },
     {
      "ts": "2026-11-11T00:00:00+01:00",
-     "eur_mwh": 24.196,
-     "ore_kwh": 26.679,
+     "eur_mwh": 24.652,
+     "ore_kwh": 27.107,
      "source": "forecast"
     },
     {
      "ts": "2026-11-11T01:00:00+01:00",
-     "eur_mwh": 22.317,
-     "ore_kwh": 24.607,
+     "eur_mwh": 26.343,
+     "ore_kwh": 28.967,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T02:00:00+01:00",
+     "eur_mwh": 25.553,
+     "ore_kwh": 28.098,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T03:00:00+01:00",
+     "eur_mwh": 20.952,
+     "ore_kwh": 23.039,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T04:00:00+01:00",
+     "eur_mwh": 19.382,
+     "ore_kwh": 21.312,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T05:00:00+01:00",
+     "eur_mwh": 19.789,
+     "ore_kwh": 21.76,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T06:00:00+01:00",
+     "eur_mwh": 23.228,
+     "ore_kwh": 25.542,
      "source": "forecast"
     }
    ],
    "spark": [
-    3.71,
-    3.93,
-    4.168,
-    2.655,
-    4.197,
     6.075,
     8.812,
     10.627,
@@ -696,7 +751,12 @@
     36.112,
     50.352,
     67.08,
-    85.013
+    85.013,
+    89.888,
+    100.037,
+    108.695,
+    126.815,
+    105.95
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -706,319 +766,344 @@
    "zone": "SE3",
    "name": "Stockholm",
    "current": {
-    "ts": "2026-11-09T13:00:00+01:00",
-    "eur_mwh": 240.907,
-    "ore_kwh": 265.624,
+    "ts": "2026-11-09T18:00:00+01:00",
+    "eur_mwh": 378.528,
+    "ore_kwh": 416.229,
     "source": "official"
    },
    "hours": [
     {
      "ts": "2026-11-09T00:00:00+01:00",
      "eur_mwh": 170.018,
-     "ore_kwh": 187.462,
+     "ore_kwh": 186.952,
      "source": "official"
     },
     {
      "ts": "2026-11-09T01:00:00+01:00",
      "eur_mwh": 164.232,
-     "ore_kwh": 181.082,
+     "ore_kwh": 180.59,
      "source": "official"
     },
     {
      "ts": "2026-11-09T02:00:00+01:00",
      "eur_mwh": 162.942,
-     "ore_kwh": 179.66,
+     "ore_kwh": 179.171,
      "source": "official"
     },
     {
      "ts": "2026-11-09T03:00:00+01:00",
      "eur_mwh": 163.91,
-     "ore_kwh": 180.727,
+     "ore_kwh": 180.235,
      "source": "official"
     },
     {
      "ts": "2026-11-09T04:00:00+01:00",
      "eur_mwh": 159.915,
-     "ore_kwh": 176.322,
+     "ore_kwh": 175.843,
      "source": "official"
     },
     {
      "ts": "2026-11-09T05:00:00+01:00",
      "eur_mwh": 169.733,
-     "ore_kwh": 187.148,
+     "ore_kwh": 186.638,
      "source": "official"
     },
     {
      "ts": "2026-11-09T06:00:00+01:00",
      "eur_mwh": 216.713,
-     "ore_kwh": 238.948,
+     "ore_kwh": 238.298,
      "source": "official"
     },
     {
      "ts": "2026-11-09T07:00:00+01:00",
      "eur_mwh": 267.365,
-     "ore_kwh": 294.797,
+     "ore_kwh": 293.995,
      "source": "official"
     },
     {
      "ts": "2026-11-09T08:00:00+01:00",
      "eur_mwh": 282.61,
-     "ore_kwh": 311.606,
+     "ore_kwh": 310.758,
      "source": "official"
     },
     {
      "ts": "2026-11-09T09:00:00+01:00",
      "eur_mwh": 271.048,
-     "ore_kwh": 298.858,
+     "ore_kwh": 298.044,
      "source": "official"
     },
     {
      "ts": "2026-11-09T10:00:00+01:00",
      "eur_mwh": 257.5,
-     "ore_kwh": 283.92,
+     "ore_kwh": 283.147,
      "source": "official"
     },
     {
      "ts": "2026-11-09T11:00:00+01:00",
      "eur_mwh": 243.727,
-     "ore_kwh": 268.733,
+     "ore_kwh": 268.002,
      "source": "official"
     },
     {
      "ts": "2026-11-09T12:00:00+01:00",
      "eur_mwh": 242.882,
-     "ore_kwh": 267.802,
+     "ore_kwh": 267.073,
      "source": "official"
     },
     {
      "ts": "2026-11-09T13:00:00+01:00",
      "eur_mwh": 240.907,
-     "ore_kwh": 265.624,
+     "ore_kwh": 264.901,
      "source": "official"
     },
     {
      "ts": "2026-11-09T14:00:00+01:00",
      "eur_mwh": 267.78,
-     "ore_kwh": 295.254,
+     "ore_kwh": 294.451,
      "source": "official"
     },
     {
      "ts": "2026-11-09T15:00:00+01:00",
      "eur_mwh": 362.92,
-     "ore_kwh": 400.156,
+     "ore_kwh": 399.067,
      "source": "official"
     },
     {
      "ts": "2026-11-09T16:00:00+01:00",
      "eur_mwh": 359.097,
-     "ore_kwh": 395.94,
+     "ore_kwh": 394.863,
      "source": "official"
     },
     {
      "ts": "2026-11-09T17:00:00+01:00",
      "eur_mwh": 431.71,
-     "ore_kwh": 476.003,
+     "ore_kwh": 474.708,
      "source": "official"
     },
     {
      "ts": "2026-11-09T18:00:00+01:00",
      "eur_mwh": 378.528,
-     "ore_kwh": 417.365,
+     "ore_kwh": 416.229,
      "source": "official"
     },
     {
      "ts": "2026-11-09T19:00:00+01:00",
      "eur_mwh": 322.28,
-     "ore_kwh": 355.346,
+     "ore_kwh": 354.379,
      "source": "official"
     },
     {
      "ts": "2026-11-09T20:00:00+01:00",
      "eur_mwh": 264.212,
-     "ore_kwh": 291.32,
+     "ore_kwh": 290.528,
      "source": "official"
     },
     {
      "ts": "2026-11-09T21:00:00+01:00",
      "eur_mwh": 218.33,
-     "ore_kwh": 240.731,
+     "ore_kwh": 240.076,
      "source": "official"
     },
     {
      "ts": "2026-11-09T22:00:00+01:00",
      "eur_mwh": 205.335,
-     "ore_kwh": 226.402,
+     "ore_kwh": 225.786,
      "source": "official"
     },
     {
      "ts": "2026-11-09T23:00:00+01:00",
      "eur_mwh": 172.778,
-     "ore_kwh": 190.505,
+     "ore_kwh": 189.987,
      "source": "official"
     },
     {
      "ts": "2026-11-10T00:00:00+01:00",
      "eur_mwh": 108.007,
-     "ore_kwh": 119.089,
+     "ore_kwh": 118.764,
      "source": "official"
     },
     {
      "ts": "2026-11-10T01:00:00+01:00",
      "eur_mwh": 108.438,
-     "ore_kwh": 119.564,
+     "ore_kwh": 119.238,
      "source": "official"
     },
     {
      "ts": "2026-11-10T02:00:00+01:00",
      "eur_mwh": 107.992,
-     "ore_kwh": 119.072,
+     "ore_kwh": 118.748,
      "source": "official"
     },
     {
      "ts": "2026-11-10T03:00:00+01:00",
      "eur_mwh": 107.817,
-     "ore_kwh": 118.879,
+     "ore_kwh": 118.556,
      "source": "official"
     },
     {
      "ts": "2026-11-10T04:00:00+01:00",
      "eur_mwh": 110.463,
-     "ore_kwh": 121.797,
+     "ore_kwh": 121.465,
      "source": "official"
     },
     {
      "ts": "2026-11-10T05:00:00+01:00",
      "eur_mwh": 119.945,
-     "ore_kwh": 132.251,
+     "ore_kwh": 131.892,
      "source": "official"
     },
     {
      "ts": "2026-11-10T06:00:00+01:00",
      "eur_mwh": 229.815,
-     "ore_kwh": 253.394,
+     "ore_kwh": 252.705,
      "source": "official"
     },
     {
      "ts": "2026-11-10T07:00:00+01:00",
      "eur_mwh": 308.305,
-     "ore_kwh": 339.937,
+     "ore_kwh": 339.012,
      "source": "official"
     },
     {
      "ts": "2026-11-10T08:00:00+01:00",
      "eur_mwh": 361.702,
-     "ore_kwh": 398.813,
+     "ore_kwh": 397.728,
      "source": "official"
     },
     {
      "ts": "2026-11-10T09:00:00+01:00",
      "eur_mwh": 346.632,
-     "ore_kwh": 382.196,
+     "ore_kwh": 381.157,
      "source": "official"
     },
     {
      "ts": "2026-11-10T10:00:00+01:00",
      "eur_mwh": 312.405,
-     "ore_kwh": 344.458,
+     "ore_kwh": 343.521,
      "source": "official"
     },
     {
      "ts": "2026-11-10T11:00:00+01:00",
      "eur_mwh": 301.395,
-     "ore_kwh": 332.318,
+     "ore_kwh": 331.414,
      "source": "official"
     },
     {
      "ts": "2026-11-10T12:00:00+01:00",
      "eur_mwh": 307.78,
-     "ore_kwh": 339.358,
+     "ore_kwh": 338.435,
      "source": "official"
     },
     {
      "ts": "2026-11-10T13:00:00+01:00",
      "eur_mwh": 322.392,
-     "ore_kwh": 355.469,
+     "ore_kwh": 354.502,
      "source": "official"
     },
     {
      "ts": "2026-11-10T14:00:00+01:00",
      "eur_mwh": 325.46,
-     "ore_kwh": 358.852,
+     "ore_kwh": 357.876,
      "source": "official"
     },
     {
      "ts": "2026-11-10T15:00:00+01:00",
      "eur_mwh": 413.983,
-     "ore_kwh": 456.458,
+     "ore_kwh": 455.216,
      "source": "official"
     },
     {
      "ts": "2026-11-10T16:00:00+01:00",
      "eur_mwh": 465.15,
-     "ore_kwh": 512.874,
+     "ore_kwh": 511.479,
      "source": "official"
     },
     {
      "ts": "2026-11-10T17:00:00+01:00",
      "eur_mwh": 457.702,
-     "ore_kwh": 504.662,
+     "ore_kwh": 503.289,
      "source": "official"
     },
     {
      "ts": "2026-11-10T18:00:00+01:00",
      "eur_mwh": 430.565,
-     "ore_kwh": 474.741,
+     "ore_kwh": 473.449,
      "source": "official"
     },
     {
      "ts": "2026-11-10T19:00:00+01:00",
      "eur_mwh": 373.647,
-     "ore_kwh": 411.983,
+     "ore_kwh": 410.862,
      "source": "official"
     },
     {
      "ts": "2026-11-10T20:00:00+01:00",
      "eur_mwh": 326.278,
-     "ore_kwh": 359.754,
+     "ore_kwh": 358.775,
      "source": "official"
     },
     {
      "ts": "2026-11-10T21:00:00+01:00",
      "eur_mwh": 260.163,
-     "ore_kwh": 286.856,
+     "ore_kwh": 286.075,
      "source": "official"
     },
     {
      "ts": "2026-11-10T22:00:00+01:00",
      "eur_mwh": 214.423,
-     "ore_kwh": 236.423,
+     "ore_kwh": 235.78,
      "source": "official"
     },
     {
      "ts": "2026-11-10T23:00:00+01:00",
      "eur_mwh": 186.145,
-     "ore_kwh": 205.243,
+     "ore_kwh": 204.685,
      "source": "official"
     },
     {
      "ts": "2026-11-11T00:00:00+01:00",
-     "eur_mwh": 128.017,
-     "ore_kwh": 141.152,
+     "eur_mwh": 130.285,
+     "ore_kwh": 143.261,
      "source": "forecast"
     },
     {
      "ts": "2026-11-11T01:00:00+01:00",
-     "eur_mwh": 106.353,
-     "ore_kwh": 117.265,
+     "eur_mwh": 114.42,
+     "ore_kwh": 125.816,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T02:00:00+01:00",
+     "eur_mwh": 113.444,
+     "ore_kwh": 124.743,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T03:00:00+01:00",
+     "eur_mwh": 104.545,
+     "ore_kwh": 114.958,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T04:00:00+01:00",
+     "eur_mwh": 102.671,
+     "ore_kwh": 112.897,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T05:00:00+01:00",
+     "eur_mwh": 112.427,
+     "ore_kwh": 123.625,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T06:00:00+01:00",
+     "eur_mwh": 171.977,
+     "ore_kwh": 189.106,
      "source": "forecast"
     }
    ],
    "spark": [
-    267.78,
-    362.92,
-    359.097,
-    431.71,
-    378.528,
     322.28,
     264.212,
     218.33,
@@ -1037,7 +1122,12 @@
     312.405,
     301.395,
     307.78,
-    322.392
+    322.392,
+    325.46,
+    413.983,
+    465.15,
+    457.702,
+    430.565
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -1047,319 +1137,344 @@
    "zone": "SE4",
    "name": "Malmö",
    "current": {
-    "ts": "2026-11-09T13:00:00+01:00",
-    "eur_mwh": 380.163,
-    "ore_kwh": 419.168,
+    "ts": "2026-11-09T18:00:00+01:00",
+    "eur_mwh": 592.733,
+    "ore_kwh": 651.769,
     "source": "official"
    },
    "hours": [
     {
      "ts": "2026-11-09T00:00:00+01:00",
      "eur_mwh": 259.475,
-     "ore_kwh": 286.097,
+     "ore_kwh": 285.319,
      "source": "official"
     },
     {
      "ts": "2026-11-09T01:00:00+01:00",
      "eur_mwh": 250.948,
-     "ore_kwh": 276.695,
+     "ore_kwh": 275.942,
      "source": "official"
     },
     {
      "ts": "2026-11-09T02:00:00+01:00",
      "eur_mwh": 249.32,
-     "ore_kwh": 274.9,
+     "ore_kwh": 274.152,
      "source": "official"
     },
     {
      "ts": "2026-11-09T03:00:00+01:00",
      "eur_mwh": 251.898,
-     "ore_kwh": 277.743,
+     "ore_kwh": 276.987,
      "source": "official"
     },
     {
      "ts": "2026-11-09T04:00:00+01:00",
      "eur_mwh": 246.46,
-     "ore_kwh": 271.747,
+     "ore_kwh": 271.007,
      "source": "official"
     },
     {
      "ts": "2026-11-09T05:00:00+01:00",
      "eur_mwh": 264.353,
-     "ore_kwh": 291.476,
+     "ore_kwh": 290.683,
      "source": "official"
     },
     {
      "ts": "2026-11-09T06:00:00+01:00",
      "eur_mwh": 337.5,
-     "ore_kwh": 372.127,
+     "ore_kwh": 371.115,
      "source": "official"
     },
     {
      "ts": "2026-11-09T07:00:00+01:00",
      "eur_mwh": 416.48,
-     "ore_kwh": 459.211,
+     "ore_kwh": 457.961,
      "source": "official"
     },
     {
      "ts": "2026-11-09T08:00:00+01:00",
      "eur_mwh": 442.815,
-     "ore_kwh": 488.248,
+     "ore_kwh": 486.919,
      "source": "official"
     },
     {
      "ts": "2026-11-09T09:00:00+01:00",
      "eur_mwh": 425.195,
-     "ore_kwh": 468.82,
+     "ore_kwh": 467.544,
      "source": "official"
     },
     {
      "ts": "2026-11-09T10:00:00+01:00",
      "eur_mwh": 400.31,
-     "ore_kwh": 441.382,
+     "ore_kwh": 440.181,
      "source": "official"
     },
     {
      "ts": "2026-11-09T11:00:00+01:00",
      "eur_mwh": 381.868,
-     "ore_kwh": 421.048,
+     "ore_kwh": 419.902,
      "source": "official"
     },
     {
      "ts": "2026-11-09T12:00:00+01:00",
      "eur_mwh": 383.382,
-     "ore_kwh": 422.717,
+     "ore_kwh": 421.567,
      "source": "official"
     },
     {
      "ts": "2026-11-09T13:00:00+01:00",
      "eur_mwh": 380.163,
-     "ore_kwh": 419.168,
+     "ore_kwh": 418.027,
      "source": "official"
     },
     {
      "ts": "2026-11-09T14:00:00+01:00",
      "eur_mwh": 419.875,
-     "ore_kwh": 462.954,
+     "ore_kwh": 461.695,
      "source": "official"
     },
     {
      "ts": "2026-11-09T15:00:00+01:00",
      "eur_mwh": 573.362,
-     "ore_kwh": 632.189,
+     "ore_kwh": 630.469,
      "source": "official"
     },
     {
      "ts": "2026-11-09T16:00:00+01:00",
      "eur_mwh": 564.372,
-     "ore_kwh": 622.277,
+     "ore_kwh": 620.583,
      "source": "official"
     },
     {
      "ts": "2026-11-09T17:00:00+01:00",
      "eur_mwh": 675.16,
-     "ore_kwh": 744.431,
+     "ore_kwh": 742.406,
      "source": "official"
     },
     {
      "ts": "2026-11-09T18:00:00+01:00",
      "eur_mwh": 592.733,
-     "ore_kwh": 653.547,
+     "ore_kwh": 651.769,
      "source": "official"
     },
     {
      "ts": "2026-11-09T19:00:00+01:00",
      "eur_mwh": 504.333,
-     "ore_kwh": 556.078,
+     "ore_kwh": 554.565,
      "source": "official"
     },
     {
      "ts": "2026-11-09T20:00:00+01:00",
      "eur_mwh": 413.798,
-     "ore_kwh": 456.254,
+     "ore_kwh": 455.012,
      "source": "official"
     },
     {
      "ts": "2026-11-09T21:00:00+01:00",
      "eur_mwh": 338.322,
-     "ore_kwh": 373.034,
+     "ore_kwh": 372.019,
      "source": "official"
     },
     {
      "ts": "2026-11-09T22:00:00+01:00",
      "eur_mwh": 315.513,
-     "ore_kwh": 347.885,
+     "ore_kwh": 346.938,
      "source": "official"
     },
     {
      "ts": "2026-11-09T23:00:00+01:00",
      "eur_mwh": 264.947,
-     "ore_kwh": 292.131,
+     "ore_kwh": 291.336,
      "source": "official"
     },
     {
      "ts": "2026-11-10T00:00:00+01:00",
      "eur_mwh": 289.998,
-     "ore_kwh": 319.752,
+     "ore_kwh": 318.882,
      "source": "official"
     },
     {
      "ts": "2026-11-10T01:00:00+01:00",
      "eur_mwh": 292.363,
-     "ore_kwh": 322.359,
+     "ore_kwh": 321.482,
      "source": "official"
     },
     {
      "ts": "2026-11-10T02:00:00+01:00",
      "eur_mwh": 287.82,
-     "ore_kwh": 317.35,
+     "ore_kwh": 316.487,
      "source": "official"
     },
     {
      "ts": "2026-11-10T03:00:00+01:00",
      "eur_mwh": 288.913,
-     "ore_kwh": 318.555,
+     "ore_kwh": 317.689,
      "source": "official"
     },
     {
      "ts": "2026-11-10T04:00:00+01:00",
      "eur_mwh": 298.347,
-     "ore_kwh": 328.957,
+     "ore_kwh": 328.062,
      "source": "official"
     },
     {
      "ts": "2026-11-10T05:00:00+01:00",
      "eur_mwh": 297.522,
-     "ore_kwh": 328.048,
+     "ore_kwh": 327.155,
      "source": "official"
     },
     {
      "ts": "2026-11-10T06:00:00+01:00",
      "eur_mwh": 360.903,
-     "ore_kwh": 397.932,
+     "ore_kwh": 396.849,
      "source": "official"
     },
     {
      "ts": "2026-11-10T07:00:00+01:00",
      "eur_mwh": 481.27,
-     "ore_kwh": 530.648,
+     "ore_kwh": 529.204,
      "source": "official"
     },
     {
      "ts": "2026-11-10T08:00:00+01:00",
      "eur_mwh": 560.955,
-     "ore_kwh": 618.509,
+     "ore_kwh": 616.826,
      "source": "official"
     },
     {
      "ts": "2026-11-10T09:00:00+01:00",
      "eur_mwh": 536.567,
-     "ore_kwh": 591.619,
+     "ore_kwh": 590.009,
      "source": "official"
     },
     {
      "ts": "2026-11-10T10:00:00+01:00",
      "eur_mwh": 479.998,
-     "ore_kwh": 529.246,
+     "ore_kwh": 527.806,
      "source": "official"
     },
     {
      "ts": "2026-11-10T11:00:00+01:00",
      "eur_mwh": 454.69,
-     "ore_kwh": 501.341,
+     "ore_kwh": 499.977,
      "source": "official"
     },
     {
      "ts": "2026-11-10T12:00:00+01:00",
      "eur_mwh": 451.033,
-     "ore_kwh": 497.309,
+     "ore_kwh": 495.956,
      "source": "official"
     },
     {
      "ts": "2026-11-10T13:00:00+01:00",
      "eur_mwh": 463.9,
-     "ore_kwh": 511.496,
+     "ore_kwh": 510.104,
      "source": "official"
     },
     {
      "ts": "2026-11-10T14:00:00+01:00",
      "eur_mwh": 471.03,
-     "ore_kwh": 519.358,
+     "ore_kwh": 517.945,
      "source": "official"
     },
     {
      "ts": "2026-11-10T15:00:00+01:00",
      "eur_mwh": 525.217,
-     "ore_kwh": 579.104,
+     "ore_kwh": 577.529,
      "source": "official"
     },
     {
      "ts": "2026-11-10T16:00:00+01:00",
      "eur_mwh": 556.35,
-     "ore_kwh": 613.432,
+     "ore_kwh": 611.762,
      "source": "official"
     },
     {
      "ts": "2026-11-10T17:00:00+01:00",
      "eur_mwh": 522.525,
-     "ore_kwh": 576.136,
+     "ore_kwh": 574.568,
      "source": "official"
     },
     {
      "ts": "2026-11-10T18:00:00+01:00",
      "eur_mwh": 489.66,
-     "ore_kwh": 539.899,
+     "ore_kwh": 538.43,
      "source": "official"
     },
     {
      "ts": "2026-11-10T19:00:00+01:00",
      "eur_mwh": 422.065,
-     "ore_kwh": 465.369,
+     "ore_kwh": 464.103,
      "source": "official"
     },
     {
      "ts": "2026-11-10T20:00:00+01:00",
      "eur_mwh": 383.695,
-     "ore_kwh": 423.062,
+     "ore_kwh": 421.911,
      "source": "official"
     },
     {
      "ts": "2026-11-10T21:00:00+01:00",
      "eur_mwh": 290.79,
-     "ore_kwh": 320.625,
+     "ore_kwh": 319.753,
      "source": "official"
     },
     {
      "ts": "2026-11-10T22:00:00+01:00",
      "eur_mwh": 258.163,
-     "ore_kwh": 284.651,
+     "ore_kwh": 283.876,
      "source": "official"
     },
     {
      "ts": "2026-11-10T23:00:00+01:00",
      "eur_mwh": 225.438,
-     "ore_kwh": 248.568,
+     "ore_kwh": 247.892,
      "source": "official"
     },
     {
      "ts": "2026-11-11T00:00:00+01:00",
-     "eur_mwh": 261.307,
-     "ore_kwh": 288.117,
+     "eur_mwh": 259.609,
+     "ore_kwh": 285.466,
      "source": "forecast"
     },
     {
      "ts": "2026-11-11T01:00:00+01:00",
-     "eur_mwh": 257.75,
-     "ore_kwh": 284.195,
+     "eur_mwh": 258.276,
+     "ore_kwh": 284.0,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T02:00:00+01:00",
+     "eur_mwh": 256.698,
+     "ore_kwh": 282.265,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T03:00:00+01:00",
+     "eur_mwh": 243.358,
+     "ore_kwh": 267.596,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T04:00:00+01:00",
+     "eur_mwh": 255.604,
+     "ore_kwh": 281.062,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T05:00:00+01:00",
+     "eur_mwh": 246.51,
+     "ore_kwh": 271.062,
+     "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T06:00:00+01:00",
+     "eur_mwh": 229.569,
+     "ore_kwh": 252.434,
      "source": "forecast"
     }
    ],
    "spark": [
-    419.875,
-    573.362,
-    564.372,
-    675.16,
-    592.733,
     504.333,
     413.798,
     338.322,
@@ -1378,7 +1493,12 @@
     479.998,
     454.69,
     451.033,
-    463.9
+    463.9,
+    471.03,
+    525.217,
+    556.35,
+    522.525,
+    489.66
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -1812,12 +1932,12 @@
   },
   "ecb_fx": {
    "ok": true,
-   "rate": 11.026,
-   "date": "2026-11-06"
+   "rate": 10.996,
+   "date": "2026-11-09"
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1260
+   "messages": 1274
   },
   "fuels": {
    "ok": true,
@@ -1845,7 +1965,7 @@
    "ok": true
   }
  },
- "next_expected_update_utc": "2026-11-09T17:00:00Z",
+ "next_expected_update_utc": "2026-11-10T05:30:00Z",
  "models": [
   {
    "id": "seasonal_naive",
@@ -1913,7 +2033,7 @@
   {
    "id": "lightgbm_v3",
    "name_sv": "LightGBM v3 (kandidat)",
-   "description_sv": "Efterföljare till Residual-LightGBM, som kandidat. Tränad på arkiverade väderprognoser med rätt framförhållning i stället för på vädret som det blev, med framförhållningen som egen variabel (1–7 dygn), tyskt och danskt väder, gaspris och utsläppsrätter. Tränas om varje vecka. Senast tränad 2026-10-26. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 28,41 EUR/MWh mot 37,89 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
+   "description_sv": "Efterföljare till Residual-LightGBM, som kandidat. Tränad på arkiverade väderprognoser med rätt framförhållning i stället för på vädret som det blev, med framförhållningen som egen variabel (1–7 dygn), tyskt och danskt väder, gaspris och utsläppsrätter. Tränas om varje vecka. Senast tränad 2026-11-09. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 29,91 EUR/MWh mot 39,43 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
    "quantiles": true,
    "derived": false,
    "is_default": false,
