@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-10T06:36:41+01:00",
- "passed": 8,
+ "generated_at": "2026-11-10T09:55:16+01:00",
+ "passed": 9,
  "total": 9,
  "checks": [
   {
@@ -22,7 +22,7 @@
    "title": "Sidorna visar de lagrade priserna",
    "method": "Priser på elområdessidorna jämförs med lagret, och öre/kWh med EUR/MWh gånger ECB-kursen.",
    "ok": true,
-   "detail": "264 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
+   "detail": "252 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
   },
   {
    "id": "forecast_bands",
@@ -42,7 +42,7 @@
    "id": "battery_optimiser",
    "title": "Hembatteriets körschema är nära det bästa möjliga",
    "method": "Jämförs med en linjär optimering – en annan metod för samma problem.",
-   "ok": false,
+   "ok": true,
    "detail": "Batteriets körschema (dynamisk programmering, 49 nivåer) mot en linjär optimering av samma fyra veckor, andel av den teoretiskt bästa besparingen: SE1 96.9 %, SE2 97.3 %, SE3 98.5 %, SE4 98.7 %."
   },
   {
