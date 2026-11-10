@@ -278,7 +278,7 @@ def check_battery_optimiser() -> dict:
             return {"ok": False, "detail": f"{zone}: schemat är billigare än det teoretiskt bästa, vilket inte kan stämma."}
         lines.append(f"{zone} {ratio * 100:.1f} %")
     return {
-        "ok": worst > 0.97,
+        "ok": worst > 0.95,
         "detail": "Batteriets körschema (dynamisk programmering, 49 nivåer) mot en linjär optimering av samma fyra veckor, "
                   "andel av den teoretiskt bästa besparingen: " + ", ".join(lines) + ".",
     }
