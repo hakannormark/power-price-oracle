@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-10T09:50:59+01:00",
- "run_id": "20261110T0850Z",
+ "generated_at": "2026-11-10T10:17:30+01:00",
+ "run_id": "20261110T0917Z",
  "degraded": false,
  "demo": false,
  "unit": "EUR/MWh",
@@ -12,7 +12,7 @@
   "rate": 10.996,
   "date": "2026-11-09",
   "source": "ECB",
-  "fetched_at": "2026-11-10T09:53:13+01:00",
+  "fetched_at": "2026-11-10T10:19:40+01:00",
   "stale": false
  },
  "title_sv": "Spotprognos",
@@ -24,9 +24,9 @@
    "zone": "SE1",
    "name": "Luleå",
    "current": {
-    "ts": "2026-11-10T09:00:00+01:00",
-    "eur_mwh": 27.08,
-    "ore_kwh": 29.777,
+    "ts": "2026-11-10T10:00:00+01:00",
+    "eur_mwh": 31.85,
+    "ore_kwh": 35.022,
     "source": "official"
    },
    "hours": [
@@ -305,10 +305,15 @@
      "eur_mwh": 76.929,
      "ore_kwh": 84.591,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T22:00:00+01:00",
+     "eur_mwh": 76.366,
+     "ore_kwh": 83.972,
+     "source": "forecast"
     }
    ],
    "spark": [
-    31.85,
     43.135,
     60.457,
     75.185,
@@ -331,7 +336,8 @@
     38.166,
     42.809,
     42.811,
-    48.007
+    48.007,
+    49.344
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -341,9 +347,9 @@
    "zone": "SE2",
    "name": "Sundsvall",
    "current": {
-    "ts": "2026-11-10T09:00:00+01:00",
-    "eur_mwh": 31.435,
-    "ore_kwh": 34.566,
+    "ts": "2026-11-10T10:00:00+01:00",
+    "eur_mwh": 36.112,
+    "ore_kwh": 39.709,
     "source": "official"
    },
    "hours": [
@@ -622,10 +628,15 @@
      "eur_mwh": 91.754,
      "ore_kwh": 100.893,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T22:00:00+01:00",
+     "eur_mwh": 98.261,
+     "ore_kwh": 108.048,
+     "source": "forecast"
     }
    ],
    "spark": [
-    36.112,
     50.352,
     67.08,
     85.013,
@@ -648,7 +659,8 @@
     35.391,
     42.301,
     43.712,
-    50.222
+    50.222,
+    51.831
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -658,9 +670,9 @@
    "zone": "SE3",
    "name": "Stockholm",
    "current": {
-    "ts": "2026-11-10T09:00:00+01:00",
-    "eur_mwh": 346.632,
-    "ore_kwh": 381.157,
+    "ts": "2026-11-10T10:00:00+01:00",
+    "eur_mwh": 312.405,
+    "ore_kwh": 343.521,
     "source": "official"
    },
    "hours": [
@@ -939,10 +951,15 @@
      "eur_mwh": 220.397,
      "ore_kwh": 242.349,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T22:00:00+01:00",
+     "eur_mwh": 191.296,
+     "ore_kwh": 210.349,
+     "source": "forecast"
     }
    ],
    "spark": [
-    312.405,
     301.395,
     307.78,
     322.392,
@@ -965,7 +982,8 @@
     178.695,
     263.125,
     267.656,
-    265.833
+    265.833,
+    239.601
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -975,9 +993,9 @@
    "zone": "SE4",
    "name": "Malmö",
    "current": {
-    "ts": "2026-11-10T09:00:00+01:00",
-    "eur_mwh": 536.567,
-    "ore_kwh": 590.009,
+    "ts": "2026-11-10T10:00:00+01:00",
+    "eur_mwh": 479.998,
+    "ore_kwh": 527.806,
     "source": "official"
    },
    "hours": [
@@ -1256,10 +1274,15 @@
      "eur_mwh": 281.16,
      "ore_kwh": 309.164,
      "source": "forecast"
+    },
+    {
+     "ts": "2026-11-11T22:00:00+01:00",
+     "eur_mwh": 303.15,
+     "ore_kwh": 333.344,
+     "source": "forecast"
     }
    ],
    "spark": [
-    479.998,
     454.69,
     451.033,
     463.9,
@@ -1282,7 +1305,8 @@
     260.202,
     348.469,
     338.969,
-    349.969
+    349.969,
+    350.883
    ],
    "regime": "outage_tight",
    "regime_label_sv": "Bortfall i systemet",
@@ -1721,12 +1745,12 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1248
+   "messages": 1250
   },
   "fuels": {
    "ok": true,
-   "rows": 131,
-   "added": 2
+   "rows": 66,
+   "added": 0
   },
   "euronext_futures": {
    "ok": true,
@@ -1749,7 +1773,7 @@
    "ok": true
   }
  },
- "next_expected_update_utc": "2026-11-10T09:15:00Z",
+ "next_expected_update_utc": "2026-11-10T12:30:00Z",
  "models": [
   {
    "id": "seasonal_naive",
