@@ -1,15 +1,15 @@
 {
- "ok": false,
- "generated_at": "2026-11-16T06:32:52+01:00",
- "run_id": "20261116T0532Z",
- "degraded": true,
+ "ok": true,
+ "generated_at": "2026-11-16T10:17:27+01:00",
+ "run_id": "20261116T0917Z",
+ "degraded": false,
  "demo": false,
  "fx": {
   "pair": "EUR/SEK",
   "rate": 11.1075,
   "date": "2026-11-13",
   "source": "ECB",
-  "fetched_at": "2026-11-16T06:37:08+01:00",
+  "fetched_at": "2026-11-16T10:20:55+01:00",
   "stale": false
  },
  "sources": {
@@ -22,16 +22,17 @@
    "rows": 1536
   },
   "open_meteo": {
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='api.open-meteo.com', port=443): Read timed out. (read timeout=45)"
+   "ok": true,
+   "points": 9,
+   "rows": 3672
   },
   "entsoe_fundamentals": {
    "ok": true,
-   "rows": 288
+   "rows": 384
   },
   "svk_text": {
    "ok": true,
-   "chars": 3056
+   "chars": 3400
   },
   "ecb_fx": {
    "ok": true,
@@ -40,12 +41,12 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1201
+   "messages": 1225
   },
   "fuels": {
    "ok": true,
-   "rows": 67,
-   "added": 0
+   "rows": 66,
+   "added": 1
   },
   "euronext_futures": {
    "ok": true,
@@ -58,7 +59,7 @@
   "longterm": {
    "ok": true,
    "default": "lt_damped",
-   "logged": 48
+   "logged": 0
   },
   "bess": {
    "ok": true,
@@ -68,5 +69,5 @@
    "ok": true
   }
  },
- "next_expected_update_utc": "2026-11-16T09:15:00Z"
+ "next_expected_update_utc": "2026-11-16T12:30:00Z"
 }
