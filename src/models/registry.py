@@ -7,6 +7,7 @@ from .horizon_hybrid import HorizonHybrid
 from .lightgbm_v1 import LightGbmV1
 from .lightgbm_v2 import LightGbmV2
 from .lightgbm_v3 import LightGbmV3
+from .lightgbm_v4 import LightGbmV4
 from .market_scaled import MarketScaled
 from .official import Official
 from .recency_scaled import RecencyScaled
@@ -26,6 +27,7 @@ BASE_MODELS = [
     LightGbmV1(),
     LightGbmV2(),
     LightGbmV3(),  # candidate: trained on forecasts of the right age, retrained weekly
+    LightGbmV4(),  # candidate from 2026-11-19: level-blind target, own model for lead 1
 ]
 
 # Derived models are built from base-model output after the base pass.
@@ -82,14 +84,34 @@ MODELS = [*BASE_MODELS, *DERIVED_MODELS]
 # v2's own band was too narrow to publish (68 % coverage, 59 % on days 6-7), so
 # the default lends it horizon_hybrid's band width around v2's p50; see
 # horizon_hybrid.borrow_band. On the same hours that covered 82 %.
+#
+# lightgbm_v4 is logged as a candidate from 2026-11-19. v2's trees had learned
+# that a high level reverts (asked directly, its q50 at 96 h in SE4 adds -36 at
+# a level of 200 and -98 at 280), and through the autumn 2026 shortage its SE4
+# bias reached -55 EUR/MWh. v4 sees no price level and fits lead 1 on its own;
+# in the walk-forward, against v3 refitted on the same folds, 28.8 vs 31.7 and
+# better at every lead. That is a hindcast; the rule below decides.
 DEFAULT_MODEL_ID = "lightgbm_v2"
 REFERENCE_MODEL_ID = "seasonal_naive"  # skill is measured against this one
 
 # When the model behind an id last changed. Forecasts issued before this are a
 # different model's and are not scored under the id. horizon_hybrid was 100 %
 # market level beyond 72 h until commit 192840f made it 60 % LightGBM.
+#
+# On 2026-11-19 the temperature term in weather_scaled.compute_scale changed
+# sign: it had lowered the price in a cold spell. That redefines every model
+# built on the scale — weather_scaled, shrunk_scaled and recency_scaled
+# directly, ensemble, market_scaled and horizon_hybrid through them — and
+# horizon_hybrid is the band donor below, so v2's published band changes too.
+# Flipping it made the back-test 1 % better in every zone (19.16 -> 18.96).
+TEMP_SIGN_FIXED = "2026-11-19T17:32:00+01:00"
 MODEL_DEFINED_SINCE = {
-    "horizon_hybrid": "2026-10-02T10:01:36+02:00",
+    "weather_scaled": TEMP_SIGN_FIXED,
+    "shrunk_scaled": TEMP_SIGN_FIXED,
+    "recency_scaled": TEMP_SIGN_FIXED,
+    "ensemble": TEMP_SIGN_FIXED,
+    "market_scaled": TEMP_SIGN_FIXED,
+    "horizon_hybrid": TEMP_SIGN_FIXED,
 }
 
 # Models that publish another model's band width around their own p50, and the
@@ -102,7 +124,7 @@ BAND_BORROWED_FROM = {
 # When a model's band last changed while its p50 did not. Its MAE record stands;
 # coverage is scored only on forecasts issued since.
 BAND_DEFINED_SINCE = {
-    "lightgbm_v2": "2026-10-28T14:30:00+01:00",
+    "lightgbm_v2": TEMP_SIGN_FIXED,  # its donor changed; first borrowed 2026-10-28 14:30
 }
 
 OFFICIAL = Official()

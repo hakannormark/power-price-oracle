@@ -28,8 +28,9 @@ class ComputeScaleTests(unittest.TestCase):
         self.assertGreater(self.neutral(wind_index_local=0.5), 1.0)
 
     def test_cold_raises_the_price_by_about_15_percent_per_ten_degrees(self):
-        self.assertAlmostEqual(self.neutral(temp_anomaly_local=-10.0), 0.85, places=6)
-        self.assertAlmostEqual(self.neutral(temp_anomaly_local=10.0), 1.15, places=6)
+        # temp_anomaly is temp minus normal: -10 is ten degrees colder than usual.
+        self.assertAlmostEqual(self.neutral(temp_anomaly_local=-10.0), 1.15, places=6)
+        self.assertAlmostEqual(self.neutral(temp_anomaly_local=10.0), 0.85, places=6)
 
     def test_midday_sun_dips_the_price(self):
         self.assertLess(self.neutral(solar_index_local=1.0), 1.0)

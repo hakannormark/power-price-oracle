@@ -106,14 +106,17 @@ jobs:
           key: previous-runs-${{ github.run_id }}
           restore-keys: previous-runs-
 
-      - name: Retrain lightgbm_v3
+      # lightgbm_v4 the same way, on the same weather archive.
+      - name: Retrain lightgbm_v3 and lightgbm_v4
         if: env.TASK == 'retrain-lightgbm'
         run: |
           set -euo pipefail
           python -m src.fetch.previous_runs
           python -m src.models.train_lightgbm_v3
+          python -m src.models.train_lightgbm_v4
           mkdir -p "$RUNNER_TEMP/artifacts"
           cp src/models/artifacts/lightgbm_v3_q*.txt src/models/artifacts/meta_v3.json "$RUNNER_TEMP/artifacts/"
+          cp src/models/artifacts/lightgbm_v4_*_q*.txt src/models/artifacts/meta_v4.json "$RUNNER_TEMP/artifacts/"
 
       - name: Commit new history
         if: env.TASK != 'diagnose'

@@ -75,7 +75,11 @@ def compute_scale(
 
     scale -= weights.wind_north * (_value(wind_index_north, 1.0) - 1.0)
     scale -= weights.wind_south * (_value(wind_index_south, 1.0) - 1.0)
-    scale += weights.temp * (temp_anomaly / 10.0)  # cold -> higher, 10 degrees ~ +15 %
+    # Cold -> higher, 10 degrees ~ +15 %. temp_anomaly is temp minus normal, so it
+    # is negative in a cold spell and the term is subtracted. Until 2026-11-19
+    # it was added, which lowered the price in the cold; flipping it made the
+    # back-test 1 % better in every zone (registry.MODEL_DEFINED_SINCE).
+    scale -= weights.temp * (temp_anomaly / 10.0)
     scale -= weights.solar * solar  # midday solar dip
 
     return min(max(scale, SCALE_MIN), SCALE_MAX)

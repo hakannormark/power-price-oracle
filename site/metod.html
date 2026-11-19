@@ -171,6 +171,20 @@
         varianterna hamnade inom ett par procent från varandra. Det som skiljer kandidaten från
         föregångaren är alltså de övriga ändringarna, och om de räcker avgörs på skarpa
         prognoser, inte i testet. Den blir inte standard förrän regeln ovan är uppfylld.</p>
+      <p>Sedan 19 november 2026 loggas också <code>lightgbm_v4</code> som kandidat. Den
+        rättar ett mätt fel hos föregångarna: v2 och v3 hade lärt sig att höga priser brukar
+        falla tillbaka, eftersom det nästan alltid var så i historiken. När knappheten i SE3 och
+        SE4 höll i sig under hösten 2026 underskattade standardmodellen därför SE4 med omkring
+        55 EUR/MWh från dygn 3. v4 ser ingen prisnivå alls: den räknar varje prisrörelse i
+        förhållande till senaste veckans pris, så att en uppgång på 20 % är samma sak i SE1
+        och i SE4. Dygnet närmast efter senast kända priser har en egen modell, och
+        osäkerhetsbandet kalibreras per elområde. I samma test som v3, på samma timmar, var
+        medelfelet 28,8 mot 31,7 EUR/MWh och lägre på varje horisont — men det är ett test på
+        arkiverade prognoser. Den blir standard bara om regeln ovan uppfylls på skarpa prognoser.</p>
+      <p>Samma dag rättades ett teckenfel i de väderskalade modellerna: en köldknäpp sänkte
+        prognosen i stället för att höja den. Rättningen gjorde backtestet 1 % bättre i alla
+        elområden. De berörda modellerna, och standardmodellens lånade band, poängsätts från
+        och med rättningen som nya modeller.</p>
 
       <h2>Vad som faktiskt är mätt</h2>
       <p>Sedan hösten 2026 finns fyra års prishistorik, fyra års väderarkiv och

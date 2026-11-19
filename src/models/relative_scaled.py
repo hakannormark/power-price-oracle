@@ -89,7 +89,8 @@ def compute_relative_scale(
         else:
             t_anom_target = getattr(target_row, "temp_anomaly_local", 0.0)
             t_anom_ref = getattr(ref_row, "temp_anomaly_local", 0.0)
-            d_temp_hdd = (
+            # Anomalies fall in the cold where HDD rises, so the sign is reversed.
+            d_temp_hdd = -(
                 float(t_anom_target if not pd.isna(t_anom_target) else 0.0)
                 - float(t_anom_ref if not pd.isna(t_anom_ref) else 0.0)
             ) / 10.0
@@ -108,7 +109,7 @@ def compute_relative_scale(
         target_wind_south = getattr(target_row, "wind_index_south", 1.0)
         d_wind_south = float(target_wind_south if not pd.isna(target_wind_south) else 1.0) - 1.0
         target_anom = getattr(target_row, "temp_anomaly_local", 0.0)
-        d_temp_hdd = float(target_anom if not pd.isna(target_anom) else 0.0) / 10.0
+        d_temp_hdd = -float(target_anom if not pd.isna(target_anom) else 0.0) / 10.0
         target_solar = getattr(target_row, "solar_index_local", 0.0)
         d_solar = float(target_solar if not pd.isna(target_solar) else 0.0)
 

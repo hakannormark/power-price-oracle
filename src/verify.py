@@ -381,7 +381,7 @@ ASSUMPTIONS = [
     "BESS Studio: i ett positivt extremår följer reservpriserna spotpriset enligt ett samband uppmätt mellan dagar sedan 2024. Att det gäller ett helt år är ett antagande.",
     "BESS Studio: aktiveringsenergi, egen prispåverkan, intradag, prognosfel och otillgänglighet är inte modellerade. Resultatet är en övre gräns före dessa.",
     "Prisprognosen: osäkerhetsbandet är kalibrerat på historiska fel och täcker inte händelser utan motstycke.",
-    "Långtidsprognosen: har ännu ingen skarp månad att mätas mot.",
+    "Långtidsprognosen: mätt skarpt först från oktober 2026, alltså på ett fåtal månader. Det räcker inte för att avgöra vilken modell som är bäst; utfallet står på långtidssidan.",
 ]
 
 

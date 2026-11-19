@@ -89,51 +89,14 @@ class LightGbmV3:
 
             return ShrunkScaled().predict(features, issued_at)
 
-        from ..features.build import _swedish_holidays
-        from ..fetch import fuels as fuels_store
-
-        frame = features.sort_values(["zone", "ts"])
-        times = pd.DatetimeIndex(sorted(frame["ts"].unique()))
-        hour0 = F.hour_index(times[0].to_pydatetime())
-        n = F.hour_index(times[-1].to_pydatetime()) - hour0 + 1
-
-        def grid(zone_frame: pd.DataFrame, column: str) -> np.ndarray:
-            out = np.full(n, np.nan)
-            idx = F.hour_indices(zone_frame["ts"]) - hour0
-            out[idx] = pd.to_numeric(zone_frame[column], errors="coerce").to_numpy()
-            return out
-
-        by_zone = {zone: group for zone, group in frame.groupby("zone")}
-        prices = {zone: grid(by_zone[zone], "actual_price") for zone in F.ZONE_ORDER}
-        any_zone = by_zone[F.ZONE_ORDER[0]]
-        weather = {
-            point: {var: grid(any_zone, WX_COLUMNS[var][point]).reshape(-1, 1) for var in ("temp", "wind", "solar")}
-            for point in F.POINTS
-        }
-        fuels = F.fuel_arrays(fuels_store.load_fuels(), hour0, n)
-        holidays = _swedish_holidays(sorted({t.year for t in times}))
-        stats = {zone: F.daily_stats(prices[zone], hour0) for zone in F.ZONE_ORDER}
-
-        start, end = target_window(issued_at)
+        inputs = serving_inputs(features)
+        prices, hour0 = inputs["prices"], inputs["hour0"]
         offsets = self._offsets()
         points: list[ForecastPoint] = []
-        for zone in F.ZONE_ORDER:
-            zf = by_zone[zone]
-            targets = zf[(zf["ts"] >= pd.Timestamp(start)) & (zf["ts"] <= pd.Timestamp(end))]
-            if targets.empty:
-                continue
-            # The last local day whose prices are all published.
-            priced = zf[zf["actual_price"].notna()]
-            per_day = priced.groupby(priced["ts"].dt.tz_convert(TZ).dt.date).size()
-            full_days = per_day[per_day >= 23]
-            last_known = full_days.index.max() if len(full_days) else (issued_at.astimezone(TZ).date() - timedelta(days=1))
-
-            target_idx = F.hour_indices(targets["ts"]) - hour0
-            target_days = targets["ts"].dt.tz_convert(TZ).dt.date
-            lead = np.array([(day - last_known).days for day in target_days])
-
+        for zone, targets, target_idx, lead in zone_targets(inputs, issued_at):
             x, shrunk = F.build_matrix(
-                zone, target_idx, lead, prices, weather, fuels, hour0, holidays, None, stats
+                zone, target_idx, lead, prices, inputs["weather"], inputs["fuels"], hour0,
+                inputs["holidays"], None, inputs["stats"],
             )
             level = np.where(np.isnan(shrunk), np.nanmean(prices[zone]), shrunk)
             clipped = np.clip(lead, 1, F.MAX_LEAD)
@@ -146,3 +109,61 @@ class LightGbmV3:
                 p10, p50, p90 = order_quantiles(float(lo), float(mid), float(hi))
                 points.append(ForecastPoint(ts=ts.to_pydatetime().astimezone(TZ), zone=zone, p10=p10, p50=p50, p90=p90))
         return points
+
+
+def serving_inputs(features: pd.DataFrame) -> dict:
+    """The live feature frame laid out on the hourly grid lgbm3_features reads.
+
+    Shared by v3 and v4 so that the two cannot assemble their inputs differently.
+    Serving has only the current weather forecast, in age column 0.
+    """
+    from ..features.build import _swedish_holidays
+    from ..fetch import fuels as fuels_store
+
+    frame = features.sort_values(["zone", "ts"])
+    times = pd.DatetimeIndex(sorted(frame["ts"].unique()))
+    hour0 = F.hour_index(times[0].to_pydatetime())
+    n = F.hour_index(times[-1].to_pydatetime()) - hour0 + 1
+
+    def grid(zone_frame: pd.DataFrame, column: str) -> np.ndarray:
+        out = np.full(n, np.nan)
+        idx = F.hour_indices(zone_frame["ts"]) - hour0
+        out[idx] = pd.to_numeric(zone_frame[column], errors="coerce").to_numpy()
+        return out
+
+    by_zone = {zone: group for zone, group in frame.groupby("zone")}
+    prices = {zone: grid(by_zone[zone], "actual_price") for zone in F.ZONE_ORDER}
+    any_zone = by_zone[F.ZONE_ORDER[0]]
+    weather = {
+        point: {var: grid(any_zone, WX_COLUMNS[var][point]).reshape(-1, 1) for var in ("temp", "wind", "solar")}
+        for point in F.POINTS
+    }
+    return {
+        "hour0": hour0,
+        "by_zone": by_zone,
+        "prices": prices,
+        "weather": weather,
+        "fuels": F.fuel_arrays(fuels_store.load_fuels(), hour0, n),
+        "holidays": _swedish_holidays(sorted({t.year for t in times})),
+        "stats": {zone: F.daily_stats(prices[zone], hour0) for zone in F.ZONE_ORDER},
+    }
+
+
+def zone_targets(inputs: dict, issued_at: datetime):
+    """Per zone: the target rows, their hour indices and their lead in days."""
+    start, end = target_window(issued_at)
+    for zone in F.ZONE_ORDER:
+        zf = inputs["by_zone"][zone]
+        targets = zf[(zf["ts"] >= pd.Timestamp(start)) & (zf["ts"] <= pd.Timestamp(end))]
+        if targets.empty:
+            continue
+        # The last local day whose prices are all published.
+        priced = zf[zf["actual_price"].notna()]
+        per_day = priced.groupby(priced["ts"].dt.tz_convert(TZ).dt.date).size()
+        full_days = per_day[per_day >= 23]
+        last_known = full_days.index.max() if len(full_days) else (issued_at.astimezone(TZ).date() - timedelta(days=1))
+
+        target_idx = F.hour_indices(targets["ts"]) - inputs["hour0"]
+        target_days = targets["ts"].dt.tz_convert(TZ).dt.date
+        lead = np.array([(day - last_known).days for day in target_days])
+        yield zone, targets, target_idx, lead

@@ -217,6 +217,17 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
 
     features = build_features(actuals, weather, regional, fundamentals, now)
 
+    # ---- 4c. fuels and futures ------------------------------------------
+    # Fetched before the models, not with the long-term step: lightgbm_v3 reads
+    # fuel prices and market_scaled reads futures, and fetching them afterwards
+    # meant every run forecast on the previous run's prices. Neither call
+    # raises; a failure leaves the stored history in place.
+    if not skip_fetch:
+        sources["fuels"] = fuels.refresh()
+        futures_rows, sources["euronext_futures"] = euronext_futures.fetch_futures()
+        if futures_rows:
+            euronext_futures.upsert_futures(futures_rows)
+
     # ---- 5-7. models ----------------------------------------------------
     issued_at = now
     predictions: dict[str, list] = {}
@@ -285,15 +296,11 @@ def run(skip_fetch: bool = False, record: bool | None = None) -> int:
     drivers = build_drivers(features, ensemble_by_zone, svk, now, outages, reservoirs)
 
     # ---- 10b. long-term -------------------------------------------------
-    # Monthly means one to three months out. Its sources are fetched here, not
-    # with the others: none of them feeds the hourly forecast, and a failure
-    # anywhere in this step must not cost the run its hourly output.
+    # Monthly means one to three months out. Fuels and futures were fetched in
+    # step 4c; the seasonal outlook feeds nothing hourly and is fetched here, and
+    # a failure anywhere in this step must not cost the run its hourly output.
     outlook: dict = {}
     if not skip_fetch:
-        sources["fuels"] = fuels.refresh()
-        futures_rows, sources["euronext_futures"] = euronext_futures.fetch_futures()
-        if futures_rows:
-            euronext_futures.upsert_futures(futures_rows)
         outlook, sources["seasonal_outlook"] = seasonal.fetch_outlook()
     try:
         longterm = longterm_publish.build(
