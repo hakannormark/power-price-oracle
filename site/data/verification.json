@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-19T13:37:09+01:00",
+ "generated_at": "2026-11-19T17:40:33+01:00",
  "passed": 9,
  "total": 9,
  "checks": [
@@ -22,7 +22,7 @@
    "title": "Sidorna visar de lagrade priserna",
    "method": "Priser på elområdessidorna jämförs med lagret, och öre/kWh med EUR/MWh gånger ECB-kursen.",
    "ok": true,
-   "detail": "428 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
+   "detail": "412 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
   },
   {
    "id": "forecast_bands",
@@ -74,6 +74,6 @@
   "BESS Studio: i ett positivt extremår följer reservpriserna spotpriset enligt ett samband uppmätt mellan dagar sedan 2024. Att det gäller ett helt år är ett antagande.",
   "BESS Studio: aktiveringsenergi, egen prispåverkan, intradag, prognosfel och otillgänglighet är inte modellerade. Resultatet är en övre gräns före dessa.",
   "Prisprognosen: osäkerhetsbandet är kalibrerat på historiska fel och täcker inte händelser utan motstycke.",
-  "Långtidsprognosen: har ännu ingen skarp månad att mätas mot."
+  "Långtidsprognosen: mätt skarpt först från oktober 2026, alltså på ett fåtal månader. Det räcker inte för att avgöra vilken modell som är bäst; utfallet står på långtidssidan."
  ]
 }

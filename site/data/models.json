@@ -75,6 +75,15 @@
    "is_reference": false
   },
   {
+   "id": "lightgbm_v4",
+   "name_sv": "LightGBM v4 (kandidat)",
+   "description_sv": "Kandidat. Bygger på LightGBM v3 men ser ingen prisnivå: målet och alla prissignaler räknas i förhållande till senaste veckans pris. v2 och v3 hade lärt sig att höga priser brukar falla tillbaka och underskattade därför SE3 och SE4 under hösten 2026. Dygnet närmast efter senast kända pris har en egen modell, och osäkerhetsbandet kalibreras per elområde. Senast tränad 2026-11-19. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 28,79 EUR/MWh mot 41,81 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
+   "quantiles": true,
+   "derived": false,
+   "is_default": false,
+   "is_reference": false
+  },
+  {
    "id": "ensemble",
    "name_sv": "Ensemble",
    "description_sv": "Viktat snitt av säsongsnaiv och väderskalad, 35/65. Var sajtens standardmodell fram till att den mättes: på 437 224 timmar ut ur urvalet hamnade den på 28,70 i medelfel mot 25,94 för den dämpade väderskalade modellen. Varje blandning gjorde resultatet sämre än den bästa modellen ensam, så ensemblen finns kvar som jämförelse i stället för som standard.",
