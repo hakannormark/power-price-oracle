@@ -1,7 +1,7 @@
 {
  "ok": true,
- "generated_at": "2026-11-19T18:03:18+01:00",
- "run_id": "20261119T1703Z",
+ "generated_at": "2026-11-20T06:32:37+01:00",
+ "run_id": "20261120T0532Z",
  "degraded": false,
  "demo": false,
  "fx": {
@@ -9,17 +9,17 @@
   "rate": 11.147,
   "date": "2026-11-19",
   "source": "ECB",
-  "fetched_at": "2026-11-19T18:06:18+01:00",
+  "fetched_at": "2026-11-20T06:33:33+01:00",
   "stale": false
  },
  "sources": {
   "entsoe_prices": {
    "ok": true,
-   "rows": 480
+   "rows": 384
   },
   "entsoe_quarters": {
    "ok": true,
-   "rows": 1920
+   "rows": 1536
   },
   "open_meteo": {
    "ok": true,
@@ -28,7 +28,7 @@
   },
   "entsoe_fundamentals": {
    "ok": true,
-   "rows": 384
+   "rows": 288
   },
   "svk_text": {
    "ok": true,
@@ -41,11 +41,11 @@
   },
   "nordpool_umm": {
    "ok": true,
-   "messages": 1294
+   "messages": 1236
   },
   "fuels": {
    "ok": true,
-   "rows": 132,
+   "rows": 130,
    "added": 0
   },
   "euronext_futures": {
@@ -59,7 +59,7 @@
   "longterm": {
    "ok": true,
    "default": "lt_damped",
-   "logged": 0
+   "logged": 48
   },
   "bess": {
    "ok": true,
@@ -69,5 +69,5 @@
    "ok": true
   }
  },
- "next_expected_update_utc": "2026-11-20T05:30:00Z"
+ "next_expected_update_utc": "2026-11-20T09:15:00Z"
 }
