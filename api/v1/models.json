@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T13:41:05+01:00",
+ "generated_at": "2026-11-23T18:10:17+01:00",
  "default_model": "lightgbm_v2",
  "models": [
   {
@@ -68,7 +68,7 @@
   {
    "id": "lightgbm_v3",
    "name_sv": "LightGBM v3 (kandidat)",
-   "description_sv": "Efterföljare till Residual-LightGBM, som kandidat. Tränad på arkiverade väderprognoser med rätt framförhållning i stället för på vädret som det blev, med framförhållningen som egen variabel (1–7 dygn), tyskt och danskt väder, gaspris och utsläppsrätter. Tränas om varje vecka. Senast tränad 2026-11-16. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 31,13 EUR/MWh mot 40,64 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
+   "description_sv": "Efterföljare till Residual-LightGBM, som kandidat. Tränad på arkiverade väderprognoser med rätt framförhållning i stället för på vädret som det blev, med framförhållningen som egen variabel (1–7 dygn), tyskt och danskt väder, gaspris och utsläppsrätter. Tränas om varje vecka. Senast tränad 2026-11-23. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 30,93 EUR/MWh mot 41,43 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
    "quantiles": true,
    "derived": false,
    "is_default": false,
@@ -77,7 +77,7 @@
   {
    "id": "lightgbm_v4",
    "name_sv": "LightGBM v4 (kandidat)",
-   "description_sv": "Kandidat. Bygger på LightGBM v3 men ser ingen prisnivå: målet och alla prissignaler räknas i förhållande till senaste veckans pris. v2 och v3 hade lärt sig att höga priser brukar falla tillbaka och underskattade därför SE3 och SE4 under hösten 2026. Dygnet närmast efter senast kända pris har en egen modell, och osäkerhetsbandet kalibreras per elområde. Senast tränad 2026-11-19. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 28,79 EUR/MWh mot 41,81 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
+   "description_sv": "Kandidat. Bygger på LightGBM v3 men ser ingen prisnivå: målet och alla prissignaler räknas i förhållande till senaste veckans pris. v2 och v3 hade lärt sig att höga priser brukar falla tillbaka och underskattade därför SE3 och SE4 under hösten 2026. Dygnet närmast efter senast kända pris har en egen modell, och osäkerhetsbandet kalibreras per elområde. Senast tränad 2026-11-23. I test på de sex senaste månaderna, med omträning före varje månad: medelfel 28,67 EUR/MWh mot 41,43 för den säsongsnaiva referensen. Testet är gjort på arkiverade prognoser, inte på skarpa – det avgörs på träffsäkerhetssidan.",
    "quantiles": true,
    "derived": false,
    "is_default": false,

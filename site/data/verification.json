@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T13:41:24+01:00",
+ "generated_at": "2026-11-23T18:10:37+01:00",
  "passed": 9,
  "total": 9,
  "checks": [
@@ -15,14 +15,14 @@
    "title": "Priserna stämmer med en oberoende källa",
    "method": "Lagrade timpriser jämförs med energy-charts.info (Fraunhofer ISE), som hämtar från ENTSO-E på egen väg.",
    "ok": true,
-   "detail": "Hela historiken jämförd 2026-10-07: 345 328 timmar, 0 avviker (före rättning: 3, alla i ett dygn i SE2 2022). Senaste löpande kontroll 2026-11-16: 4 420 timmar 2026-10-01–2026-11-15, 0 avviker."
+   "detail": "Hela historiken jämförd 2026-10-07: 345 328 timmar, 0 avviker (före rättning: 3, alla i ett dygn i SE2 2022). Senaste löpande kontroll 2026-11-23: 4 420 timmar 2026-10-08–2026-11-22, 0 avviker."
   },
   {
    "id": "site_prices",
    "title": "Sidorna visar de lagrade priserna",
    "method": "Priser på elområdessidorna jämförs med lagret, och öre/kWh med EUR/MWh gånger ECB-kursen.",
    "ok": true,
-   "detail": "428 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
+   "detail": "408 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
   },
   {
    "id": "forecast_bands",
