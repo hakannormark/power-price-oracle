@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-25T10:24:29+01:00",
+ "generated_at": "2026-11-25T13:38:05+01:00",
  "passed": 9,
  "total": 9,
  "checks": [
@@ -8,7 +8,7 @@
    "title": "Prishistoriken är komplett",
    "method": "Varje timme sedan 2015 finns en gång per elområde.",
    "ok": true,
-   "detail": "417 304 timpriser sedan 2015-01-01; saknade timmar: 0, dubbletter: 0."
+   "detail": "417 400 timpriser sedan 2015-01-01; saknade timmar: 0, dubbletter: 0."
   },
   {
    "id": "price_source",
@@ -22,7 +22,7 @@
    "title": "Sidorna visar de lagrade priserna",
    "method": "Priser på elområdessidorna jämförs med lagret, och öre/kWh med EUR/MWh gånger ECB-kursen.",
    "ok": true,
-   "detail": "248 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
+   "detail": "428 visade timpriser jämförda med lagrade priser och växelkursen; 0 avviker."
   },
   {
    "id": "forecast_bands",
@@ -36,7 +36,7 @@
    "title": "Träffsäkerheten är rätt räknad",
    "method": "Standardmodellens medelfel räknas om direkt ur prognosloggen och utfallen, utan poängsättningskoden.",
    "ok": true,
-   "detail": "Standardmodellens medelfel (lightgbm_v2) omräknat ur prognosloggen och utfallen, per horisont i EUR/MWh: 0-24h: 29.88, 24-48h: 33.85, 48-72h: 39.01, 72-96h: 41.93, 96-120h: 41.75, 120-144h: 44.17, 144-168h: 45.02. Största skillnad mot träffsäkerhetssidan: 0.000."
+   "detail": "Standardmodellens medelfel (lightgbm_v2) omräknat ur prognosloggen och utfallen, per horisont i EUR/MWh: 0-24h: 30.50, 24-48h: 35.12, 48-72h: 40.64, 72-96h: 43.80, 96-120h: 43.57, 120-144h: 45.89, 144-168h: 46.66. Största skillnad mot träffsäkerhetssidan: 0.000."
   },
   {
    "id": "battery_optimiser",
